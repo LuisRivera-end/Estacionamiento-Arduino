@@ -87,13 +87,13 @@ deben pasar por FastAPI usando una llave secreta de Supabase solo en servidor.
 1. El sensor IR detecta que un vehiculo llego a la salida.
 2. El usuario ingresa el codigo del ticket en el teclado matricial.
 3. Arduino consulta FastAPI con el codigo capturado.
-4. FastAPI valida que el ticket exista, este activo y este pagado.
+4. FastAPI valida que el ticket exista, este activo y este pagado o que entre en el rango de tolerancia (Sin pagar).
 5. Si el ticket no esta pagado:
    - La barrera permanece cerrada.
    - La pantalla LCD muestra pago pendiente.
    - El LED rojo y el buzzer pueden indicar bloqueo.
    - Se registra el intento de salida.
-6. Si el ticket esta pagado:
+6. Si el ticket esta pagado o dentro del rango de tolerancia:
    - FastAPI registra la salida.
    - La barrera de salida se abre.
    - La pantalla LCD confirma salida autorizada.
