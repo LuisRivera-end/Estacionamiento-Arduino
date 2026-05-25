@@ -1,3 +1,4 @@
+import { normalizeTicketCode } from "../formatters";
 import { apiPost } from "./client";
 import { paymentFixture } from "./fixtures";
 import type { SimulatedPayment } from "./types";
@@ -8,10 +9,12 @@ export async function simulatePayment(
   ticketCode: string,
   lostTicket = false,
 ): Promise<SimulatedPayment> {
-  if (useFixtures) return { ...paymentFixture, ticket_code: ticketCode };
+  const normalizedTicketCode = normalizeTicketCode(ticketCode);
+
+  if (useFixtures) return { ...paymentFixture, ticket_code: normalizedTicketCode };
 
   return apiPost<SimulatedPayment>("/payments/simulate", {
-    ticket_code: ticketCode,
+    ticket_code: normalizedTicketCode,
     lost_ticket: lostTicket,
     method: lostTicket ? "lost_ticket" : "simulated_stripe",
   });
