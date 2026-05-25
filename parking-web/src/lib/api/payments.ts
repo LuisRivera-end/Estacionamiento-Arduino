@@ -11,7 +11,15 @@ export async function simulatePayment(
 ): Promise<SimulatedPayment> {
   const normalizedTicketCode = normalizeTicketCode(ticketCode);
 
-  if (useFixtures) return { ...paymentFixture, ticket_code: normalizedTicketCode };
+  if (useFixtures) {
+    return {
+      ...paymentFixture,
+      ticket_code: normalizedTicketCode,
+      provider_reference: lostTicket
+        ? `sim_lost_ticket_${normalizedTicketCode}`
+        : paymentFixture.provider_reference,
+    };
+  }
 
   return apiPost<SimulatedPayment>("/payments/simulate", {
     ticket_code: normalizedTicketCode,
