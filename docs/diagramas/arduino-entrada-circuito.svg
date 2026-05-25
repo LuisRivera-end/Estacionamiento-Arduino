@@ -1,0 +1,147 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="980" viewBox="0 0 1600 980" role="img" aria-labelledby="title desc">
+  <title id="title">Circuito Arduino UNO Entrada</title>
+  <desc id="desc">Diagrama de cableado para la caseta de entrada con Arduino UNO, ESP8266, LCD I2C, sensor IR y servo.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="currentColor" />
+    </marker>
+    <style>
+      .title { font: 700 34px Arial, sans-serif; fill: #122033; }
+      .subtitle { font: 16px Arial, sans-serif; fill: #44546a; }
+      .box { fill: #f8fbff; stroke: #25364d; stroke-width: 2; rx: 18; }
+      .board { fill: #dff0ff; stroke: #0c5a9c; stroke-width: 3; rx: 18; }
+      .bread { fill: #fff7df; stroke: #9b6b00; stroke-width: 3; rx: 18; }
+      .module { fill: #f8fbff; stroke: #25364d; stroke-width: 2.5; rx: 16; }
+      .moduleGreen { fill: #e9f8ed; stroke: #1f7a3b; stroke-width: 2.5; rx: 16; }
+      .moduleOrange { fill: #fff1dd; stroke: #b65f00; stroke-width: 2.5; rx: 16; }
+      .pin { fill: #ffffff; stroke: #24384f; stroke-width: 1.5; rx: 5; }
+      .pinText { font: 700 14px Arial, sans-serif; fill: #122033; }
+      .label { font: 700 18px Arial, sans-serif; fill: #122033; }
+      .small { font: 14px Arial, sans-serif; fill: #334155; }
+      .tiny { font: 12px Arial, sans-serif; fill: #475569; }
+      .note { font: 15px Arial, sans-serif; fill: #1f2937; }
+      .wire { fill: none; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; marker-end: url(#arrow); }
+      .serial { stroke: #2563eb; color: #2563eb; }
+      .signal { stroke: #16a34a; color: #16a34a; }
+      .i2c { stroke: #7c3aed; color: #7c3aed; }
+      .power5 { stroke: #dc2626; color: #dc2626; }
+      .power33 { stroke: #f97316; color: #f97316; }
+      .ground { stroke: #111827; color: #111827; }
+      .servo { stroke: #ca8a04; color: #ca8a04; }
+      .rail5 { stroke: #dc2626; stroke-width: 8; stroke-linecap: round; }
+      .rail33 { stroke: #f97316; stroke-width: 8; stroke-linecap: round; }
+      .railg { stroke: #111827; stroke-width: 8; stroke-linecap: round; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="980" fill="#ffffff" />
+  <text x="60" y="55" class="title">Caseta de entrada - Arduino UNO + protoboard</text>
+  <text x="60" y="84" class="subtitle">Referencia de armado: ticket desde API, LCD I2C, sensor IR, servo de barrera y ESP8266 con nivel 3.3V.</text>
+
+  <g id="arduino">
+    <rect x="60" y="145" width="500" height="680" class="board" />
+    <text x="92" y="190" class="label">Arduino UNO Entrada</text>
+    <text x="92" y="218" class="small">USB a PC para carga y monitor serial</text>
+
+    <rect x="90" y="245" width="120" height="32" class="pin" /><text x="105" y="267" class="pinText">2 ESP TX</text>
+    <rect x="90" y="290" width="120" height="32" class="pin" /><text x="105" y="312" class="pinText">3 ESP RX</text>
+    <rect x="90" y="335" width="120" height="32" class="pin" /><text x="105" y="357" class="pinText">4 IR OUT</text>
+    <rect x="90" y="380" width="120" height="32" class="pin" /><text x="105" y="402" class="pinText">5 SERVO</text>
+    <rect x="90" y="425" width="120" height="32" class="pin" /><text x="105" y="447" class="pinText">6 LED</text>
+    <rect x="90" y="560" width="120" height="32" class="pin" /><text x="105" y="582" class="pinText">A4 SDA</text>
+    <rect x="90" y="605" width="120" height="32" class="pin" /><text x="105" y="627" class="pinText">A5 SCL</text>
+    <rect x="90" y="695" width="120" height="32" class="pin" /><text x="105" y="717" class="pinText">5V</text>
+    <rect x="90" y="740" width="120" height="32" class="pin" /><text x="105" y="762" class="pinText">GND</text>
+
+    <text x="300" y="270" class="tiny">Pin 2 recibe TX del ESP8266</text>
+    <text x="300" y="315" class="tiny">Pin 3 envia a RX del ESP8266 con divisor</text>
+    <text x="300" y="360" class="tiny">IR detecta vehiculo en entrada</text>
+    <text x="300" y="405" class="tiny">Servo abre/cierra barrera</text>
+    <text x="300" y="580" class="tiny">LCD I2C comparte bus A4/A5</text>
+  </g>
+
+  <g id="breadboard">
+    <rect x="640" y="145" width="300" height="680" class="bread" />
+    <text x="675" y="188" class="label">Protoboard entrada</text>
+    <line x1="675" y1="230" x2="900" y2="230" class="rail5" />
+    <line x1="675" y1="270" x2="900" y2="270" class="railg" />
+    <line x1="675" y1="310" x2="900" y2="310" class="rail33" />
+    <text x="700" y="222" class="pinText" fill="#dc2626">Riel 5V externo</text>
+    <text x="700" y="262" class="pinText" fill="#111827">Riel GND comun</text>
+    <text x="700" y="302" class="pinText" fill="#f97316">Riel 3.3V regulado</text>
+
+    <rect x="675" y="370" width="230" height="62" class="moduleOrange" />
+    <text x="695" y="395" class="pinText">Divisor / level shifter</text>
+    <text x="695" y="416" class="tiny">Arduino TX 5V -> ESP RX 3.3V</text>
+
+    <rect x="705" y="485" width="170" height="80" class="moduleGreen" />
+    <text x="740" y="515" class="pinText">LED estado</text>
+    <text x="725" y="538" class="tiny">Pin 6 + 220 ohm a GND</text>
+
+    <rect x="675" y="665" width="230" height="105" class="moduleOrange" />
+    <text x="695" y="696" class="pinText">Fuente externa</text>
+    <text x="695" y="720" class="tiny">5V para servo y LCD</text>
+    <text x="695" y="744" class="tiny">3.3V estable para ESP8266</text>
+  </g>
+
+  <g id="modules">
+    <rect x="1060" y="130" width="420" height="165" class="moduleOrange" />
+    <text x="1090" y="168" class="label">ESP8266 ESP-01</text>
+    <text x="1090" y="195" class="small">AT firmware, HTTP REST</text>
+    <text x="1090" y="220" class="tiny">VCC/EN: 3.3V regulado</text>
+    <text x="1090" y="243" class="tiny">GND: comun</text>
+    <text x="1090" y="266" class="tiny">RX: solo 3.3V</text>
+
+    <rect x="1060" y="340" width="420" height="130" class="module" />
+    <text x="1090" y="378" class="label">LCD 16x2 I2C</text>
+    <text x="1090" y="407" class="small">Muestra ticket / lleno / error API</text>
+    <text x="1090" y="434" class="tiny">SDA=A4, SCL=A5, VCC=5V, GND</text>
+
+    <rect x="1060" y="515" width="420" height="130" class="moduleGreen" />
+    <text x="1090" y="553" class="label">Sensor IR entrada</text>
+    <text x="1090" y="582" class="small">Detecta llegada del vehiculo</text>
+    <text x="1090" y="609" class="tiny">OUT=4, VCC=5V, GND</text>
+
+    <rect x="1060" y="700" width="420" height="140" class="module" />
+    <text x="1090" y="740" class="label">Servo barrera entrada</text>
+    <text x="1090" y="770" class="small">Control de pluma o barrera</text>
+    <text x="1090" y="798" class="tiny">SIG=5, VCC=5V externo, GND comun</text>
+  </g>
+
+  <!-- Serial ESP8266 -->
+  <path d="M210 261 C500 261, 780 170, 1060 170" class="wire serial" />
+  <text x="560" y="213" class="tiny" fill="#2563eb">Pin 2 &lt;- ESP TX</text>
+  <path d="M210 306 C420 306, 555 401, 675 401" class="wire serial" />
+  <path d="M905 401 C980 390, 1025 266, 1060 266" class="wire serial" />
+  <text x="520" y="355" class="tiny" fill="#2563eb">Pin 3 -> divisor -> ESP RX</text>
+
+  <!-- IR, servo, LED -->
+  <path d="M210 351 C520 351, 900 550, 1060 550" class="wire signal" />
+  <text x="575" y="500" class="tiny" fill="#16a34a">Pin 4 senal IR</text>
+  <path d="M210 396 C500 450, 780 725, 1060 725" class="wire servo" />
+  <text x="580" y="650" class="tiny" fill="#ca8a04">Pin 5 senal servo</text>
+  <path d="M210 441 C410 500, 600 515, 705 515" class="wire signal" />
+
+  <!-- I2C -->
+  <path d="M210 576 C520 576, 830 372, 1060 372" class="wire i2c" />
+  <path d="M210 621 C520 621, 830 402, 1060 402" class="wire i2c" />
+  <text x="560" y="560" class="tiny" fill="#7c3aed">A4/A5 bus I2C</text>
+
+  <!-- Power rails -->
+  <path d="M210 711 C390 711, 500 230, 675 230" class="wire power5" />
+  <path d="M210 756 C390 756, 500 270, 675 270" class="wire ground" />
+  <path d="M900 230 C995 230, 1005 420, 1060 420" class="wire power5" />
+  <path d="M900 270 C995 270, 1005 445, 1060 445" class="wire ground" />
+  <path d="M900 230 C1000 230, 1010 570, 1060 570" class="wire power5" />
+  <path d="M900 270 C1000 270, 1010 595, 1060 595" class="wire ground" />
+  <path d="M900 230 C980 500, 1000 755, 1060 755" class="wire power5" />
+  <path d="M900 270 C990 520, 1005 785, 1060 785" class="wire ground" />
+  <path d="M900 310 C980 310, 1010 220, 1060 220" class="wire power33" />
+  <path d="M900 270 C980 270, 1010 243, 1060 243" class="wire ground" />
+
+  <g id="legend">
+    <rect x="60" y="860" width="1420" height="85" class="box" />
+    <text x="90" y="895" class="label">Notas de armado</text>
+    <text x="90" y="923" class="note">1. Unir todos los GND. 2. El servo toma 5V externo; Arduino solo controla SIG. 3. El ESP8266 usa 3.3V y RX protegido. 4. El LCD debe ser I2C para ahorrar pines.</text>
+  </g>
+</svg>

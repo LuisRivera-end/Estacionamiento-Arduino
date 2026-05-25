@@ -116,6 +116,18 @@ deben pasar por FastAPI usando una llave secreta de Supabase solo en servidor.
 3. En esta fase, el pago se registra con el mismo mecanismo simulado.
 4. El registro debe quedar marcado como extravio para reportes y auditoria.
 
+### 4.5 Programacion del Arduino esperado
+
+1. Para el ticket se generan 5 digitos alfanumericos aleatorios.
+2. La programacion del Arduino debe incluir:
+   - Una funcion para generar codigo de ticket.
+   - Una funcion para enviar codigo de ticket a la API FastAPI.
+   - Una funcion para recibir respuesta de la API FastAPI.
+   - Una funcion para abrir la barrera de entrada.
+   - Una funcion para abrir la barrera de salida.
+   - Una funcion para mostrar mensaje en pantalla LCD.
+3. Las variables declaradas del Arduino deben mencionar el PIN o puerto al que esta conectado cada componente (Sensor IR, LCD, Servo, etc).
+
 ## 5. Reglas de tarifa
 
 Las tarifas se almacenan en base de datos y son editables desde el dashboard.
@@ -157,7 +169,7 @@ camara.
 | `paid_at` | Timestamptz, nullable | Fecha y hora de pago. |
 | `exit_at` | Timestamptz, nullable | Fecha y hora de salida. |
 | `duration_minutes` | Integer, nullable | Duracion calculada al pagar o salir. |
-| `calculated_amount_cents` | Integer | Monto calculado en centavos. |
+| `calculated_amount` | Integer | Monto calculado. |
 | `lost_ticket` | Boolean | Indica si se aplico tarifa por extravio. |
 | `created_at` | Timestamptz | Fecha de creacion. |
 | `updated_at` | Timestamptz | Fecha de ultima actualizacion. |
@@ -168,7 +180,7 @@ camara.
 | --- | --- | --- |
 | `id` | UUID | Identificador interno. |
 | `ticket_id` | UUID | Relacion con `tickets.id`. |
-| `amount_cents` | Integer | Monto pagado o simulado. |
+| `amount` | Integer | Monto pagado o simulado. |
 | `method` | Text | `simulated_stripe`, `manual_admin`, `lost_ticket`. |
 | `status` | Text | `simulated`, `succeeded`, `voided`, `failed`. |
 | `provider_reference` | Text, nullable | Referencia simulada o futura referencia Stripe. |
@@ -183,8 +195,8 @@ camara.
 | `name` | Text | Nombre de la regla activa. |
 | `free_tolerance_minutes` | Integer | Minutos sin cobro, default 5. |
 | `block_minutes` | Integer | Tamano del bloque de cobro. |
-| `block_amount_cents` | Integer | Monto por bloque. |
-| `lost_ticket_fee_cents` | Integer | Monto por extravio. |
+| `block_amount` | Integer | Monto por bloque. |
+| `lost_ticket_fee` | Integer | Monto por extravio. |
 | `is_active` | Boolean | Solo una regla activa para el MVP. |
 | `created_at` | Timestamptz | Fecha de creacion. |
 | `updated_at` | Timestamptz | Fecha de ultima actualizacion. |
@@ -361,7 +373,7 @@ Respuesta:
   "ticket_code": "A1B2C3D4",
   "duration_minutes": 64,
   "free_tolerance_minutes": 5,
-  "amount_cents": 3000,
+  "amount": 3,
   "currency": "MXN"
 }
 ```
@@ -389,7 +401,7 @@ Respuesta:
   "payment_id": "uuid",
   "ticket_code": "A1B2C3D4",
   "status": "simulated",
-  "amount_cents": 3000,
+  "amount": 3,
   "provider_reference": "sim_stripe_20260523_001"
 }
 ```
