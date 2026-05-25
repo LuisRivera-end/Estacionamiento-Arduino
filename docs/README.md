@@ -7,7 +7,8 @@ estacionamiento inteligente.
 
 - [Especificacion del sistema de estacionamiento](./especificacion-sistema-estacionamiento.md)
 - [Diagrama de flujo de Arduino](./Diagrama%20de%20flujo%20de%20Arduino.pdf)
-
+- [Planificacion frontend SDD](./planificacion-frontend-sdd.md)
+- [Plan tecnico frontend](./superpowers/plans/2026-05-25-frontend-dashboard-pago.md)
 - [Plan backend FastAPI SDD](./plan-backend-fastapi-sdd.md)
 - [Plan Arduino SDD](./plan-arduino-sdd.md)
 
