@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from functools import lru_cache
+
 from fastapi import Depends, Header
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -17,8 +19,9 @@ def get_app_settings() -> Settings:
     return get_settings()
 
 
-def get_jwt_verifier(settings: Settings = Depends(get_app_settings)) -> SupabaseJWTVerifier:
-    return SupabaseJWTVerifier(settings)
+@lru_cache
+def get_jwt_verifier() -> SupabaseJWTVerifier:
+    return SupabaseJWTVerifier(get_settings())
 
 
 async def get_current_claims(
