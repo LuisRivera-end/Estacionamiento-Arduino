@@ -22,9 +22,9 @@ def get_url() -> str:
     if configured:
         return configured
     settings = get_settings()
-    if not settings.supabase_db_url:
+    if not settings.effective_supabase_db_url:
         raise RuntimeError("SUPABASE_DB_URL is not configured")
-    return settings.supabase_db_url
+    return settings.effective_supabase_db_url
 
 
 def run_migrations_offline() -> None:

@@ -22,7 +22,7 @@ def init_engine(database_url: str | None = None) -> AsyncEngine:
         return engine
 
     settings = get_settings()
-    resolved_database_url = database_url or settings.supabase_db_url
+    resolved_database_url = database_url or settings.effective_supabase_db_url
     if not resolved_database_url:
         raise RuntimeError("SUPABASE_DB_URL is not configured")
 

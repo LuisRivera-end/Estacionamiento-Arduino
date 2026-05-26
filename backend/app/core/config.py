@@ -43,6 +43,14 @@ class Settings(BaseSettings):
     def cors_origins(self) -> list[str]:
         return [item.strip() for item in self.allowed_origins.split(",") if item.strip()]
 
+    @property
+    def effective_supabase_db_url(self) -> str | None:
+        if not self.supabase_db_url:
+            return None
+        if self.supabase_db_url.startswith("postgresql://"):
+            return self.supabase_db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        return self.supabase_db_url
+
 
 @lru_cache
 def get_settings() -> Settings:
