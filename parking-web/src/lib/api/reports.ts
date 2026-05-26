@@ -1,5 +1,4 @@
 import { apiGet } from "./client";
-import { statusFixture, summaryFixture } from "./fixtures";
 import type {
   PaginatedEvents,
   PaginatedPayments,
@@ -7,8 +6,6 @@ import type {
   StatusResponse,
   SummaryReport,
 } from "./types";
-
-const useFixtures = process.env.NEXT_PUBLIC_API_BASE_URL === "fixture";
 
 type TicketReportFilters = {
   page?: number;
@@ -49,14 +46,10 @@ function createQueryString(params: Record<string, string | undefined>): string {
 }
 
 export async function getStatus(accessToken: string): Promise<StatusResponse> {
-  if (useFixtures) return statusFixture;
-
   return apiGet<StatusResponse>("/api/v1/status", { accessToken });
 }
 
 export async function getSummary(accessToken: string): Promise<SummaryReport> {
-  if (useFixtures) return summaryFixture;
-
   return apiGet<SummaryReport>("/api/v1/admin/reports/summary", { accessToken });
 }
 
@@ -64,26 +57,6 @@ export async function getAdminTickets(
   accessToken: string,
   filters: TicketReportFilters = {},
 ): Promise<PaginatedTickets> {
-  if (useFixtures) {
-    return {
-      items: [
-        {
-          ticket_code: "A1B2C",
-          status: "active",
-          payment_status: "unpaid",
-          entry_at: "2026-05-23T09:10:00-06:00",
-          paid_at: null,
-          exit_at: null,
-          calculated_amount: 0,
-          lost_ticket: false,
-        },
-      ],
-      total: 1,
-      page: filters.page ?? 1,
-      page_size: filters.pageSize ?? 25,
-    };
-  }
-
   const query = createQueryString({
     page: filters.page?.toString(),
     page_size: filters.pageSize?.toString(),
@@ -105,26 +78,6 @@ export async function getAdminPayments(
   accessToken: string,
   filters: PaymentReportFilters = {},
 ): Promise<PaginatedPayments> {
-  if (useFixtures) {
-    return {
-      items: [
-        {
-          payment_id: "simulated-payment-id",
-          ticket_code: "A1B2C",
-          amount: 3,
-          method: "simulated_stripe",
-          status: "simulated",
-          provider_reference: "sim_stripe_20260523_001",
-          created_by: "fixture-user",
-          created_at: "2026-05-23T10:14:00-06:00",
-        },
-      ],
-      total: 1,
-      page: filters.page ?? 1,
-      page_size: filters.pageSize ?? 25,
-    };
-  }
-
   const query = createQueryString({
     page: filters.page?.toString(),
     page_size: filters.pageSize?.toString(),
@@ -142,23 +95,6 @@ export async function getAdminEvents(
   accessToken: string,
   filters: EventReportFilters = {},
 ): Promise<PaginatedEvents> {
-  if (useFixtures) {
-    return {
-      items: [
-        {
-          event_at: "2026-05-23T09:10:00-06:00",
-          event_type: "entry",
-          ticket_code: "A1B2C",
-          device_id: "entrada-01",
-          result: "autorizada",
-        },
-      ],
-      total: 1,
-      page: filters.page ?? 1,
-      page_size: filters.pageSize ?? 25,
-    };
-  }
-
   const query = createQueryString({
     page: filters.page?.toString(),
     page_size: filters.pageSize?.toString(),
