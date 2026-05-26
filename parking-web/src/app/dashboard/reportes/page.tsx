@@ -21,7 +21,7 @@ export default async function ReportsPage() {
       <Heading color="opsText">Reportes</Heading>
       <ChartCard title="Resumen diario">
         <Text color="opsMuted">
-          Datos obtenidos desde la base de datos a traves de `/admin/reports/summary`.
+          Datos obtenidos en tiempo real desde base de datos via `/admin/reports/summary`.
         </Text>
       </ChartCard>
       <DataTable
