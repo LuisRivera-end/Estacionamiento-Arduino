@@ -13,6 +13,7 @@ from app.repositories.devices import DeviceRepository
 from app.repositories.parking import ParkingRepository
 from app.repositories.tickets import TicketRepository
 from app.schemas.tickets import EntryTicketResponse
+from app.services.realtime import admin_events_broker
 from app.services.ticket_codes import generate_ticket_code
 
 
@@ -69,6 +70,14 @@ async def create_entry_ticket(*, session: AsyncSession, device_id: str) -> Entry
     await session.commit()
     await session.refresh(ticket)
     await session.refresh(state)
+    await admin_events_broker.publish(
+        {
+            "type": "ticket_created",
+            "ticket_code": ticket.code,
+            "device_id": device_id,
+            "entry_at": ticket.entry_at.isoformat(),
+        }
+    )
 
     return EntryTicketResponse(
         ticket_code=ticket.code,

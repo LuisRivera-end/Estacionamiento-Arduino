@@ -104,6 +104,27 @@ export type AdminEventItem = {
   result: string;
 };
 
+export type PaginatedTickets = {
+  items: AdminTicketItem[];
+  total: number;
+  page: number;
+  page_size: number;
+};
+
+export type PaginatedPayments = {
+  items: AdminPaymentItem[];
+  total: number;
+  page: number;
+  page_size: number;
+};
+
+export type PaginatedEvents = {
+  items: AdminEventItem[];
+  total: number;
+  page: number;
+  page_size: number;
+};
+
 export type StaffProfile = {
   user_id: string;
   email: string;

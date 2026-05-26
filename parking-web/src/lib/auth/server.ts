@@ -23,6 +23,10 @@ export async function createSupabaseServerClient() {
 }
 
 export async function getServerAccessToken() {
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL === "fixture") {
+    return "fixture-token";
+  }
+
   const supabase = await createSupabaseServerClient();
   const {
     data: { session },

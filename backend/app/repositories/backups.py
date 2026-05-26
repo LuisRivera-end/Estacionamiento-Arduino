@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from sqlalchemy import Select, desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.backup import BackupExport
@@ -20,3 +21,9 @@ class BackupRepository:
         await self.session.flush()
         await self.session.refresh(export)
         return export
+
+    async def list_recent(self, limit: int = 20) -> list[BackupExport]:
+        statement: Select[tuple[BackupExport]] = (
+            select(BackupExport).order_by(desc(BackupExport.created_at)).limit(limit)
+        )
+        return list((await self.session.execute(statement)).scalars().all())

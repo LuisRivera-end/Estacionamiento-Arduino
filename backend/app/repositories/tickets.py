@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import uuid4
 
-from sqlalchemy import Select, and_, func, or_, select
+from sqlalchemy import Select, and_, desc, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.enums import PaymentStatus, TicketStatus
@@ -71,3 +71,66 @@ class TicketRepository:
             )
         )
         return int((await self.session.execute(statement)).scalar_one())
+
+    async def list_recent(self, limit: int = 50) -> list[Ticket]:
+        statement: Select[tuple[Ticket]] = (
+            select(Ticket).order_by(desc(Ticket.entry_at)).limit(limit)
+        )
+        return list((await self.session.execute(statement)).scalars().all())
+
+    async def list_for_admin(
+        self,
+        *,
+        offset: int,
+        limit: int,
+        code: str | None = None,
+        status: TicketStatus | None = None,
+        payment_status: PaymentStatus | None = None,
+        lost_ticket: bool | None = None,
+    ) -> tuple[list[Ticket], int]:
+        filters = []
+
+        if code:
+            filters.append(Ticket.code.contains(code.upper()))
+        if status:
+            filters.append(Ticket.status == status)
+        if payment_status:
+            filters.append(Ticket.payment_status == payment_status)
+        if lost_ticket is not None:
+            filters.append(Ticket.lost_ticket.is_(lost_ticket))
+
+        items_statement = select(Ticket).order_by(desc(Ticket.entry_at)).offset(offset).limit(limit)
+        count_statement = select(func.count()).select_from(Ticket)
+
+        if filters:
+            items_statement = items_statement.where(*filters)
+            count_statement = count_statement.where(*filters)
+
+        items = list((await self.session.execute(items_statement)).scalars().all())
+        total = int((await self.session.execute(count_statement)).scalar_one())
+        return items, total
+
+    async def list_for_events(
+        self,
+        *,
+        code: str | None = None,
+        lost_ticket: bool | None = None,
+        entry_device_id: str | None = None,
+        exit_device_id: str | None = None,
+    ) -> list[Ticket]:
+        filters = []
+
+        if code:
+            filters.append(Ticket.code.contains(code.upper()))
+        if lost_ticket is not None:
+            filters.append(Ticket.lost_ticket.is_(lost_ticket))
+        if entry_device_id:
+            filters.append(Ticket.entry_device_id == entry_device_id)
+        if exit_device_id:
+            filters.append(Ticket.exit_device_id == exit_device_id)
+
+        statement = select(Ticket).order_by(desc(Ticket.entry_at))
+        if filters:
+            statement = statement.where(*filters)
+
+        return list((await self.session.execute(statement)).scalars().all())

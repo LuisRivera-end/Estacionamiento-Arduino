@@ -33,3 +33,37 @@ class ParkingRepository:
             select(PricingRule).where(PricingRule.is_active.is_(True)).limit(1)
         )
         return (await self.session.execute(statement)).scalar_one()
+
+    async def update_settings(
+        self,
+        *,
+        capacity_total: int,
+        timezone: str,
+        currency: str,
+    ) -> ParkingSettings:
+        settings = await self.get_settings()
+        settings.capacity_total = capacity_total
+        settings.timezone = timezone
+        settings.currency = currency
+        await self.session.flush()
+        await self.session.refresh(settings)
+        return settings
+
+    async def update_active_pricing_rule(
+        self,
+        *,
+        name: str,
+        free_tolerance_minutes: int,
+        block_minutes: int,
+        block_amount: int,
+        lost_ticket_fee: int,
+    ) -> PricingRule:
+        pricing_rule = await self.get_active_pricing_rule()
+        pricing_rule.name = name
+        pricing_rule.free_tolerance_minutes = free_tolerance_minutes
+        pricing_rule.block_minutes = block_minutes
+        pricing_rule.block_amount = block_amount
+        pricing_rule.lost_ticket_fee = lost_ticket_fee
+        await self.session.flush()
+        await self.session.refresh(pricing_rule)
+        return pricing_rule

@@ -71,3 +71,30 @@ export async function apiPost<T>(
 
   return response.json() as Promise<T>;
 }
+
+export async function apiPut<T>(
+  path: string,
+  body: unknown,
+  options: RequestOptions = {},
+): Promise<T> {
+  const headers = new Headers(options.headers);
+  headers.set("Content-Type", "application/json");
+
+  if (options.accessToken) {
+    headers.set("Authorization", `Bearer ${options.accessToken}`);
+  }
+
+  const response = await fetch(`${getApiBaseUrl()}${path}`, {
+    ...options,
+    method: "PUT",
+    headers,
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const apiError = (await response.json().catch(() => null)) as ApiError | null;
+    throw new Error(apiError?.message ?? `API request failed: ${response.status}`);
+  }
+
+  return response.json() as Promise<T>;
+}

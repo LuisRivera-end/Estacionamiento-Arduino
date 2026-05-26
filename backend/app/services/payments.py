@@ -13,6 +13,7 @@ from app.repositories.payments import PaymentRepository
 from app.repositories.tickets import TicketRepository
 from app.schemas.payments import SimulatedPaymentResponse
 from app.services.pricing import PricingSnapshot, calculate_amount, calculate_duration_minutes
+from app.services.realtime import admin_events_broker
 
 
 async def simulate_payment(
@@ -77,6 +78,16 @@ async def simulate_payment(
         ticket_id=ticket.id,
     )
     await session.commit()
+    await admin_events_broker.publish(
+        {
+            "type": "payment_simulated",
+            "ticket_code": ticket.code,
+            "amount": amount,
+            "method": str(method),
+            "created_by": created_by,
+            "created_at": now.isoformat(),
+        }
+    )
 
     return SimulatedPaymentResponse(
         payment_id=payment.id,

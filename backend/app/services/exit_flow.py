@@ -13,6 +13,7 @@ from app.repositories.parking import ParkingRepository
 from app.repositories.tickets import TicketRepository
 from app.schemas.tickets import ExitValidationResponse
 from app.services.pricing import calculate_amount, calculate_duration_minutes
+from app.services.realtime import admin_events_broker
 
 
 async def validate_exit(
@@ -88,6 +89,14 @@ async def validate_exit(
         ticket_id=ticket.id,
     )
     await session.commit()
+    await admin_events_broker.publish(
+        {
+            "type": "exit_authorized",
+            "ticket_code": ticket.code,
+            "device_id": device_id,
+            "exit_at": ticket.exit_at.isoformat() if ticket.exit_at else None,
+        }
+    )
 
     return ExitValidationResponse(
         authorized=True,
@@ -96,4 +105,3 @@ async def validate_exit(
         exit_at=ticket.exit_at,
         available_spaces=max(settings.capacity_total - state.occupied_spaces, 0),
     )
-
