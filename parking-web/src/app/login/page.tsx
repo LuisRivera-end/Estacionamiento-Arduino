@@ -11,12 +11,15 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCreatingAccount, setIsCreatingAccount] = useState(false);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSubmitting(true);
     setError(null);
+    setNotice(null);
 
     const supabase = createSupabaseBrowserClient();
     const { error: signInError } = await supabase.auth.signInWithPassword({
@@ -34,6 +37,37 @@ export default function LoginPage() {
       router.replace("/dashboard");
       router.refresh();
     });
+  }
+
+  async function handleCreateInitialAccount() {
+    setIsCreatingAccount(true);
+    setError(null);
+    setNotice(null);
+
+    const supabase = createSupabaseBrowserClient();
+    const { data, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
+    if (signUpError) {
+      setError(signUpError.message);
+      setIsCreatingAccount(false);
+      return;
+    }
+
+    if (data.session) {
+      startTransition(() => {
+        router.replace("/dashboard");
+        router.refresh();
+      });
+      return;
+    }
+
+    setNotice(
+      "Cuenta creada. Revisa tu correo para confirmar el acceso y luego inicia sesion.",
+    );
+    setIsCreatingAccount(false);
   }
 
   return (
@@ -55,15 +89,16 @@ export default function LoginPage() {
           p="6"
           w="full"
         >
-          <Heading size="lg">Acceso operativo</Heading>
+          <Heading size="lg">Inicio de sesion</Heading>
           <Text color="opsMuted">
-            Ingresa con una cuenta de Supabase. El primer acceso se registra como
-            administrador.
+            Inicia sesion con tu cuenta para acceder al panel. Si todavia no
+            existe un usuario, primero crea la cuenta inicial.
           </Text>
           <Field.Root required>
             <Field.Label>Correo</Field.Label>
             <Input
               type="email"
+              placeholder="correo@dominio.com"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
             />
@@ -72,13 +107,23 @@ export default function LoginPage() {
             <Field.Label>Contrasena</Field.Label>
             <Input
               type="password"
+              placeholder="Ingresa tu contrasena"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
             />
           </Field.Root>
           {error ? <Text color="red.300">{error}</Text> : null}
+          {notice ? <Text color="green.300">{notice}</Text> : null}
           <Button colorPalette="cyan" loading={isSubmitting} type="submit">
             Entrar
+          </Button>
+          <Button
+            loading={isCreatingAccount}
+            onClick={handleCreateInitialAccount}
+            type="button"
+            variant="outline"
+          >
+            Crear cuenta inicial
           </Button>
         </Stack>
       </form>
