@@ -52,6 +52,58 @@ export type BackupExport = {
   status: "requested" | "completed" | "failed";
 };
 
+export type BackupItem = {
+  backup_id: string;
+  status: "requested" | "completed" | "failed";
+  requested_by: string | null;
+  created_at: string;
+};
+
+export type ParkingSettings = {
+  capacity_total: number;
+  timezone: string;
+  currency: string;
+};
+
+export type PricingRule = {
+  name: string;
+  free_tolerance_minutes: number;
+  block_minutes: number;
+  block_amount: number;
+  lost_ticket_fee: number;
+  is_active: boolean;
+};
+
+export type AdminTicketItem = {
+  ticket_code: string;
+  status: string;
+  payment_status: string;
+  entry_at: string;
+  paid_at: string | null;
+  exit_at: string | null;
+  calculated_amount: number;
+  lost_ticket: boolean;
+};
+
+export type AdminPaymentItem = {
+  payment_id: string;
+  ticket_code: string;
+  amount: number;
+  method: string;
+  status: string;
+  provider_reference: string | null;
+  created_by: string | null;
+  created_at: string;
+};
+
+export type AdminEventItem = {
+  event_at: string;
+  event_type: "entry" | "exit";
+  ticket_code: string;
+  device_id: string | null;
+  result: string;
+};
+
 export type StaffProfile = {
   user_id: string;
   email: string;
@@ -66,4 +118,8 @@ export type BootstrapResponse = {
   created: boolean;
   first_login: boolean;
   profile: StaffProfile;
+};
+
+export type AuthSetupStatus = {
+  allow_initial_account_creation: boolean;
 };

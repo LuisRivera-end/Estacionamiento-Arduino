@@ -30,3 +30,7 @@ class BootstrapResponse(BaseModel):
     created: bool
     first_login: bool
     profile: StaffProfileResponse
+
+
+class AuthSetupStatusResponse(BaseModel):
+    allow_initial_account_creation: bool

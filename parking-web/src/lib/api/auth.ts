@@ -1,5 +1,5 @@
 import { apiGet, apiPost } from "./client";
-import type { BootstrapResponse, StaffProfile } from "./types";
+import type { AuthSetupStatus, BootstrapResponse, StaffProfile } from "./types";
 
 const useFixtures = process.env.NEXT_PUBLIC_API_BASE_URL === "fixture";
 
@@ -21,6 +21,16 @@ export async function bootstrapStaff(accessToken: string): Promise<BootstrapResp
   }
 
   return apiPost<BootstrapResponse>("/api/v1/auth/bootstrap", {}, { accessToken });
+}
+
+export async function getAuthSetupStatus(): Promise<AuthSetupStatus> {
+  if (useFixtures) {
+    return {
+      allow_initial_account_creation: true,
+    };
+  }
+
+  return apiGet<AuthSetupStatus>("/api/v1/auth/setup-status");
 }
 
 export async function getStaffProfile(accessToken: string): Promise<StaffProfile> {

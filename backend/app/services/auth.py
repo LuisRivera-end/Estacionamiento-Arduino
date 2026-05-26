@@ -39,3 +39,8 @@ async def bootstrap_staff_user(
         payload={"role": profile.role, "email": profile.email},
     )
     return profile, True
+
+
+async def allow_initial_account_creation(*, session: AsyncSession) -> bool:
+    staff_repository = StaffRepository(session)
+    return await staff_repository.count() == 0
