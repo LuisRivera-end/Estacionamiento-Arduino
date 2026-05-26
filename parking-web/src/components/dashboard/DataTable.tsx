@@ -14,21 +14,37 @@ export function DataTable({ headers, rows }: DataTableProps) {
       borderWidth="1px"
       overflowX="auto"
     >
-      <Table.Root size="sm">
-        <Table.Header>
-          <Table.Row>
+      <Table.Root size="sm" variant="outline">
+        <Table.Header bg="opsPanelMuted">
+          <Table.Row bg="opsPanelMuted">
             {headers.map((header) => (
-              <Table.ColumnHeader color="opsMuted" key={header}>
+              <Table.ColumnHeader
+                bg="opsPanelMuted"
+                borderColor="opsBorder"
+                color="opsText"
+                fontWeight="semibold"
+                key={header}
+              >
                 {header}
               </Table.ColumnHeader>
             ))}
           </Table.Row>
         </Table.Header>
-        <Table.Body>
+        <Table.Body bg="opsPanel">
           {rows.map((row, index) => (
-            <Table.Row key={index}>
+            <Table.Row
+              _hover={{ bg: "opsPanelMuted" }}
+              bg="opsPanel"
+              borderColor="opsBorder"
+              key={index}
+            >
               {row.map((cell, cellIndex) => (
-                <Table.Cell color="opsText" key={cellIndex}>
+                <Table.Cell
+                  bg="transparent"
+                  borderColor="opsBorder"
+                  color="opsText"
+                  key={cellIndex}
+                >
                   {cell}
                 </Table.Cell>
               ))}
