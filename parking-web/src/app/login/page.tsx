@@ -45,9 +45,16 @@ export default function LoginPage() {
     setNotice(null);
 
     const supabase = createSupabaseBrowserClient();
+    const emailRedirectTo =
+      typeof window !== "undefined"
+        ? `${window.location.origin}/auth/confirm`
+        : undefined;
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo,
+      },
     });
 
     if (signUpError) {
