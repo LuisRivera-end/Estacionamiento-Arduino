@@ -4,14 +4,14 @@ import type { StatusResponse, SummaryReport } from "./types";
 
 const useFixtures = process.env.NEXT_PUBLIC_API_BASE_URL === "fixture";
 
-export async function getStatus(): Promise<StatusResponse> {
+export async function getStatus(accessToken: string): Promise<StatusResponse> {
   if (useFixtures) return statusFixture;
 
-  return apiGet<StatusResponse>("/status");
+  return apiGet<StatusResponse>("/api/v1/status", { accessToken });
 }
 
-export async function getSummary(): Promise<SummaryReport> {
+export async function getSummary(accessToken: string): Promise<SummaryReport> {
   if (useFixtures) return summaryFixture;
 
-  return apiGet<SummaryReport>("/reports/summary");
+  return apiGet<SummaryReport>("/api/v1/admin/reports/summary", { accessToken });
 }

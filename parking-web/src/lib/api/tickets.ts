@@ -10,7 +10,7 @@ export async function getTicket(code: string): Promise<TicketResponse> {
 
   if (useFixtures) return { ...ticketFixture, ticket_code: ticketCode };
 
-  return apiGet<TicketResponse>(`/tickets/${encodeURIComponent(ticketCode)}`);
+  return apiGet<TicketResponse>(`/api/v1/public/tickets/${encodeURIComponent(ticketCode)}`);
 }
 
 export async function calculateTicket(
@@ -21,7 +21,10 @@ export async function calculateTicket(
 
   if (useFixtures) return { ...calculationFixture, ticket_code: ticketCode };
 
-  return apiPost<TicketCalculation>(`/tickets/${encodeURIComponent(ticketCode)}/calculate`, {
-    lost_ticket: lostTicket,
-  });
+  return apiPost<TicketCalculation>(
+    `/api/v1/public/tickets/${encodeURIComponent(ticketCode)}/calculate`,
+    {
+      lost_ticket: lostTicket,
+    },
+  );
 }

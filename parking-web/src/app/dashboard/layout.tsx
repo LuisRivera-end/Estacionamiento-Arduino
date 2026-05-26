@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { AppShell } from "@/components/dashboard/AppShell";
+import { bootstrapStaff } from "@/lib/api/auth";
 import { createSupabaseServerClient } from "@/lib/auth/server";
 
 export default async function DashboardLayout({
@@ -10,11 +11,16 @@ export default async function DashboardLayout({
 }) {
   if (process.env.NEXT_PUBLIC_SUPABASE_URL !== "fixture") {
     const supabase = await createSupabaseServerClient();
-    const { data } = await supabase.auth.getUser();
+    const [{ data: userData }, { data: sessionData }] = await Promise.all([
+      supabase.auth.getUser(),
+      supabase.auth.getSession(),
+    ]);
 
-    if (!data.user) {
+    if (!userData.user || !sessionData.session?.access_token) {
       redirect("/login");
     }
+
+    await bootstrapStaff(sessionData.session.access_token);
   }
 
   return <AppShell>{children}</AppShell>;

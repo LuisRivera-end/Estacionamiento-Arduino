@@ -1,5 +1,12 @@
 type RequestOptions = RequestInit & {
+  accessToken?: string;
   useFixture?: boolean;
+};
+
+export type ApiError = {
+  error: string;
+  message: string;
+  request_id?: string;
 };
 
 function getApiBaseUrl(): string {
@@ -16,17 +23,23 @@ export async function apiGet<T>(
   path: string,
   options: RequestOptions = {},
 ): Promise<T> {
+  const headers = new Headers(options.headers);
+  headers.set("Content-Type", "application/json");
+
+  if (options.accessToken) {
+    headers.set("Authorization", `Bearer ${options.accessToken}`);
+  }
+
   const response = await fetch(`${getApiBaseUrl()}${path}`, {
     ...options,
+    cache: "no-store",
     method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
+    headers,
   });
 
   if (!response.ok) {
-    throw new Error(`API request failed: ${response.status}`);
+    const apiError = (await response.json().catch(() => null)) as ApiError | null;
+    throw new Error(apiError?.message ?? `API request failed: ${response.status}`);
   }
 
   return response.json() as Promise<T>;
@@ -37,18 +50,23 @@ export async function apiPost<T>(
   body: unknown,
   options: RequestOptions = {},
 ): Promise<T> {
+  const headers = new Headers(options.headers);
+  headers.set("Content-Type", "application/json");
+
+  if (options.accessToken) {
+    headers.set("Authorization", `Bearer ${options.accessToken}`);
+  }
+
   const response = await fetch(`${getApiBaseUrl()}${path}`, {
     ...options,
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
+    headers,
     body: JSON.stringify(body),
   });
 
   if (!response.ok) {
-    throw new Error(`API request failed: ${response.status}`);
+    const apiError = (await response.json().catch(() => null)) as ApiError | null;
+    throw new Error(apiError?.message ?? `API request failed: ${response.status}`);
   }
 
   return response.json() as Promise<T>;

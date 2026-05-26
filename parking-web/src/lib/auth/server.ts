@@ -21,3 +21,12 @@ export async function createSupabaseServerClient() {
     },
   );
 }
+
+export async function getServerAccessToken() {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  return session?.access_token ?? null;
+}

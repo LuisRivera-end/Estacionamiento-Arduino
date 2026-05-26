@@ -1,12 +1,23 @@
 import { Grid, Heading, SimpleGrid, Text } from "@chakra-ui/react";
+import { redirect } from "next/navigation";
 
 import { ChartCard } from "@/components/dashboard/ChartCard";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { getStatus, getSummary } from "@/lib/api/reports";
+import { getServerAccessToken } from "@/lib/auth/server";
 import { formatCurrency, formatDateTime } from "@/lib/formatters";
 
 export default async function DashboardPage() {
-  const [status, summary] = await Promise.all([getStatus(), getSummary()]);
+  const accessToken = await getServerAccessToken();
+
+  if (!accessToken) {
+    redirect("/login");
+  }
+
+  const [status, summary] = await Promise.all([
+    getStatus(accessToken),
+    getSummary(accessToken),
+  ]);
 
   return (
     <Grid gap="6">

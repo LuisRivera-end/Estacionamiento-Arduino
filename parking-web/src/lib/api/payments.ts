@@ -21,7 +21,7 @@ export async function simulatePayment(
     };
   }
 
-  return apiPost<SimulatedPayment>("/payments/simulate", {
+  return apiPost<SimulatedPayment>("/api/v1/public/payments/simulate", {
     ticket_code: normalizedTicketCode,
     lost_ticket: lostTicket,
     method: lostTicket ? "lost_ticket" : "simulated_stripe",

@@ -1,6 +1,8 @@
 export type TicketStatus = "active" | "paid" | "exited" | "lost" | "cancelled";
 
 export type PaymentStatus = "unpaid" | "paid" | "exempted" | "refunded";
+export type StaffRole = "admin" | "panelist";
+export type StaffStatus = "active" | "disabled";
 
 export type StatusResponse = {
   capacity_total: number;
@@ -48,4 +50,20 @@ export type SummaryReport = {
 export type BackupExport = {
   backup_id: string;
   status: "requested" | "completed" | "failed";
+};
+
+export type StaffProfile = {
+  user_id: string;
+  email: string;
+  display_name: string | null;
+  role: StaffRole;
+  status: StaffStatus;
+  created_at: string;
+  updated_at: string;
+};
+
+export type BootstrapResponse = {
+  created: boolean;
+  first_login: boolean;
+  profile: StaffProfile;
 };
