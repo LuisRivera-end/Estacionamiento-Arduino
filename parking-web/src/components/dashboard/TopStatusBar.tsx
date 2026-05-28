@@ -12,9 +12,6 @@ export function TopStatusBar() {
     >
       <HStack gap="3">
         <StatusBadge label="API por verificar" tone="warning" />
-        <Text color="opsMuted" fontSize="sm">
-          Zona horaria: America/Mexico_City
-        </Text>
       </HStack>
       <Text color="opsMuted" fontSize="sm">
         Sesión administrativa
