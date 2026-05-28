@@ -15,7 +15,7 @@ type SettingsEditorProps = {
 export function SettingsEditor({ initialSettings }: SettingsEditorProps) {
   const router = useRouter();
   const [capacity, setCapacity] = useState(String(initialSettings.capacity_total));
-  const [timezone, setTimezone] = useState(initialSettings.timezone);
+  const timezone = initialSettings.timezone;
   const [currency, setCurrency] = useState(initialSettings.currency);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -79,13 +79,7 @@ export function SettingsEditor({ initialSettings }: SettingsEditorProps) {
           onChange={(event) => setCapacity(event.target.value)}
         />
       </Field.Root>
-      <Field.Root required>
-        <Field.Label>Zona horaria</Field.Label>
-        <Input
-          value={timezone}
-          onChange={(event) => setTimezone(event.target.value)}
-        />
-      </Field.Root>
+
       <Field.Root required>
         <Field.Label>Moneda</Field.Label>
         <Input
