@@ -8,10 +8,12 @@ import { createSupabaseBrowserClient } from "@/lib/auth/client";
 
 type LoginPageClientProps = {
   allowInitialAccountCreation: boolean;
+  apiError?: string | null;
 };
 
 export function LoginPageClient({
   allowInitialAccountCreation,
+  apiError = null,
 }: LoginPageClientProps) {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -103,6 +105,22 @@ export function LoginPageClient({
           w="full"
         >
           <Heading size="lg">Inicio de sesion</Heading>
+          {apiError ? (
+            <Box
+              bg="rgba(239, 68, 68, 0.12)"
+              borderColor="red.500"
+              borderWidth="1px"
+              borderRadius="xl"
+              p="3"
+            >
+              <Text color="red.300" fontSize="sm" fontWeight="semibold">
+                Error de conexion con el servidor API
+              </Text>
+              <Text color="red.200" fontSize="xs" mt="1">
+                {apiError}. El panel podria no responder correctamente, pero aun puedes intentar acceder.
+              </Text>
+            </Box>
+          ) : null}
           <Text color="opsMuted">
             {allowInitialAccountCreation
               ? "Inicia sesion con tu cuenta para acceder al panel. Si todavia no existe un usuario, primero crea la cuenta inicial."

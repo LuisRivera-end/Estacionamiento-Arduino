@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     supabase_url: str | None = None
     supabase_secret_key: str | None = None
     supabase_db_url: str | None = None
+    database_url: str | None = None  # Fallback for Render/general DB URL
     supabase_jwt_secret: str | None = None
     supabase_jwks_url: str | None = None
 
@@ -45,11 +46,12 @@ class Settings(BaseSettings):
 
     @property
     def effective_supabase_db_url(self) -> str | None:
-        if not self.supabase_db_url:
+        db_url = self.supabase_db_url or self.database_url
+        if not db_url:
             return None
-        if self.supabase_db_url.startswith("postgresql://"):
-            return self.supabase_db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
-        return self.supabase_db_url
+        if db_url.startswith("postgresql://"):
+            return db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        return db_url
 
 
 @lru_cache
