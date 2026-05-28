@@ -89,6 +89,7 @@ export function SettingsEditor({ initialSettings }: SettingsEditorProps) {
       <Field.Root required>
         <Field.Label>Moneda</Field.Label>
         <Input
+          disabled
           maxLength={3}
           value={currency}
           onChange={(event) => setCurrency(event.target.value)}
