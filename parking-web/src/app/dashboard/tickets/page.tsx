@@ -85,22 +85,22 @@ export default async function TicketsPage({
 
       <form method="get">
         <HStack align="end" flexWrap="wrap" gap="3">
-          <Input defaultValue={code} name="code" placeholder="Codigo ticket" w="220px" />
-          <Input
-            defaultValue={status}
-            name="status"
-            placeholder="status (active/exited/cancelled)"
-            w="260px"
-          />
-          <Input
-            defaultValue={paymentStatus}
-            name="payment_status"
-            placeholder="payment_status (unpaid/paid/refunded)"
-            w="280px"
-          />
+          <Input defaultValue={code} name="code" placeholder="Código ticket" w="220px" />
+          <select defaultValue={status} name="status">
+            <option value="">Estado: todos</option>
+            <option value="active">Activo</option>
+            <option value="exited">Salido</option>
+            <option value="cancelled">Cancelado</option>
+          </select>
+          <select defaultValue={paymentStatus} name="payment_status">
+            <option value="">Pago: todos</option>
+            <option value="unpaid">No pagado</option>
+            <option value="paid">Pagado</option>
+            <option value="refunded">Reembolsado</option>
+          </select>
           <select defaultValue={lostTicketRaw} name="lost_ticket">
             <option value="">Extraviado: todos</option>
-            <option value="true">Extraviado: si</option>
+            <option value="true">Extraviado: sí</option>
             <option value="false">Extraviado: no</option>
           </select>
           <Input defaultValue={String(pageSize)} name="page_size" type="number" w="120px" />
@@ -116,14 +116,14 @@ export default async function TicketsPage({
       </Text>
 
       <DataTable
-        headers={["Codigo", "Estado", "Pago", "Entrada", "Monto", "Extraviado"]}
+        headers={["Código", "Estado", "Pago", "Entrada", "Monto", "Extraviado"]}
         rows={ticketsPage.items.map((ticket) => [
           ticket.ticket_code,
           ticket.status,
           ticket.payment_status,
           formatDateTime(ticket.entry_at),
           formatCurrency(ticket.calculated_amount, "MXN"),
-          ticket.lost_ticket ? "Si" : "No",
+          ticket.lost_ticket ? "Sí" : "No",
         ])}
       />
 
@@ -140,7 +140,7 @@ export default async function TicketsPage({
           </Button>
         )}
         <Text color="opsMuted">
-          Pagina {currentPage} de {totalPages}
+          Página {currentPage} de {totalPages}
         </Text>
         {currentPage < totalPages ? (
           <Button asChild colorPalette="cyan" variant="outline">

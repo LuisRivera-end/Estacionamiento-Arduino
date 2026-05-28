@@ -25,3 +25,28 @@ body {
   font-family: var(--font-geist-sans), "Geist", ui-sans-serif, system-ui,
     sans-serif;
 }
+
+select {
+  background-color: #101b2f;
+  color: #e5edf7;
+  border: 1px solid #243654;
+  padding: 8px 12px;
+  border-radius: 6px;
+  height: 40px;
+  outline: none;
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+select:focus {
+  border-color: #67e8f9;
+  box-shadow: 0 0 0 1px #67e8f9;
+}
+
+select option {
+  background-color: #101b2f;
+  color: #e5edf7;
+  padding: 8px;
+}

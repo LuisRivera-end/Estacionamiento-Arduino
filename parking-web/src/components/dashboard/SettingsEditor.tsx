@@ -28,7 +28,7 @@ export function SettingsEditor({ initialSettings }: SettingsEditorProps) {
     const accessToken = await getBrowserAccessToken();
 
     if (!accessToken) {
-      setError("Sesion no valida. Vuelve a iniciar sesion.");
+      setError("Sesión no válida. Vuelve a iniciar sesión.");
       setIsSaving(false);
       return;
     }
@@ -49,13 +49,13 @@ export function SettingsEditor({ initialSettings }: SettingsEditorProps) {
         },
         accessToken,
       );
-      setSuccess("Configuracion guardada en base de datos.");
+      setSuccess("Configuración guardada en base de datos.");
       router.refresh();
     } catch (saveError) {
       setError(
         saveError instanceof Error
           ? saveError.message
-          : "No se pudo guardar la configuracion.",
+          : "No se pudo guardar la configuración.",
       );
     } finally {
       setIsSaving(false);
@@ -97,7 +97,7 @@ export function SettingsEditor({ initialSettings }: SettingsEditorProps) {
       {error ? <Text color="red.300">{error}</Text> : null}
       {success ? <Text color="green.300">{success}</Text> : null}
       <Button colorPalette="cyan" loading={isSaving} onClick={onSave} w="fit-content">
-        Guardar configuracion
+        Guardar configuración
       </Button>
     </Stack>
   );

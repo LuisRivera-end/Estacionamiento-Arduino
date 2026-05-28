@@ -90,7 +90,7 @@ export default async function EventsPage({
           <Input
             defaultValue={ticketCode}
             name="ticket_code"
-            placeholder="Codigo ticket"
+            placeholder="Código ticket"
             w="220px"
           />
           <select defaultValue={eventTypeRaw} name="event_type">
@@ -101,7 +101,7 @@ export default async function EventsPage({
           <Input defaultValue={deviceId} name="device_id" placeholder="Dispositivo" w="220px" />
           <select defaultValue={lostTicketRaw} name="lost_ticket">
             <option value="">Extraviado: todos</option>
-            <option value="true">Extraviado: si</option>
+            <option value="true">Extraviado: sí</option>
             <option value="false">Extraviado: no</option>
           </select>
           <Input defaultValue={String(pageSize)} name="page_size" type="number" w="120px" />
@@ -140,7 +140,7 @@ export default async function EventsPage({
           </Button>
         )}
         <Text color="opsMuted">
-          Pagina {currentPage} de {totalPages}
+          Página {currentPage} de {totalPages}
         </Text>
         {currentPage < totalPages ? (
           <Button asChild colorPalette="cyan" variant="outline">

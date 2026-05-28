@@ -80,7 +80,7 @@ export function LoginPageClient({
     }
 
     setNotice(
-      "Cuenta creada. Revisa tu correo para confirmar el acceso y luego inicia sesion.",
+      "Cuenta creada. Revisa tu correo para confirmar el acceso y luego inicia sesión.",
     );
     setIsCreatingAccount(false);
   }
@@ -104,7 +104,7 @@ export function LoginPageClient({
           p="6"
           w="full"
         >
-          <Heading size="lg">Inicio de sesion</Heading>
+          <Heading size="lg">Inicio de sesión</Heading>
           {apiError ? (
             <Box
               bg="rgba(239, 68, 68, 0.12)"
@@ -114,17 +114,17 @@ export function LoginPageClient({
               p="3"
             >
               <Text color="red.300" fontSize="sm" fontWeight="semibold">
-                Error de conexion con el servidor API
+                Error de conexión con el servidor API
               </Text>
               <Text color="red.200" fontSize="xs" mt="1">
-                {apiError}. El panel podria no responder correctamente, pero aun puedes intentar acceder.
+                {apiError}. El panel podría no responder correctamente, pero aún puedes intentar acceder.
               </Text>
             </Box>
           ) : null}
           <Text color="opsMuted">
             {allowInitialAccountCreation
-              ? "Inicia sesion con tu cuenta para acceder al panel. Si todavia no existe un usuario, primero crea la cuenta inicial."
-              : "Inicia sesion con tu cuenta para acceder al panel."}
+              ? "Inicia sesión con tu cuenta para acceder al panel. Si todavía no existe un usuario, primero crea la cuenta inicial."
+              : "Inicia sesión con tu cuenta para acceder al panel."}
           </Text>
           <Field.Root required>
             <Field.Label>Correo</Field.Label>
@@ -136,10 +136,10 @@ export function LoginPageClient({
             />
           </Field.Root>
           <Field.Root required>
-            <Field.Label>Contrasena</Field.Label>
+            <Field.Label>Contraseña</Field.Label>
             <Input
               type="password"
-              placeholder="Ingresa tu contrasena"
+              placeholder="Ingresa tu contraseña"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
             />

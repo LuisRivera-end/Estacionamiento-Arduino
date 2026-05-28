@@ -81,21 +81,20 @@ export default async function PaymentsPage({
           <Input
             defaultValue={ticketCode}
             name="ticket_code"
-            placeholder="Codigo ticket"
+            placeholder="Código ticket"
             w="220px"
           />
-          <Input
-            defaultValue={method}
-            name="method"
-            placeholder="method (simulated_stripe/lost_ticket)"
-            w="320px"
-          />
-          <Input
-            defaultValue={status}
-            name="status"
-            placeholder="status (simulated/succeeded/failed)"
-            w="280px"
-          />
+          <select defaultValue={method} name="method">
+            <option value="">Método: todos</option>
+            <option value="simulated_stripe">Stripe Simulado</option>
+            <option value="lost_ticket">Ticket Extraviado</option>
+          </select>
+          <select defaultValue={status} name="status">
+            <option value="">Estado: todos</option>
+            <option value="simulated">Simulado</option>
+            <option value="succeeded">Exitoso</option>
+            <option value="failed">Fallido</option>
+          </select>
           <Input defaultValue={String(pageSize)} name="page_size" type="number" w="120px" />
           <input name="page" type="hidden" value="1" />
           <Button colorPalette="cyan" type="submit">
@@ -109,7 +108,7 @@ export default async function PaymentsPage({
       </Text>
 
       <DataTable
-        headers={["Fecha", "Ticket", "Monto", "Metodo", "Estado", "Referencia"]}
+        headers={["Fecha", "Ticket", "Monto", "Método", "Estado", "Referencia"]}
         rows={paymentsPage.items.map((payment) => [
           formatDateTime(payment.created_at),
           payment.ticket_code,
@@ -133,7 +132,7 @@ export default async function PaymentsPage({
           </Button>
         )}
         <Text color="opsMuted">
-          Pagina {currentPage} de {totalPages}
+          Página {currentPage} de {totalPages}
         </Text>
         {currentPage < totalPages ? (
           <Button asChild colorPalette="cyan" variant="outline">

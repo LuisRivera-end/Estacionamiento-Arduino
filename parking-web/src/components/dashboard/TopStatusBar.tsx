@@ -17,7 +17,7 @@ export function TopStatusBar() {
         </Text>
       </HStack>
       <Text color="opsMuted" fontSize="sm">
-        Sesion administrativa
+        Sesión administrativa
       </Text>
     </HStack>
   );

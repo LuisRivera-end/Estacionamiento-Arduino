@@ -21,7 +21,7 @@ export function BackupRequestButton() {
     const accessToken = await getBrowserAccessToken();
 
     if (!accessToken) {
-      setError("Sesion no valida. Vuelve a iniciar sesion.");
+      setError("Sesión no válida. Vuelve a iniciar sesión.");
       setIsSubmitting(false);
       return;
     }

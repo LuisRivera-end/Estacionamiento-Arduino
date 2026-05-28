@@ -1,7 +1,6 @@
-import { Grid, Heading, Text } from "@chakra-ui/react";
+import { Grid, Heading } from "@chakra-ui/react";
 import { redirect } from "next/navigation";
 
-import { ChartCard } from "@/components/dashboard/ChartCard";
 import { DataTable } from "@/components/dashboard/DataTable";
 import { getSummary } from "@/lib/api/reports";
 import { getServerAccessToken } from "@/lib/auth/server";
@@ -19,11 +18,9 @@ export default async function ReportsPage() {
   return (
     <Grid gap="5">
       <Heading color="opsText">Reportes</Heading>
-      <ChartCard title="Resumen diario">
-        <Text color="opsMuted">
-          Datos obtenidos en tiempo real desde base de datos via `/admin/reports/summary`.
-        </Text>
-      </ChartCard>
+      <Heading color="opsText" size="md" mt="2">
+        Resumen diario
+      </Heading>
       <DataTable
         headers={["Indicador", "Valor"]}
         rows={[

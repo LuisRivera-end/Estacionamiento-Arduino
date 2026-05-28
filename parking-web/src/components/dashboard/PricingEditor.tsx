@@ -50,7 +50,7 @@ export function PricingEditor({ initialPricing }: PricingEditorProps) {
     const accessToken = await getBrowserAccessToken();
 
     if (!accessToken) {
-      setError("Sesion no valida. Vuelve a iniciar sesion.");
+      setError("Sesión no válida. Vuelve a iniciar sesión.");
       setIsSaving(false);
       return;
     }
@@ -67,7 +67,7 @@ export function PricingEditor({ initialPricing }: PricingEditorProps) {
       lostTicketFee === null ||
       blockMinutes < 1
     ) {
-      setError("Los valores numericos deben ser validos y positivos.");
+      setError("Los valores numéricos deben ser válidos y positivos.");
       setIsSaving(false);
       return;
     }
@@ -116,7 +116,7 @@ export function PricingEditor({ initialPricing }: PricingEditorProps) {
         />
       </Field.Root>
       <Field.Root required>
-        <Field.Label>Duracion por bloque (min)</Field.Label>
+        <Field.Label>Duración por bloque (min)</Field.Label>
         <Input
           type="number"
           value={numbers.blockMinutes}

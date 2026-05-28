@@ -11,7 +11,7 @@ export default async function LoginPage() {
   try {
     const setupStatus = await getAuthSetupStatus();
     allowInitialAccountCreation = setupStatus.allow_initial_account_creation;
-  } catch (error: any) {
+  } catch (error) {
     console.error("Failed to fetch auth setup status:", error);
     apiError = error instanceof Error ? error.message : String(error);
   }

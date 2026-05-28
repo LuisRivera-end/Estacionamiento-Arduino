@@ -16,7 +16,7 @@ function AuthConfirmContent() {
       const code = searchParams.get("code");
 
       if (!code) {
-        setMessage("Enlace invalido. Vuelve a iniciar sesion.");
+        setMessage("Enlace inválido. Vuelve a iniciar sesión.");
         router.replace("/login");
         return;
       }
