@@ -1,8 +1,5 @@
-import { Stack } from "@chakra-ui/react";
-
 import { PaymentConfirmationCard } from "@/components/payment/PaymentConfirmationCard";
 import { PaymentShell } from "@/components/payment/PaymentShell";
-import { PaymentStepIndicator } from "@/components/payment/PaymentStepIndicator";
 import { normalizeTicketCode } from "@/lib/formatters";
 
 export default async function PaymentConfirmationPage({
@@ -22,13 +19,10 @@ export default async function PaymentConfirmationPage({
 
   return (
     <PaymentShell>
-      <Stack gap="6">
-        <PaymentStepIndicator current={4} />
-        <PaymentConfirmationCard
-          simulationReference={simulationReference ?? null}
-          ticketCode={ticketCode}
-        />
-      </Stack>
+      <PaymentConfirmationCard
+        simulationReference={simulationReference ?? null}
+        ticketCode={ticketCode}
+      />
     </PaymentShell>
   );
 }

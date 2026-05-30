@@ -19,28 +19,28 @@ export function SimulatedCheckoutCard({
     <Stack
       className="glass-panel neon-glow-cyan"
       borderRadius="2xl"
-      p="6"
-      gap="5"
+      p={{ base: "6", md: "10" }}
+      gap="7"
       transition="all 0.3s ease-in-out"
     >
       <Heading
-        size="md"
+        size="xl"
         fontFamily="var(--font-orbitron)"
-        letterSpacing="0.05em"
+        letterSpacing="0.06em"
         color="opsCyan"
-        textShadow="0 0 8px rgba(6, 182, 212, 0.3)"
+        textShadow="0 0 10px rgba(6, 182, 212, 0.35)"
       >
-        Checkout Simulado
+        Pasarela de Pago
       </Heading>
 
       <Box
         bg="rgba(6, 182, 212, 0.04)"
         border="1px solid"
         borderColor="rgba(6, 182, 212, 0.15)"
-        p="4"
+        p="6"
         borderRadius="xl"
       >
-        <Flex align="center" gap="2.5" mb="2">
+        <Flex align="center" gap="2.5" mb="3.5">
           <Box className="pulse-glow" w="2" h="2" bg="opsCyan" borderRadius="full" />
           <Text
             fontFamily="var(--font-orbitron)"
@@ -53,8 +53,8 @@ export function SimulatedCheckoutCard({
             Conexión Segura
           </Text>
         </Flex>
-        <Text color="opsMuted" fontSize="xs" lineHeight="1.6">
-          Entorno de simulación de pasarela activo. El pago para el boleto{" "}
+        <Text color="opsMuted" fontSize="sm" lineHeight="1.6">
+          Pasarela de pago digital activa. El pago para el boleto{" "}
           <Text as="span" fontFamily="var(--font-orbitron)" fontWeight="bold" color="opsText">
             {ticketCode}
           </Text>{" "}
@@ -65,39 +65,40 @@ export function SimulatedCheckoutCard({
       <Button
         bg="opsCyan"
         color="black"
-        h="12"
+        h="16"
         fontFamily="var(--font-orbitron)"
         fontWeight="bold"
-        letterSpacing="0.05em"
+        letterSpacing="0.08em"
         textTransform="uppercase"
+        borderRadius="xl"
         _hover={{
           bg: "cyan.300",
           transform: "translateY(-2px)",
-          boxShadow: "0 4px 15px rgba(6, 182, 212, 0.4)",
+          boxShadow: "0 8px 24px rgba(6, 182, 212, 0.45)",
         }}
-        transition="all 0.2s"
+        transition="all 0.25s cubic-bezier(0.16, 1, 0.3, 1)"
         onClick={async () => {
           await simulatePayment(ticketCode, { discount });
           router.push(`/pagar/${ticketCode}/confirmacion`);
         }}
       >
-        Confirmar pago simulado
+        Confirmar pago
       </Button>
       <Button
         variant="outline"
         borderColor="opsBorder"
-        h="12"
+        h="16"
         fontFamily="var(--font-orbitron)"
         fontWeight="bold"
-        letterSpacing="0.05em"
+        letterSpacing="0.08em"
         textTransform="uppercase"
+        borderRadius="xl"
         _hover={{ bg: "rgba(229, 237, 247, 0.04)" }}
         onClick={() => router.push(`/pagar/${ticketCode}`)}
+        transition="all 0.25s"
       >
         Cancelar
       </Button>
     </Stack>
   );
 }
-
-

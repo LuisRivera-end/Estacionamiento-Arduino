@@ -1,7 +1,4 @@
-import { Stack } from "@chakra-ui/react";
-
 import { PaymentShell } from "@/components/payment/PaymentShell";
-import { PaymentStepIndicator } from "@/components/payment/PaymentStepIndicator";
 import { SimulatedCheckoutCard } from "@/components/payment/SimulatedCheckoutCard";
 import { normalizeTicketCode } from "@/lib/formatters";
 import type { DiscountRequest, DiscountType } from "@/lib/api/types";
@@ -42,10 +39,7 @@ export default async function CheckoutPage({
 
   return (
     <PaymentShell>
-      <Stack gap="6">
-        <PaymentStepIndicator current={3} />
-        <SimulatedCheckoutCard discount={discount} ticketCode={ticketCode} />
-      </Stack>
+      <SimulatedCheckoutCard discount={discount} ticketCode={ticketCode} />
     </PaymentShell>
   );
 }

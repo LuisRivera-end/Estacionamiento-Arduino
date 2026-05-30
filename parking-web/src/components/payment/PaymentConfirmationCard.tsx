@@ -45,17 +45,17 @@ export function PaymentConfirmationCard({
         </Flex>
 
         <Heading
-          size="md"
+          size="xl"
           fontFamily="var(--font-orbitron)"
-          letterSpacing="0.05em"
+          letterSpacing="0.06em"
           color="opsGreen"
-          textShadow="0 0 10px rgba(16, 185, 129, 0.4)"
+          textShadow="0 0 12px rgba(16, 185, 129, 0.45)"
         >
           Pago Registrado
         </Heading>
 
-        <Text color="opsMuted" fontSize="sm" maxW="320px">
-          El cargo simulado se ha procesado. Ya puedes utilizar tu código para validar la salida en el lector de barrera.
+        <Text color="opsMuted" fontSize="sm" maxW="400px" lineHeight="1.6">
+          El pago se ha registrado exitosamente. Ya puedes utilizar tu código para validar la salida en el lector de barrera.
         </Text>
 
         {/* Digital Ticket Block */}
@@ -90,20 +90,21 @@ export function PaymentConfirmationCard({
           asChild
           colorPalette="green"
           w="full"
-          h="12"
+          h="16"
           mt="2"
           fontFamily="var(--font-orbitron)"
           fontWeight="bold"
-          letterSpacing="0.05em"
+          letterSpacing="0.08em"
           textTransform="uppercase"
           bg="opsGreen"
           color="black"
+          borderRadius="xl"
           _hover={{
             bg: "green.300",
             transform: "translateY(-2px)",
-            boxShadow: "0 4px 15px rgba(16, 185, 129, 0.4)",
+            boxShadow: "0 8px 24px rgba(16, 185, 129, 0.5)",
           }}
-          transition="all 0.2s"
+          transition="all 0.25s cubic-bezier(0.16, 1, 0.3, 1)"
         >
           <NextLink href="/pagar">Consultar otro boleto</NextLink>
         </Button>

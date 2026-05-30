@@ -29,7 +29,7 @@ export default async function ReportsPage() {
           ["Tickets pagados", summary.paid_tickets],
           ["Tickets extraviados", summary.lost_tickets],
           [
-            "Ingresos simulados",
+            "Ingresos del día",
             formatCurrency(summary.simulated_revenue_today, "MXN"),
           ],
           [

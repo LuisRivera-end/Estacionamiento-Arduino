@@ -11,7 +11,7 @@ class Ticket(Base, TimestampMixin):
     __tablename__ = "tickets"
 
     id: Mapped[str] = mapped_column(primary_key=True)
-    code: Mapped[str] = mapped_column(String(5), unique=True, nullable=False)
+    code: Mapped[str] = mapped_column(String(6), unique=True, nullable=False)
     status: Mapped[TicketStatus] = mapped_column(
         Enum(TicketStatus, native_enum=False),
         nullable=False,

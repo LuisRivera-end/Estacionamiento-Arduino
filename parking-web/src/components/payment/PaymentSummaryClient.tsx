@@ -112,8 +112,8 @@ export function PaymentSummaryClient({
       <Stack
         className="glass-panel neon-glow-cyan"
         borderRadius="2xl"
-        gap="5"
-        p={{ base: "5", md: "6" }}
+        gap="7"
+        p={{ base: "6", md: "10" }}
         transition="all 0.3s ease-in-out"
       >
         <Text
@@ -121,8 +121,9 @@ export function PaymentSummaryClient({
           fontFamily="var(--font-orbitron)"
           fontWeight="900"
           fontSize="sm"
-          letterSpacing="0.05em"
+          letterSpacing="0.1em"
           textTransform="uppercase"
+          textShadow="0 0 10px rgba(6, 182, 212, 0.35)"
         >
           Aplicar Descuento
         </Text>
@@ -208,18 +209,20 @@ export function PaymentSummaryClient({
           onClick={onRecalculate}
           w="full"
           mt="2"
+          h="16"
           fontFamily="var(--font-orbitron)"
           fontWeight="bold"
-          letterSpacing="0.05em"
+          letterSpacing="0.08em"
           textTransform="uppercase"
           bg="opsCyan"
           color="black"
+          borderRadius="xl"
           _hover={{
             bg: "cyan.300",
             transform: "translateY(-2px)",
-            boxShadow: "0 4px 15px rgba(6, 182, 212, 0.4)",
+            boxShadow: "0 8px 24px rgba(6, 182, 212, 0.45)",
           }}
-          transition="all 0.2s"
+          transition="all 0.25s cubic-bezier(0.16, 1, 0.3, 1)"
         >
           Recalcular monto
         </Button>

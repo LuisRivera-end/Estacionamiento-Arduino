@@ -4,35 +4,35 @@ import { PaymentShell } from "@/components/payment/PaymentShell";
 
 const faqItems = [
   {
-    question: "Que es un pago simulado?",
+    question: "¿Qué es un pago simulado?",
     answer:
       "Es un registro interno que marca el ticket como pagado sin hacer un cargo real. No se usan tarjetas ni bancos.",
   },
   {
-    question: "Que necesito para pagar?",
-    answer: "Solo el codigo del ticket entregado en la entrada.",
+    question: "¿Qué necesito para pagar?",
+    answer: "Solo el código del ticket entregado en la entrada.",
   },
   {
-    question: "Que pasa si cancelo el pago?",
-    answer: "No se registra ningun pago y el ticket sigue pendiente.",
+    question: "¿Qué pasa si cancelo el pago?",
+    answer: "No se registra ningún pago y el ticket sigue pendiente.",
   },
   {
-    question: "Como funciona el descuento de adulto mayor?",
+    question: "¿Cómo funciona el descuento de adulto mayor?",
     answer:
       "Debes declarar edad de 65+ y capturar referencia parcial de INAPAM. El backend valida y aplica el porcentaje configurado.",
   },
   {
-    question: "Como funciona el descuento de estudiante?",
+    question: "¿Cómo funciona el descuento de estudiante?",
     answer:
-      "Debes capturar un correo escolar. El backend valida que el dominio este en la lista permitida.",
+      "Debes capturar un correo escolar. El backend valida que el dominio esté en la lista permitida.",
   },
   {
-    question: "Puedo usar dos descuentos?",
+    question: "¿Puedo usar dos descuentos?",
     answer: "No. Solo se aplica un descuento por pago.",
   },
   {
-    question: "Que hago despues de pagar?",
-    answer: "Ingresa el mismo codigo de ticket en la caseta de salida.",
+    question: "¿Qué hago después de pagar?",
+    answer: "Ingresa el mismo código de ticket en la caseta de salida.",
   },
 ];
 
@@ -40,7 +40,14 @@ export default function HelpPage() {
   return (
     <PaymentShell>
       <Stack gap="6">
-        <Heading>Ayuda</Heading>
+        <Heading
+          fontFamily="var(--font-orbitron)"
+          letterSpacing="0.05em"
+          color="opsCyan"
+          textShadow="0 0 8px rgba(6, 182, 212, 0.3)"
+        >
+          Ayuda y Soporte
+        </Heading>
         <Text color="opsMuted">
           Preguntas frecuentes del flujo de pago simulado y descuentos.
         </Text>
@@ -48,14 +55,25 @@ export default function HelpPage() {
         {faqItems.map((item) => (
           <Box
             key={item.question}
-            bg="opsPanel"
-            borderColor="opsBorder"
+            className="glass-panel"
             borderRadius="xl"
-            borderWidth="1px"
             p="5"
+            transition="all 0.25s ease-in-out"
+            _hover={{
+              borderColor: "opsCyan",
+              transform: "translateY(-2px)",
+              boxShadow: "0 4px 15px rgba(6, 182, 212, 0.1)",
+            }}
           >
-            <Heading size="sm">{item.question}</Heading>
-            <Text color="opsMuted" mt="2">
+            <Heading
+              size="sm"
+              fontFamily="var(--font-orbitron)"
+              letterSpacing="0.03em"
+              color="opsCyan"
+            >
+              {item.question}
+            </Heading>
+            <Text color="opsMuted" mt="2" fontSize="sm">
               {item.answer}
             </Text>
           </Box>

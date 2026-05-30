@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Parking Ops",
   description:
-    "Dashboard operativo y pago simulado para estacionamiento inteligente",
+    "Dashboard operativo y pago de boletos para estacionamiento inteligente",
 };
 
 export default function RootLayout({

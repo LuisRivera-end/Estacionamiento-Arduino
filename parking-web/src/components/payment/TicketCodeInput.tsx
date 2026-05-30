@@ -1,6 +1,7 @@
 "use client";
 
-import { Button, Field, Heading, Input, Stack, Text } from "@chakra-ui/react";
+import { Button, Field, Heading, HStack, Input, Link, Stack, Text } from "@chakra-ui/react";
+import NextLink from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -18,8 +19,8 @@ export function TicketCodeInput() {
       as="form"
       className="glass-panel neon-glow-cyan"
       borderRadius="2xl"
-      p="6"
-      gap="5"
+      p={{ base: "6", md: "10" }}
+      gap="7"
       transition="all 0.3s ease-in-out"
       onSubmit={async (event) => {
         event.preventDefault();
@@ -40,7 +41,7 @@ export function TicketCodeInput() {
           const message =
             error instanceof Error ? error.message.toLowerCase() : "";
           if (message.includes("ticket no encontrado")) {
-            setErrorMessage("No encontramos ese ticket. Verifica el código e intenta de nuevo.");
+            setErrorMessage("No encontramos ese ticket. Revisa el código e intenta de nuevo.");
           } else {
             setErrorMessage("No se pudo consultar el ticket en este momento.");
           }
@@ -49,18 +50,30 @@ export function TicketCodeInput() {
         }
       }}
     >
-      <Heading
-        size="md"
-        fontFamily="var(--font-orbitron)"
-        letterSpacing="0.05em"
-        color="opsCyan"
-        textShadow="0 0 8px rgba(6, 182, 212, 0.3)"
-      >
-        Consulta de Ticket
-      </Heading>
+      <Stack gap="2.5">
+        <Heading
+          size="xl"
+          fontFamily="var(--font-orbitron)"
+          letterSpacing="0.06em"
+          color="opsCyan"
+          textShadow="0 0 10px rgba(6, 182, 212, 0.35)"
+        >
+          Consulta tu ticket
+        </Heading>
+        <Text color="opsMuted" fontSize="sm" lineHeight="1.6">
+          Ingresa el código alfanumérico entregado al entrar al estacionamiento.
+        </Text>
+      </Stack>
       
       <Field.Root required>
-        <Field.Label color="opsMuted" fontSize="xs" fontWeight="bold" textTransform="uppercase" letterSpacing="0.05em">
+        <Field.Label
+          color="opsMuted"
+          fontSize="xs"
+          fontWeight="900"
+          textTransform="uppercase"
+          letterSpacing="0.1em"
+          mb="3"
+        >
           Código de Boleto
         </Field.Label>
         <Input
@@ -68,17 +81,17 @@ export function TicketCodeInput() {
           autoComplete="off"
           bg="rgba(13, 21, 39, 0.4)"
           borderColor="opsBorder"
-          borderRadius="lg"
-          h="12"
-          fontSize="lg"
+          borderRadius="xl"
+          h="16"
+          fontSize="3xl"
           fontWeight="bold"
           fontFamily="var(--font-orbitron)"
-          letterSpacing="0.15em"
+          letterSpacing="0.25em"
           textAlign="center"
           _focus={{
             borderColor: "opsCyan",
-            boxShadow: "0 0 12px rgba(6, 182, 212, 0.35)",
-            bg: "rgba(13, 21, 39, 0.6)",
+            boxShadow: "0 0 16px rgba(6, 182, 212, 0.45)",
+            bg: "rgba(13, 21, 39, 0.65)",
           }}
           onChange={(event) => {
             setCode(event.target.value);
@@ -86,8 +99,9 @@ export function TicketCodeInput() {
           }}
           textTransform="uppercase"
           value={code}
+          placeholder="A1B2C"
         />
-        <Field.HelperText id="ticket-code-help" color="opsMuted" fontSize="xs" mt="1.5">
+        <Field.HelperText id="ticket-code-help" color="opsMuted" fontSize="xs" mt="2.5">
           Ingresa el identificador alfanumérico impreso. Ejemplo: A1B2C.
         </Field.HelperText>
       </Field.Root>
@@ -102,23 +116,47 @@ export function TicketCodeInput() {
         colorPalette="cyan"
         loading={isSubmitting}
         type="submit"
-        h="12"
+        h="16"
+        fontSize="md"
         fontFamily="var(--font-orbitron)"
         fontWeight="bold"
         letterSpacing="0.08em"
         textTransform="uppercase"
         bg="opsCyan"
         color="black"
+        borderRadius="xl"
         _hover={{
           bg: "cyan.300",
           transform: "translateY(-2px)",
-          boxShadow: "0 4px 15px rgba(6, 182, 212, 0.4)",
+          boxShadow: "0 8px 24px rgba(6, 182, 212, 0.45)",
         }}
-        transition="all 0.2s"
+        transition="all 0.25s cubic-bezier(0.16, 1, 0.3, 1)"
       >
         Consultar ticket
       </Button>
+
+      <HStack justify="space-between" mt="3" borderTop="1px solid" borderColor="opsBorder" pt="5" px="1">
+        <Link
+          asChild
+          color="opsCyan"
+          fontSize="sm"
+          fontWeight="bold"
+          _hover={{ color: "opsText", textShadow: "0 0 8px rgba(6, 182, 212, 0.6)" }}
+          transition="all 0.25s"
+        >
+          <NextLink href="/ticket-extraviado">¿Perdiste tu ticket?</NextLink>
+        </Link>
+        <Link
+          asChild
+          color="opsCyan"
+          fontSize="sm"
+          fontWeight="bold"
+          _hover={{ color: "opsText", textShadow: "0 0 8px rgba(6, 182, 212, 0.6)" }}
+          transition="all 0.25s"
+        >
+          <NextLink href="/ayuda">Ayuda y soporte</NextLink>
+        </Link>
+      </HStack>
     </Stack>
   );
 }
-

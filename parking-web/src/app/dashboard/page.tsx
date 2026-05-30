@@ -35,7 +35,7 @@ export default async function DashboardPage() {
         />
         <MetricCard label="Tickets activos" value={status.active_tickets} />
         <MetricCard
-          label="Ingresos simulados"
+          label="Ingresos hoy"
           tone="yellow"
           value={formatCurrency(summary.simulated_revenue_today, "MXN")}
         />
@@ -54,10 +54,10 @@ export default async function DashboardPage() {
       </SimpleGrid>
       <ChartCard title="Actividad reciente">
         <Text color="opsMuted">
-          Ultima entrada: {formatDateTime(status.last_entry_at)}
+          Última entrada: {formatDateTime(status.last_entry_at)}
         </Text>
         <Text color="opsMuted">
-          Ultima salida: {formatDateTime(status.last_exit_at)}
+          Última salida: {formatDateTime(status.last_exit_at)}
         </Text>
       </ChartCard>
     </Grid>

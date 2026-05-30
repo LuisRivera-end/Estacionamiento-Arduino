@@ -35,8 +35,8 @@ function buildPageHref(
 }
 
 function formatPaymentMethod(method: string): string {
-  if (method === "simulated_payment") return "Pago simulado";
-  if (method === "simulated_stripe") return "Pago simulado legado";
+  if (method === "simulated_payment") return "Pago digital";
+  if (method === "simulated_stripe") return "Pago Stripe legado";
   if (method === "lost_ticket") return "Ticket extraviado";
   if (method === "manual_admin") return "Manual admin";
   return method;
@@ -87,25 +87,25 @@ export default async function PaymentsPage({
 
   return (
     <Grid gap="5">
-      <Heading color="opsText">Pagos simulados</Heading>
+      <Heading color="opsText">Registro de pagos</Heading>
 
       <form method="get">
         <HStack align="end" flexWrap="wrap" gap="3">
           <Input
             defaultValue={ticketCode}
             name="ticket_code"
-            placeholder="Codigo ticket"
+            placeholder="Código de ticket"
             w="220px"
           />
           <select defaultValue={method} name="method">
-            <option value="">Metodo: todos</option>
-            <option value="simulated_payment">Pago simulado</option>
-            <option value="simulated_stripe">Pago simulado legado</option>
+            <option value="">Método: todos</option>
+            <option value="simulated_payment">Pago digital</option>
+            <option value="simulated_stripe">Pago Stripe legado</option>
             <option value="lost_ticket">Ticket extraviado</option>
           </select>
           <select defaultValue={status} name="status">
             <option value="">Estado: todos</option>
-            <option value="simulated">Simulado</option>
+            <option value="simulated">Registrado</option>
             <option value="succeeded">Exitoso</option>
             <option value="failed">Fallido</option>
           </select>
@@ -128,7 +128,7 @@ export default async function PaymentsPage({
           "Subtotal",
           "Descuento",
           "Total",
-          "Metodo",
+          "Método",
           "Estado",
           "Referencia",
         ]}
@@ -157,7 +157,7 @@ export default async function PaymentsPage({
           </Button>
         )}
         <Text color="opsMuted">
-          Pagina {currentPage} de {totalPages}
+          Página {currentPage} de {totalPages}
         </Text>
         {currentPage < totalPages ? (
           <Button asChild colorPalette="cyan" variant="outline">

@@ -29,16 +29,16 @@ export function PaymentSummaryCard({
     <Box
       className="glass-panel neon-glow-yellow"
       borderRadius="2xl"
-      p={{ base: "6", md: "7" }}
+      p={{ base: "6", md: "10" }}
       transition="all 0.3s ease-in-out"
     >
-      <Stack gap="5">
+      <Stack gap="7">
         <Heading
-          size="md"
+          size="xl"
           fontFamily="var(--font-orbitron)"
-          letterSpacing="0.05em"
+          letterSpacing="0.06em"
           color="opsCyan"
-          textShadow="0 0 8px rgba(6, 182, 212, 0.3)"
+          textShadow="0 0 10px rgba(6, 182, 212, 0.35)"
         >
           Resumen de Ticket
         </Heading>
@@ -106,20 +106,21 @@ export function PaymentSummaryCard({
           asChild
           colorPalette="cyan"
           w="full"
-          h="12"
+          h="16"
           mt="2"
           fontFamily="var(--font-orbitron)"
           fontWeight="bold"
-          letterSpacing="0.05em"
+          letterSpacing="0.08em"
           textTransform="uppercase"
           bg="opsCyan"
           color="black"
+          borderRadius="xl"
           _hover={{
             bg: "cyan.300",
             transform: "translateY(-2px)",
-            boxShadow: "0 4px 15px rgba(6, 182, 212, 0.4)",
+            boxShadow: "0 8px 24px rgba(6, 182, 212, 0.45)",
           }}
-          transition="all 0.2s"
+          transition="all 0.25s cubic-bezier(0.16, 1, 0.3, 1)"
         >
           <NextLink href={checkoutHref}>Proceder al Pago</NextLink>
         </Button>

@@ -9,11 +9,11 @@ from app.models.enums import DeviceType
 
 def normalize_ticket_code(code: str) -> str:
     normalized = code.strip().upper()
-    if len(normalized) != 5 or not normalized.isalnum():
+    if len(normalized) != 6 or not normalized.isalnum():
         raise AppError(
             422,
             "invalid_ticket_code",
-            "El codigo de ticket debe ser alfanumerico de 5 caracteres",
+            "El codigo de ticket debe ser alfanumerico de 6 caracteres",
         )
     return normalized
 
