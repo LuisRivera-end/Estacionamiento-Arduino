@@ -41,15 +41,15 @@
 
   <rect width="1700" height="1100" fill="#ffffff" />
   <text x="60" y="55" class="title">Caseta de salida - Arduino UNO + protoboard</text>
-  <text x="60" y="84" class="subtitle">Referencia de armado: validacion de ticket por teclado, LCD I2C, LEDs, buzzer, sensor IR, servo y ESP8266.</text>
+  <text x="60" y="84" class="subtitle">Referencia de armado: validacion de ticket por teclado, LCD I2C, LEDs, buzzer, sensor IR, servo y ESP8266 por 0/RX y 1/TX.</text>
 
   <g id="arduino">
     <rect x="60" y="135" width="520" height="820" class="board" />
     <text x="92" y="180" class="label">Arduino UNO Salida</text>
-    <text x="92" y="208" class="small">0/RX y 1/TX reservados para USB serial</text>
+    <text x="92" y="208" class="small">0/RX y 1/TX compartidos con ESP8266</text>
 
-    <rect x="90" y="240" width="125" height="30" class="pin" /><text x="105" y="261" class="pinText">2 ESP TX</text>
-    <rect x="90" y="278" width="125" height="30" class="pin" /><text x="105" y="299" class="pinText">3 ESP RX</text>
+    <rect x="90" y="240" width="125" height="30" class="pin" /><text x="105" y="261" class="pinText">0/RX ESP TX</text>
+    <rect x="90" y="278" width="125" height="30" class="pin" /><text x="105" y="299" class="pinText">1/TX ESP RX</text>
     <rect x="90" y="316" width="125" height="30" class="pin" /><text x="105" y="337" class="pinText">4 IR OUT</text>
     <rect x="90" y="354" width="125" height="30" class="pin" /><text x="105" y="375" class="pinText">5 SERVO</text>
     <rect x="90" y="392" width="125" height="30" class="pin" /><text x="105" y="413" class="pinText">6 BUZZER</text>
@@ -66,7 +66,7 @@
     <rect x="90" y="840" width="125" height="30" class="pin" /><text x="105" y="861" class="pinText">A4 SDA</text>
     <rect x="90" y="878" width="125" height="30" class="pin" /><text x="105" y="899" class="pinText">A5 SCL</text>
 
-    <text x="305" y="262" class="tiny">ESP8266 por SoftwareSerial</text>
+    <text x="305" y="262" class="tiny">ESP8266 por Serial hardware 9600</text>
     <text x="305" y="337" class="tiny">Sensor IR de presencia</text>
     <text x="305" y="374" class="tiny">Servo barrera salida</text>
     <text x="305" y="414" class="tiny">Alerta sonora</text>
@@ -112,7 +112,7 @@
     <rect x="1090" y="115" width="430" height="150" class="moduleOrange" />
     <text x="1120" y="153" class="label">ESP8266 ESP-01</text>
     <text x="1120" y="181" class="small">HTTP REST hacia FastAPI</text>
-    <text x="1120" y="207" class="tiny">TX-&gt;2, RX&lt;-3 protegido, VCC/EN=3.3V</text>
+    <text x="1120" y="207" class="tiny">TXD-&gt;0/RX, RXD&lt;-1/TX protegido, VCC/EN=3.3V</text>
 
     <rect x="1090" y="305" width="430" height="115" class="module" />
     <text x="1120" y="343" class="label">LCD 16x2 I2C</text>
@@ -138,10 +138,10 @@
 
   <!-- Serial ESP8266 -->
   <path d="M215 255 C515 255, 840 150, 1090 150" class="wire serial" />
-  <text x="575" y="198" class="tiny" fill="#2563eb">Pin 2 &lt;- ESP TX</text>
+  <text x="575" y="198" class="tiny" fill="#2563eb">0/RX &lt;- ESP TXD</text>
   <path d="M215 293 C430 305, 565 391, 690 391" class="wire serial" />
   <path d="M930 391 C1010 380, 1040 207, 1090 207" class="wire serial" />
-  <text x="560" y="344" class="tiny" fill="#2563eb">Pin 3 -> divisor -> ESP RX</text>
+  <text x="560" y="344" class="tiny" fill="#2563eb">1/TX -> divisor -> ESP RXD</text>
 
   <!-- IR, servo, buzzer, leds -->
   <path d="M215 331 C545 360, 920 492, 1090 492" class="wire signal" />

@@ -36,15 +36,15 @@
 
   <rect width="1600" height="980" fill="#ffffff" />
   <text x="60" y="55" class="title">Caseta de entrada - Arduino UNO + protoboard</text>
-  <text x="60" y="84" class="subtitle">Referencia de armado: ticket desde API, LCD I2C, sensor IR, servo de barrera y ESP8266 con nivel 3.3V.</text>
+  <text x="60" y="84" class="subtitle">Referencia de armado: ticket desde API, LCD I2C, sensor IR, servo de barrera y ESP8266 por 0/RX y 1/TX.</text>
 
   <g id="arduino">
     <rect x="60" y="145" width="500" height="680" class="board" />
     <text x="92" y="190" class="label">Arduino UNO Entrada</text>
     <text x="92" y="218" class="small">USB a PC para carga y monitor serial</text>
 
-    <rect x="90" y="245" width="120" height="32" class="pin" /><text x="105" y="267" class="pinText">2 ESP TX</text>
-    <rect x="90" y="290" width="120" height="32" class="pin" /><text x="105" y="312" class="pinText">3 ESP RX</text>
+    <rect x="90" y="245" width="120" height="32" class="pin" /><text x="105" y="267" class="pinText">0/RX ESP TX</text>
+    <rect x="90" y="290" width="120" height="32" class="pin" /><text x="105" y="312" class="pinText">1/TX ESP RX</text>
     <rect x="90" y="335" width="120" height="32" class="pin" /><text x="105" y="357" class="pinText">4 IR OUT</text>
     <rect x="90" y="380" width="120" height="32" class="pin" /><text x="105" y="402" class="pinText">5 SERVO</text>
     <rect x="90" y="425" width="120" height="32" class="pin" /><text x="105" y="447" class="pinText">6 LED</text>
@@ -53,8 +53,8 @@
     <rect x="90" y="695" width="120" height="32" class="pin" /><text x="105" y="717" class="pinText">5V</text>
     <rect x="90" y="740" width="120" height="32" class="pin" /><text x="105" y="762" class="pinText">GND</text>
 
-    <text x="300" y="270" class="tiny">Pin 2 recibe TX del ESP8266</text>
-    <text x="300" y="315" class="tiny">Pin 3 envia a RX del ESP8266 con divisor</text>
+    <text x="300" y="270" class="tiny">0/RX recibe TXD del ESP8266</text>
+    <text x="300" y="315" class="tiny">1/TX envia a RXD del ESP8266 con divisor</text>
     <text x="300" y="360" class="tiny">IR detecta vehiculo en entrada</text>
     <text x="300" y="405" class="tiny">Servo abre/cierra barrera</text>
     <text x="300" y="580" class="tiny">LCD I2C comparte bus A4/A5</text>
@@ -110,10 +110,10 @@
 
   <!-- Serial ESP8266 -->
   <path d="M210 261 C500 261, 780 170, 1060 170" class="wire serial" />
-  <text x="560" y="213" class="tiny" fill="#2563eb">Pin 2 &lt;- ESP TX</text>
+  <text x="560" y="213" class="tiny" fill="#2563eb">0/RX &lt;- ESP TXD</text>
   <path d="M210 306 C420 306, 555 401, 675 401" class="wire serial" />
   <path d="M905 401 C980 390, 1025 266, 1060 266" class="wire serial" />
-  <text x="520" y="355" class="tiny" fill="#2563eb">Pin 3 -> divisor -> ESP RX</text>
+  <text x="520" y="355" class="tiny" fill="#2563eb">1/TX -> divisor -> ESP RXD</text>
 
   <!-- IR, servo, LED -->
   <path d="M210 351 C520 351, 900 550, 1060 550" class="wire signal" />
@@ -142,6 +142,6 @@
   <g id="legend">
     <rect x="60" y="860" width="1420" height="85" class="box" />
     <text x="90" y="895" class="label">Notas de armado</text>
-    <text x="90" y="923" class="note">1. Unir todos los GND. 2. El servo toma 5V externo; Arduino solo controla SIG. 3. El ESP8266 usa 3.3V y RX protegido. 4. El LCD debe ser I2C para ahorrar pines.</text>
+    <text x="90" y="923" class="note">1. Unir todos los GND. 2. El servo toma 5V externo; Arduino solo controla SIG. 3. ESP8266 usa 3.3V y RXD protegido. 4. Desconectar 0/RX y 1/TX si falla la carga.</text>
   </g>
 </svg>

@@ -1,4 +1,4 @@
-# Plan Arduino SDD
+﻿# Plan Arduino SDD
 
 ## 1. Proposito
 
@@ -64,6 +64,13 @@ Notas electricas criticas:
   fuentes externas.
 - El RX del ESP8266 trabaja a 3.3V. La linea Arduino TX -> ESP RX debe pasar
   por divisor resistivo o conversor de nivel logico.
+- En el armado actual, el ESP8266 queda conectado al serial hardware del UNO:
+  `TXD` del ESP8266 al pin `0/RX` del Arduino y `RXD` del ESP8266 al pin
+  `1/TX` del Arduino con proteccion a 3.3V.
+- Cuando el ESP8266 este conectado a `0/RX` y `1/TX`, puede interferir con la
+  carga de firmware y con el monitor serial por USB. Si PlatformIO falla al
+  subir o el monitor serial muestra datos mezclados, desconectar temporalmente
+  `RXD/TXD` del ESP8266, subir el firmware y reconectar.
 - No alimentar el ESP8266 directamente desde el pin 3.3V del Arduino si hay
   reinicios o desconexiones; el ESP8266 puede demandar picos de corriente.
 - El servo debe alimentarse desde 5V externo cuando sea posible. El pin del
@@ -190,8 +197,8 @@ la documentacion coincida con la serigrafia fisica de la placa.
 
 | Componente | Senal | Pin Arduino UNO | Nota |
 | --- | --- | --- | --- |
-| ESP8266 | TX -> Arduino | 2 | RX de `SoftwareSerial`. No es el pin fisico `0/RX`. |
-| ESP8266 | RX <- Arduino | 3 | TX de `SoftwareSerial`. Usar divisor/conversor a 3.3V. No es el pin fisico `1/TX`. |
+| ESP8266 | TXD -> Arduino RX | 0/RX | Serial hardware del UNO a 9600 baudios. |
+| ESP8266 | RXD <- Arduino TX | 1/TX | Serial hardware del UNO. Usar divisor/conversor a 3.3V. |
 | ESP8266 | VCC | 3.3V regulado externo | No depender del pin 3.3V si es inestable. |
 | ESP8266 | GND | GND comun | Tierra compartida. |
 | ESP8266 | EN/CH_PD | 3.3V | Pull-up para habilitar modulo. |
@@ -208,8 +215,8 @@ la documentacion coincida con la serigrafia fisica de la placa.
 
 | Componente | Senal | Pin Arduino UNO | Nota |
 | --- | --- | --- | --- |
-| ESP8266 | TX -> Arduino | 2 | RX de `SoftwareSerial`. No es el pin fisico `0/RX`. |
-| ESP8266 | RX <- Arduino | 3 | TX de `SoftwareSerial`. Usar divisor/conversor a 3.3V. No es el pin fisico `1/TX`. |
+| ESP8266 | TXD -> Arduino RX | 0/RX | Serial hardware del UNO a 9600 baudios. |
+| ESP8266 | RXD <- Arduino TX | 1/TX | Serial hardware del UNO. Usar divisor/conversor a 3.3V. |
 | Sensor IR | OUT | 4 | Detecta vehiculo en salida. |
 | Servo barrera | SIG | 5 | Pin PWM recomendado. |
 | Buzzer activo | Signal | 6 | Alerta pago pendiente/error. |
@@ -226,9 +233,11 @@ la documentacion coincida con la serigrafia fisica de la placa.
 | LCD I2C | SDA | A4 | Bus I2C. |
 | LCD I2C | SCL | A5 | Bus I2C. |
 
-Los pines fisicos `0/RX` y `1/TX` quedan reservados para USB, carga del
-firmware y monitor serial. A3 queda libre para un boton de reset operativo,
-sensor adicional o medicion de voltaje si se requiere despues.
+Los pines `0/RX` y `1/TX` se comparten entre USB serial y el ESP8266 en este
+armado. Esto simplifica la comunicacion con el modulo, pero exige cuidado al
+subir firmware: si hay conflicto, desconectar temporalmente los cables `RXD` y
+`TXD` del ESP8266. A3 queda libre para un boton de reset operativo, sensor
+adicional o medicion de voltaje si se requiere despues.
 
 ## 7. Diagramas de circuito
 
@@ -292,8 +301,8 @@ Dependencias candidatas:
 - `Servo` para barreras.
 - `LiquidCrystal_I2C` para LCD 16x2.
 - `Keypad` para salida.
-- `ArduinoJson` para parseo JSON pequeño y controlado.
-- Cliente ESP8266 AT o wrapper propio sobre `SoftwareSerial`.
+- `ArduinoJson` para parseo JSON pequeno y controlado.
+- Cliente ESP8266 AT sobre `Serial` hardware a 9600 baudios.
 
 Los tokens y URLs no deben quedar fijos en `main.cpp`. Deben vivir en
 `include/secrets.h`, generado desde `include/secrets.example.h`, o en macros de
@@ -304,8 +313,8 @@ compilacion locales no commiteadas.
 Ejemplo base para `Entrada`:
 
 ```cpp
-const uint8_t PIN_ESP_RX = 2;      // Arduino RX por SoftwareSerial: conectado al TX del ESP8266.
-const uint8_t PIN_ESP_TX = 3;      // Arduino TX por SoftwareSerial: hacia RX del ESP8266 con nivel 3.3V.
+const uint8_t PIN_ESP_RX = 0;      // Pin 0/RX del Arduino: conectado al TXD del ESP8266.
+const uint8_t PIN_ESP_TX = 1;      // Pin 1/TX del Arduino: hacia RXD del ESP8266 con nivel 3.3V.
 const uint8_t PIN_IR_ENTRY = 4;    // Sensor IR de presencia en la entrada.
 const uint8_t PIN_SERVO_ENTRY = 5; // Senal del servo de barrera de entrada.
 const uint8_t PIN_LED_STATUS = 6;  // LED opcional de estado local.
@@ -316,8 +325,8 @@ const uint8_t PIN_LCD_SCL = A5;    // SCL del LCD I2C.
 Ejemplo base para `Salida`:
 
 ```cpp
-const uint8_t PIN_ESP_RX = 2;       // Arduino RX por SoftwareSerial: conectado al TX del ESP8266.
-const uint8_t PIN_ESP_TX = 3;       // Arduino TX por SoftwareSerial: hacia RX del ESP8266 con nivel 3.3V.
+const uint8_t PIN_ESP_RX = 0;       // Pin 0/RX del Arduino: conectado al TXD del ESP8266.
+const uint8_t PIN_ESP_TX = 1;       // Pin 1/TX del Arduino: hacia RXD del ESP8266 con nivel 3.3V.
 const uint8_t PIN_IR_EXIT = 4;      // Sensor IR de presencia en la salida.
 const uint8_t PIN_SERVO_EXIT = 5;   // Senal del servo de barrera de salida.
 const uint8_t PIN_BUZZER = 6;       // Buzzer activo para alertas.
@@ -335,6 +344,7 @@ Constantes comunes:
 const unsigned long SENSOR_DEBOUNCE_MS = 300;
 const unsigned long API_TIMEOUT_MS = 5000;
 const unsigned long BARRIER_OPEN_MS = 3500;
+const unsigned long ESP8266_BAUD_RATE = 9600;
 const int SERVO_CLOSED_DEG = 0;
 const int SERVO_OPEN_DEG = 90;
 const uint8_t TICKET_CODE_LENGTH = 5;
@@ -377,9 +387,55 @@ Funciones de salida:
 | `handleExitBlocked(reason)` | LED rojo, buzzer y mensaje de pago pendiente/error. |
 | `runExitStateMachine()` | Ejecuta estados de salida dentro de `loop()`. |
 
-## 11. Maquinas de estado
+## 11. Configuracion AT del ESP8266
 
-### 11.1 Entrada
+La configuracion real del modulo WiFi queda documentada como precondicion del
+firmware. Se asume firmware AT y comunicacion serial a 9600 baudios.
+
+### 11.1 Validacion y baudrate
+
+| Comando | Proposito | Resultado esperado |
+| --- | --- | --- |
+| `AT` | Verificar que el modulo responde. | `OK`. |
+| `AT+UART_DEF=9600,8,1,0,0` | Dejar baudrate persistente en 9600. | `OK`. |
+| `AT+CIOBAUD=9600` | Alternativa en firmwares viejos. | `OK`. |
+| `AT+GMR` | Revisar version de firmware AT. | Version del modulo. |
+
+El firmware Arduino debe iniciar `Serial.begin(9600)` para hablar con el
+ESP8266. Si se usa tambien monitor serial por USB, los mensajes de debug pueden
+mezclarse con los comandos AT porque ambos comparten `0/RX` y `1/TX`.
+
+### 11.2 Modo WiFi y conexion
+
+| Comando | Proposito |
+| --- | --- |
+| `AT+CWMODE=3` | Modo estacion + punto de acceso. |
+| `AT+CWLAP` | Listar redes disponibles para validar cobertura. |
+| `AT+CWJAP="nombre_wifi","contrasena"` | Conectar el modulo a la red WiFi. |
+| `AT+CIFSR` | Consultar IP asignada al modulo. |
+
+Para el flujo final hacia FastAPI, el modo mas importante es que el ESP8266
+actue como estacion conectada a la misma red donde este la API local, o a una
+red con salida a internet si FastAPI esta en Render.
+
+### 11.3 Servidor en el ESP8266
+
+Los comandos usados:
+
+| Comando | Proposito |
+| --- | --- |
+| `AT+CIPMUX=1` | Habilita conexiones multiples. |
+| `AT+CIPSERVER=1,80` | Levanta servidor HTTP en el puerto 80 del ESP8266. |
+
+Esto sirve para pruebas desde navegador contra la IP del modulo y para validar
+que el ESP8266 esta en red. Para la operacion principal del estacionamiento,
+Arduino normalmente debe iniciar conexiones salientes hacia FastAPI usando
+`AT+CIPSTART` y `AT+CIPSEND`; el servidor local del ESP8266 no reemplaza la API
+FastAPI ni debe ser fuente de verdad.
+
+## 12. Maquinas de estado
+
+### 12.1 Entrada
 
 | Estado | Evento | Accion | Siguiente estado |
 | --- | --- | --- | --- |
@@ -395,7 +451,7 @@ Funciones de salida:
 | `DENIED_FULL` | Tiempo agotado | Mantener barrera cerrada. | `IDLE`. |
 | `API_ERROR` | Reintento manual/tiempo | No abrir barrera. | `IDLE`. |
 
-### 11.2 Salida
+### 12.2 Salida
 
 | Estado | Evento | Accion | Siguiente estado |
 | --- | --- | --- | --- |
@@ -411,9 +467,9 @@ Funciones de salida:
 | `WAIT_CLEAR` | Sensor libre | Cerrar servo. | `IDLE`. |
 | `BLOCKED` | Tiempo agotado | Apagar alerta. | `READ_CODE` o `IDLE`. |
 
-## 12. Pruebas SDD
+## 13. Pruebas SDD
 
-### 12.1 Pruebas unitarias
+### 13.1 Pruebas unitarias
 
 Separar logica pura para poder probarla sin hardware.
 
@@ -436,7 +492,7 @@ cd ../Salida
 pio test -e native
 ```
 
-### 12.2 Pruebas de compilacion
+### 13.2 Pruebas de compilacion
 
 ```bash
 cd Entrada
@@ -446,7 +502,7 @@ cd ../Salida
 pio run -e uno
 ```
 
-### 12.3 Pruebas con API simulada
+### 13.3 Pruebas con API simulada
 
 Antes de usar Render o Supabase, levantar una API local o mock que responda:
 
@@ -458,7 +514,7 @@ Antes de usar Render o Supabase, levantar una API local o mock que responda:
 
 Validar que el firmware nunca abra la barrera si la API falla.
 
-### 12.4 Pruebas electricas
+### 13.4 Pruebas electricas
 
 Checklist por caseta:
 
@@ -471,7 +527,7 @@ Checklist por caseta:
 - [ ] Sensor IR cambia de estado al bloquear/reflejar.
 - [ ] En salida, cada tecla aparece una sola vez por pulsacion.
 
-### 12.5 Pruebas de hardware-in-the-loop
+### 13.5 Pruebas de hardware-in-the-loop
 
 Entrada:
 
@@ -491,14 +547,16 @@ Salida:
 - [ ] Ticket inexistente no abre.
 - [ ] Doble salida del mismo ticket no abre.
 
-## 13. Despliegue de firmware
+## 14. Despliegue de firmware
 
-### 13.1 Preparacion
+### 14.1 Preparacion
 
 1. Confirmar pines segun este documento.
 2. Crear `include/secrets.h` local en cada proyecto.
 3. Configurar SSID, password, API base URL, device ID y token.
 4. Conectar solo un Arduino por carga para evitar subir al puerto equivocado.
+5. Si el ESP8266 esta conectado a `0/RX` y `1/TX`, desconectar temporalmente
+   esos dos cables antes de subir firmware cuando PlatformIO no logre cargar.
 
 `secrets.example.h` esperado:
 
@@ -512,7 +570,7 @@ const char DEVICE_ID[] = "entrada-01";
 const char DEVICE_TOKEN[] = "CAMBIAR";
 ```
 
-### 13.2 Comandos de carga
+### 14.2 Comandos de carga
 
 Entrada:
 
@@ -533,8 +591,10 @@ pio device monitor -b 9600
 ```
 
 Los puertos `COM3` y `COM4` son ejemplos. Deben ajustarse al equipo usado.
+El monitor serial a `9600` comparte linea con el ESP8266; usarlo solo para
+validar comandos AT o logs muy controlados.
 
-### 13.3 Despliegue contra entornos
+### 14.3 Despliegue contra entornos
 
 | Entorno | API URL | Uso |
 | --- | --- | --- |
@@ -545,14 +605,14 @@ Los puertos `COM3` y `COM4` son ejemplos. Deben ajustarse al equipo usado.
 No usar `localhost` dentro del Arduino: para el Arduino, `localhost` seria el
 propio modulo, no la computadora.
 
-### 13.4 Rollback
+### 14.4 Rollback
 
 - Mantener el commit del ultimo firmware estable.
 - Si una carga falla en campo, volver a compilar ese commit y subirlo.
 - Registrar `FIRMWARE_VERSION` en logs seriales y, si el backend lo acepta,
   enviarlo como parte del payload.
 
-## 14. Orden de implementacion
+## 15. Orden de implementacion
 
 ### Fase 1: base comun
 
@@ -595,7 +655,7 @@ propio modulo, no la computadora.
 - [ ] Repetir contra Render staging.
 - [ ] Documentar puertos COM, URLs y versiones de firmware usadas.
 
-## 15. Criterios de aceptacion
+## 16. Criterios de aceptacion
 
 - La entrada no abre barrera si no hay respuesta valida de FastAPI.
 - La entrada no abre barrera si FastAPI responde `parking_full`.
@@ -608,15 +668,17 @@ propio modulo, no la computadora.
 - Los tokens de dispositivo no quedan commiteados.
 - El armado fisico usa GND comun y proteccion de nivel para ESP8266.
 
-## 16. Riesgos y controles
+## 17. Riesgos y controles
 
 | Riesgo | Control |
 | --- | --- |
 | Falta de pines en Arduino UNO | Usar LCD I2C y mapa de pines definido. |
 | Reinicios por servo o ESP8266 | Fuentes externas estables y GND comun. |
-| Dano al ESP8266 por 5V | Divisor resistivo o level shifter en Arduino TX -> ESP RX. |
+| Dano al ESP8266 por 5V | Divisor resistivo o level shifter en Arduino `1/TX` -> ESP8266 `RXD`. |
+| Fallo al subir firmware por usar `0/RX` y `1/TX` | Desconectar temporalmente `RXD/TXD` del ESP8266 durante upload si PlatformIO no carga. |
 | Falsos positivos del IR | Debounce y confirmacion por estado estable. |
 | Duplicidad de tickets | Ticket final generado por FastAPI, no por firmware en produccion. |
 | API caida | Barrera cerrada por defecto y mensaje de error. |
 | Tokens expuestos en firmware | Usar tokens por caseta, rotables, no llaves Supabase. |
 | Divergencia entre docs y codigo | Pin map en `config.h` debe copiar esta tabla y mantenerse en revision. |
+
