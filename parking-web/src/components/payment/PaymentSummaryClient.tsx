@@ -108,16 +108,24 @@ export function PaymentSummaryClient({
   }
 
   return (
-    <Stack gap="5">
+    <Stack gap="6">
       <Stack
-        bg="opsPanel"
-        borderColor="opsBorder"
+        className="glass-panel neon-glow-cyan"
         borderRadius="2xl"
-        borderWidth="1px"
-        gap="4"
+        gap="5"
         p={{ base: "5", md: "6" }}
+        transition="all 0.3s ease-in-out"
       >
-        <Text fontWeight="bold">Descuento</Text>
+        <Text
+          color="opsCyan"
+          fontFamily="var(--font-orbitron)"
+          fontWeight="900"
+          fontSize="sm"
+          letterSpacing="0.05em"
+          textTransform="uppercase"
+        >
+          Aplicar Descuento
+        </Text>
         <select
           value={discountType}
           onChange={(event) => {
@@ -126,14 +134,19 @@ export function PaymentSummaryClient({
           }}
         >
           <option value="none">Sin descuento</option>
-          <option value="senior">Adulto mayor</option>
-          <option value="student">Estudiante</option>
+          <option value="senior">Adulto mayor (INAPAM)</option>
+          <option value="student">Estudiante (Escolar)</option>
         </select>
 
         {discountType === "student" ? (
           <Field.Root required>
-            <Field.Label>Correo escolar</Field.Label>
+            <Field.Label color="opsMuted" fontSize="xs" fontWeight="bold" textTransform="uppercase">
+              Correo escolar
+            </Field.Label>
             <Input
+              bg="rgba(13, 21, 39, 0.4)"
+              borderColor="opsBorder"
+              _focus={{ borderColor: "opsCyan", boxShadow: "0 0 10px rgba(6, 182, 212, 0.2)" }}
               placeholder="alumno@escuela.edu.mx"
               value={studentEmail}
               onChange={(event) => setStudentEmail(event.target.value)}
@@ -142,36 +155,72 @@ export function PaymentSummaryClient({
         ) : null}
 
         {discountType === "senior" ? (
-          <>
+          <Stack gap="4">
             <Field.Root required>
-              <Field.Label>Edad</Field.Label>
+              <Field.Label color="opsMuted" fontSize="xs" fontWeight="bold" textTransform="uppercase">
+                Edad
+              </Field.Label>
               <Input
                 type="number"
+                bg="rgba(13, 21, 39, 0.4)"
+                borderColor="opsBorder"
+                _focus={{ borderColor: "opsCyan", boxShadow: "0 0 10px rgba(6, 182, 212, 0.2)" }}
+                placeholder="60 o más"
                 value={seniorAge}
                 onChange={(event) => setSeniorAge(event.target.value)}
               />
             </Field.Root>
             <Field.Root required>
-              <Field.Label>Tipo de documento</Field.Label>
+              <Field.Label color="opsMuted" fontSize="xs" fontWeight="bold" textTransform="uppercase">
+                Tipo de documento
+              </Field.Label>
               <Input
+                bg="rgba(13, 21, 39, 0.4)"
+                borderColor="opsBorder"
+                _focus={{ borderColor: "opsCyan", boxShadow: "0 0 10px rgba(6, 182, 212, 0.2)" }}
+                placeholder="INAPAM"
                 value={seniorDocumentType}
                 onChange={(event) => setSeniorDocumentType(event.target.value)}
               />
             </Field.Root>
             <Field.Root required>
-              <Field.Label>Ultimos 4 caracteres</Field.Label>
+              <Field.Label color="opsMuted" fontSize="xs" fontWeight="bold" textTransform="uppercase">
+                Últimos 4 caracteres del documento
+              </Field.Label>
               <Input
                 maxLength={4}
+                bg="rgba(13, 21, 39, 0.4)"
+                borderColor="opsBorder"
+                _focus={{ borderColor: "opsCyan", boxShadow: "0 0 10px rgba(6, 182, 212, 0.2)" }}
+                placeholder="123A"
                 value={seniorDocumentLast4}
                 onChange={(event) => setSeniorDocumentLast4(event.target.value)}
               />
             </Field.Root>
-          </>
+          </Stack>
         ) : null}
 
-        {errorMessage ? <Text color="red.300">{errorMessage}</Text> : null}
+        {errorMessage ? <Text color="opsRed" fontSize="sm" fontWeight="bold">{errorMessage}</Text> : null}
 
-        <Button colorPalette="cyan" loading={isLoading} onClick={onRecalculate} w="fit-content">
+        <Button
+          colorPalette="cyan"
+          loading={isLoading}
+          onClick={onRecalculate}
+          w="full"
+          mt="2"
+          fontFamily="var(--font-orbitron)"
+          fontWeight="bold"
+          letterSpacing="0.05em"
+          textTransform="uppercase"
+          bg="opsCyan"
+          color="black"
+          _hover={{
+            bg: "cyan.300",
+            transform: "translateY(-2px)",
+            boxShadow: "0 4px 15px rgba(6, 182, 212, 0.4)",
+          }}
+          transition="all 0.2s"
+        >
           Recalcular monto
         </Button>
       </Stack>

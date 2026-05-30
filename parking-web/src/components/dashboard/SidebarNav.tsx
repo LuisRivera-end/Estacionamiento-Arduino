@@ -1,5 +1,8 @@
-import { Box, Link, Stack, Text } from "@chakra-ui/react";
+"use client";
+
+import { Box, Flex, Link, Stack, Text } from "@chakra-ui/react";
 import NextLink from "next/link";
+import { usePathname } from "next/navigation";
 
 const navItems = [
   ["Resumen", "/dashboard"],
@@ -14,34 +17,69 @@ const navItems = [
 ] as const;
 
 export function SidebarNav() {
+  const pathname = usePathname();
+
   return (
     <Box
       as="aside"
-      bg="opsPanel"
-      borderColor="opsBorder"
+      className="glass-panel"
       borderRightWidth="1px"
       minH="100vh"
       p="5"
       w={{ base: "220px", xl: "260px" }}
+      display="flex"
+      flexDirection="column"
+      position="sticky"
+      top="0"
     >
-      <Text color="opsGreen" fontWeight="bold" mb="6">
-        PARKING OPS
-      </Text>
-      <Stack gap="2">
-        {navItems.map(([label, href]) => (
-          <Link
-            asChild
-            color="opsText"
-            key={href}
-            px="3"
-            py="2"
-            rounded="md"
-            _hover={{ bg: "opsPanelMuted", color: "opsCyan" }}
-          >
-            <NextLink href={href}>{label}</NextLink>
-          </Link>
-        ))}
+      <Flex align="center" gap="2" mb="8">
+        <Box
+          className="pulse-glow"
+          w="2.5"
+          h="2.5"
+          bg="opsGreen"
+          borderRadius="full"
+        />
+        <Text
+          color="opsCyan"
+          fontFamily="var(--font-orbitron)"
+          fontWeight="900"
+          fontSize="lg"
+          letterSpacing="0.08em"
+          textShadow="0 0 10px rgba(6, 182, 212, 0.4)"
+        >
+          PARKING OPS
+        </Text>
+      </Flex>
+      <Stack gap="1.5">
+        {navItems.map(([label, href]) => {
+          const isActive = pathname === href;
+
+          return (
+            <Link
+              asChild
+              color={isActive ? "opsCyan" : "opsText"}
+              key={href}
+              px="4"
+              py="2.5"
+              rounded="md"
+              bg={isActive ? "rgba(6, 182, 212, 0.08)" : "transparent"}
+              borderLeft={isActive ? "3px solid #06b6d4" : "3px solid transparent"}
+              fontWeight={isActive ? "bold" : "normal"}
+              transition="all 0.25s cubic-bezier(0.4, 0, 0.2, 1)"
+              _hover={{
+                bg: isActive ? "rgba(6, 182, 212, 0.12)" : "rgba(6, 182, 212, 0.04)",
+                color: "opsCyan",
+                borderLeft: "3px solid #06b6d4",
+                transform: "translateX(2px)",
+              }}
+            >
+              <NextLink href={href}>{label}</NextLink>
+            </Link>
+          );
+        })}
       </Stack>
     </Box>
   );
 }
+
