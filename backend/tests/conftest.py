@@ -67,6 +67,11 @@ async def session_factory() -> AsyncIterator[async_sessionmaker[AsyncSession]]:
                     block_minutes=30,
                     block_amount=10,
                     lost_ticket_fee=150,
+                    senior_discount_percent=50,
+                    student_discount_percent=50,
+                    student_allowed_domains=[".edu", ".edu.mx"],
+                    senior_discount_applies_to_lost_ticket=False,
+                    student_discount_applies_to_lost_ticket=False,
                     is_active=True,
                 ),
             ]

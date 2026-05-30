@@ -9,6 +9,9 @@ class SummaryReportResponse(BaseModel):
     paid_tickets: int
     lost_tickets: int
     simulated_revenue_today: int
+    total_discount_today: int = 0
+    discounted_payments_senior: int = 0
+    discounted_payments_student: int = 0
 
 
 class AdminTicketItemResponse(BaseModel):
@@ -25,8 +28,13 @@ class AdminTicketItemResponse(BaseModel):
 class AdminPaymentItemResponse(BaseModel):
     payment_id: str
     ticket_code: str
+    subtotal_amount: int
+    discount_type: str
+    discount_percent: int
+    discount_amount: int
     amount: int
     method: str
+    simulation_reference: str | None
     status: str
     provider_reference: str | None
     created_by: str | None

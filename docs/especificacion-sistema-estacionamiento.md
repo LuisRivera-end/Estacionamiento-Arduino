@@ -19,7 +19,8 @@ configuracion de despliegue.
 Incluye:
 
 - Arquitectura de frontend, backend, base de datos y hardware.
-- Flujos de entrada, salida, pago simulado y ticket extraviado.
+- Flujos de entrada, salida, pago simulado, descuentos, ayuda y ticket
+  extraviado.
 - Modelo de datos propuesto en Supabase PostgreSQL.
 - Contrato de API FastAPI.
 - Alcance del dashboard administrativo.
@@ -29,7 +30,7 @@ Incluye:
 
 Fuera de alcance en esta fase:
 
-- Cobros reales con Stripe.
+- Cobros reales con pasarelas externas.
 - Lectura automatica por camara.
 - Reconocimiento de placas.
 - Jobs programados de backup.
@@ -104,10 +105,26 @@ deben pasar por FastAPI usando una llave secreta de Supabase solo en servidor.
 1. El usuario llega a la web de pago e ingresa el codigo de ticket.
 2. El frontend consulta el ticket.
 3. FastAPI calcula el monto con las reglas vigentes.
-4. La UI muestra una experiencia visual tipo Stripe, sin realizar cobro real.
+4. La UI muestra una experiencia de pago simulado, sin solicitar datos
+   bancarios ni realizar cobro real.
 5. Al confirmar, `POST /payments/simulate` crea un pago simulado.
 6. El ticket queda marcado como pagado.
 7. El usuario puede salir usando el mismo codigo de ticket.
+
+Si el usuario cancela el checkout, no se crea registro de pago y el ticket
+permanece sin cambios.
+
+### 4.3.1 Descuentos
+
+El sistema permitira descuentos simulados para:
+
+- Adultos mayores: edad declarada de 65 anios o mas y referencia INAPAM
+  parcial.
+- Estudiantes: correo escolar con dominio permitido.
+
+Ambos descuentos inician con 50% y deben ser configurables desde las reglas de
+tarifa. Solo se puede aplicar un descuento por pago. La aplicacion del
+descuento a ticket extraviado sera configurable por tipo de descuento.
 
 ### 4.4 Ticket extraviado
 
@@ -138,6 +155,11 @@ Reglas base del MVP:
 - Despues de la tolerancia, el precio aumenta por bloques configurables.
 - Cada bloque define duracion en minutos y monto.
 - La tarifa por ticket extraviado es configurable.
+- Descuento adulto mayor: 50% inicial, configurable.
+- Descuento estudiante: 50% inicial, configurable.
+- Los dominios de correo escolar permitidos son configurables.
+- La aplicacion de descuentos a ticket extraviado es configurable por tipo de
+  descuento.
 - El calculo se hace en FastAPI para evitar manipulacion desde frontend o
   Arduino.
 
@@ -149,6 +171,8 @@ Ejemplo conceptual:
 | Bloque base | Cada 30 minutos |
 | Monto por bloque | Configurable |
 | Extravio | Monto fijo configurable |
+| Adulto mayor | 50% inicial |
+| Estudiante | 50% inicial |
 
 ## 6. Modelo de datos propuesto
 
@@ -180,10 +204,15 @@ camara.
 | --- | --- | --- |
 | `id` | UUID | Identificador interno. |
 | `ticket_id` | UUID | Relacion con `tickets.id`. |
-| `amount` | Integer | Monto pagado o simulado. |
-| `method` | Text | `simulated_stripe`, `manual_admin`, `lost_ticket`. |
+| `subtotal_amount` | Integer | Monto antes de descuento. |
+| `discount_type` | Text | `none`, `senior` o `student`. |
+| `discount_percent` | Integer | Porcentaje aplicado. |
+| `discount_amount` | Integer | Monto descontado. |
+| `amount` | Integer | Total pagado o simulado despues de descuentos. |
+| `method` | Text | `simulated_payment`, `manual_admin`, `lost_ticket`; `simulated_stripe` queda como alias legado. |
 | `status` | Text | `simulated`, `succeeded`, `voided`, `failed`. |
-| `provider_reference` | Text, nullable | Referencia simulada o futura referencia Stripe. |
+| `simulation_reference` | Text, nullable | Referencia interna simulada. |
+| `discount_evidence` | JSONB, nullable | Evidencia parcial de descuento, sin imagenes ni datos completos. |
 | `created_by` | UUID, nullable | Operador o administrador, cuando aplique. |
 | `created_at` | Timestamptz | Fecha del pago. |
 
@@ -197,6 +226,11 @@ camara.
 | `block_minutes` | Integer | Tamano del bloque de cobro. |
 | `block_amount` | Integer | Monto por bloque. |
 | `lost_ticket_fee` | Integer | Monto por extravio. |
+| `senior_discount_percent` | Integer | Porcentaje de descuento para adulto mayor, default 50. |
+| `student_discount_percent` | Integer | Porcentaje de descuento para estudiante, default 50. |
+| `student_allowed_domains` | JSON/Text array | Dominios validos para correo escolar. |
+| `senior_discount_applies_to_lost_ticket` | Boolean | Define si adulto mayor aplica a extravio. |
+| `student_discount_applies_to_lost_ticket` | Boolean | Define si estudiante aplica a extravio. |
 | `is_active` | Boolean | Solo una regla activa para el MVP. |
 | `created_at` | Timestamptz | Fecha de creacion. |
 | `updated_at` | Timestamptz | Fecha de ultima actualizacion. |
@@ -362,7 +396,11 @@ Request:
 
 ```json
 {
-  "lost_ticket": false
+  "lost_ticket": false,
+  "discount": {
+    "type": "student",
+    "student_email": "alumno@escuela.edu.mx"
+  }
 }
 ```
 
@@ -373,7 +411,11 @@ Respuesta:
   "ticket_code": "A1B2C3D4",
   "duration_minutes": 64,
   "free_tolerance_minutes": 5,
-  "amount": 3,
+  "subtotal_amount": 20,
+  "discount_type": "student",
+  "discount_percent": 50,
+  "discount_amount": 10,
+  "amount": 10,
   "currency": "MXN"
 }
 ```
@@ -390,7 +432,10 @@ Request:
 {
   "ticket_code": "A1B2C3D4",
   "lost_ticket": false,
-  "method": "simulated_stripe"
+  "method": "simulated_payment",
+  "discount": {
+    "type": "none"
+  }
 }
 ```
 
@@ -401,8 +446,11 @@ Respuesta:
   "payment_id": "uuid",
   "ticket_code": "A1B2C3D4",
   "status": "simulated",
-  "amount": 3,
-  "provider_reference": "sim_stripe_20260523_001"
+  "subtotal_amount": 20,
+  "discount_type": "none",
+  "discount_amount": 0,
+  "amount": 20,
+  "simulation_reference": "sim_payment_A1B2C3D4_20260523_001"
 }
 ```
 
@@ -506,13 +554,18 @@ estacionamiento.
   - Busqueda por codigo de ticket.
 - Pagos:
   - Tabla de pagos simulados.
-  - Monto, metodo, estado, fecha y ticket.
-  - Indicador visual de que Stripe aun es simulado.
+  - Subtotal, descuento, monto final, metodo, estado, fecha y ticket.
+  - Indicador visual de que el pago es simulado y no realiza cargo real.
+  - Filtros por metodo y tipo de descuento.
 - Tarifas:
   - Tolerancia gratuita.
   - Bloque de tiempo.
   - Precio por bloque.
   - Tarifa por extravio.
+  - Porcentaje de descuento adulto mayor.
+  - Porcentaje de descuento estudiante.
+  - Dominios escolares permitidos.
+  - Aplicacion de descuentos a ticket extraviado.
   - Historial de cambios en auditoria.
 - Reportes:
   - Exportacion PDF de ingresos.
@@ -527,6 +580,9 @@ estacionamiento.
   - Zona horaria.
   - Moneda.
   - Identificadores de dispositivos Arduino.
+- Ayuda:
+  - Preguntas frecuentes sobre pago simulado, descuentos, ticket extraviado,
+    botones del sistema y salida.
 
 ### 9.2 Graficas
 
@@ -538,19 +594,25 @@ Usar `@chakra-ui/charts` y Recharts para:
 - Distribucion de tickets por estado.
 - Tickets extraviados por periodo.
 
-## 10. Pagos y Stripe
+## 10. Pagos simulados, descuentos y ayuda
 
-Stripe no se integrara realmente en el MVP inicial. La UI debe comunicar una
-experiencia parecida a checkout, pero el backend solo registra pagos simulados.
+El MVP usa pago simulado puro. No existe integracion activa con Stripe ni con
+otra pasarela externa.
 
 Reglas:
 
-- No se deben usar llaves reales de Stripe todavia.
-- No se debe enviar informacion bancaria.
+- No se deben usar llaves reales de Stripe ni variables `STRIPE_*`.
+- No se debe solicitar informacion bancaria.
 - El estado del pago se marca como `simulated`.
-- La tabla `payments.provider_reference` puede guardar una referencia simulada.
-- La futura integracion real debera reemplazar `POST /payments/simulate` por
-  endpoints de checkout/webhook sin cambiar el flujo de salida de Arduino.
+- El metodo vigente es `simulated_payment`.
+- `simulated_stripe` queda solo como alias legado para datos existentes.
+- La tabla `payments` debe conservar subtotal, descuento y total final.
+- La referencia vigente del pago simulado sera `simulation_reference`.
+- El backend recalcula el monto al calcular y al registrar el pago.
+- Si el checkout se cancela, no se registra pago.
+
+Los descuentos y el sistema de ayuda se detallan en
+[`pagos-descuentos-ayuda.md`](./pagos-descuentos-ayuda.md).
 
 ## 11. Backups manuales
 
@@ -594,15 +656,10 @@ APP_ENV=development
 ALLOWED_ORIGINS=http://localhost:3000
 ```
 
-### 12.3 Futuro Stripe real
+### 12.3 Pagos simulados
 
-No usar en el MVP inicial, pero reservar nombres esperados:
-
-```env
-STRIPE_SECRET_KEY=
-STRIPE_WEBHOOK_SECRET=
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
-```
+El MVP no requiere variables de entorno para pasarelas de pago. Cualquier llave
+`STRIPE_*` queda fuera del alcance vigente.
 
 ## 13. Despliegue en Render
 
@@ -630,7 +687,6 @@ Variables secretas en Render:
 - `SUPABASE_DB_URL`
 - `API_DEVICE_TOKEN_ENTRY`
 - `API_DEVICE_TOKEN_EXIT`
-- Futuras llaves Stripe reales
 
 Variables publicas o no secretas:
 
@@ -665,7 +721,8 @@ Los diagramas en `docs/` quedan reflejados asi:
 - Logica de pagos:
   - Consulta de ticket.
   - Calculo de precio.
-  - Simulacion visual tipo Stripe.
+  - Aplicacion opcional de descuentos.
+  - Pago simulado sin pasarela externa.
   - Actualizacion de estado pagado.
 - Arquitectura:
   - Arduino C/C++.
@@ -686,7 +743,9 @@ camara o placa.
 - La tolerancia gratuita de 5 minutos esta documentada.
 - Los incrementos por tiempo son configurables.
 - La tarifa de extravio es configurable.
-- Stripe esta descrito como visual/simulado, no real.
+- El pago simulado no depende de Stripe ni de otra pasarela externa.
+- Los descuentos de adulto mayor y estudiante estan documentados.
+- La ayuda del sistema esta documentada como FAQ estatico.
 - Los backups se describen como manuales.
 - Render se describe con servicios separados y Supabase como base principal.
 

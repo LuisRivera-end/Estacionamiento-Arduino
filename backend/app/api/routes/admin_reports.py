@@ -92,8 +92,13 @@ async def report_payments(
         AdminPaymentItemResponse(
             payment_id=payment.id,
             ticket_code=ticket_code,
+            subtotal_amount=payment.subtotal_amount,
+            discount_type=payment.discount_type,
+            discount_percent=payment.discount_percent,
+            discount_amount=payment.discount_amount,
             amount=payment.amount,
             method=payment.method,
+            simulation_reference=payment.simulation_reference,
             status=payment.status,
             provider_reference=payment.provider_reference,
             created_by=payment.created_by,

@@ -15,6 +15,7 @@ class PaymentStatus(StrEnum):
 
 
 class PaymentMethod(StrEnum):
+    SIMULATED_PAYMENT = "simulated_payment"
     SIMULATED_STRIPE = "simulated_stripe"
     MANUAL_ADMIN = "manual_admin"
     LOST_TICKET = "lost_ticket"
@@ -25,6 +26,12 @@ class PaymentResult(StrEnum):
     SUCCEEDED = "succeeded"
     VOIDED = "voided"
     FAILED = "failed"
+
+
+class DiscountType(StrEnum):
+    NONE = "none"
+    SENIOR = "senior"
+    STUDENT = "student"
 
 
 class DeviceType(StrEnum):

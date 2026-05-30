@@ -30,4 +30,5 @@ async def calculate_public_ticket(
         session=session,
         code=code,
         lost_ticket=payload.lost_ticket,
+        discount=payload.discount,
     )

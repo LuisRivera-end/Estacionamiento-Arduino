@@ -57,6 +57,11 @@ class ParkingRepository:
         block_minutes: int,
         block_amount: int,
         lost_ticket_fee: int,
+        senior_discount_percent: int,
+        student_discount_percent: int,
+        student_allowed_domains: list[str],
+        senior_discount_applies_to_lost_ticket: bool,
+        student_discount_applies_to_lost_ticket: bool,
     ) -> PricingRule:
         pricing_rule = await self.get_active_pricing_rule()
         pricing_rule.name = name
@@ -64,6 +69,15 @@ class ParkingRepository:
         pricing_rule.block_minutes = block_minutes
         pricing_rule.block_amount = block_amount
         pricing_rule.lost_ticket_fee = lost_ticket_fee
+        pricing_rule.senior_discount_percent = senior_discount_percent
+        pricing_rule.student_discount_percent = student_discount_percent
+        pricing_rule.student_allowed_domains = student_allowed_domains
+        pricing_rule.senior_discount_applies_to_lost_ticket = (
+            senior_discount_applies_to_lost_ticket
+        )
+        pricing_rule.student_discount_applies_to_lost_ticket = (
+            student_discount_applies_to_lost_ticket
+        )
         await self.session.flush()
         await self.session.refresh(pricing_rule)
         return pricing_rule

@@ -5,8 +5,15 @@ import { useRouter } from "next/navigation";
 
 import { SimulationNotice } from "@/components/shared/SimulationNotice";
 import { simulatePayment } from "@/lib/api/payments";
+import type { DiscountRequest } from "@/lib/api/types";
 
-export function SimulatedCheckoutCard({ ticketCode }: { ticketCode: string }) {
+export function SimulatedCheckoutCard({
+  ticketCode,
+  discount,
+}: {
+  ticketCode: string;
+  discount: DiscountRequest;
+}) {
   const router = useRouter();
 
   return (
@@ -25,11 +32,14 @@ export function SimulatedCheckoutCard({ ticketCode }: { ticketCode: string }) {
       <Button
         colorPalette="cyan"
         onClick={async () => {
-          await simulatePayment(ticketCode);
+          await simulatePayment(ticketCode, { discount });
           router.push(`/pagar/${ticketCode}/confirmacion`);
         }}
       >
         Confirmar pago simulado
+      </Button>
+      <Button onClick={() => router.push(`/pagar/${ticketCode}`)} variant="outline">
+        Cancelar
       </Button>
     </Stack>
   );

@@ -21,7 +21,7 @@ El frontend se divide en dos superficies independientes:
 
 Queda fuera de alcance:
 
-- Cobro real con Stripe.
+- Cobro real con pasarelas externas.
 - Captura o almacenamiento de placas.
 - Funciones basadas en camara.
 - Backups programados automaticos.
@@ -39,6 +39,8 @@ Principios:
 - Colores funcionales para estados: verde para autorizado, rojo para bloqueo,
   amarillo para advertencia, azul o cyan para informacion tecnica.
 - Pagos simulados siempre identificados visualmente como simulados.
+- Descuentos visibles antes de confirmar pago: adulto mayor y estudiante.
+- Ayuda disponible desde flujo publico y dashboard.
 - Graficas y tablas como elementos principales, no decorativos.
 - Componentes sobrios, con bordes definidos, fondos oscuros y acentos luminosos.
 
@@ -95,9 +97,10 @@ obtener una confirmacion clara para poder salir del estacionamiento.
 | --- | --- | --- |
 | `/pagar` | Consulta de ticket | Permite ingresar el codigo de ticket. |
 | `/pagar/[code]` | Resumen de cobro | Muestra estado, duracion, monto y accion de pago. |
-| `/pagar/[code]/checkout` | Checkout simulado | Presenta experiencia visual tipo Stripe sin cobro real. |
+| `/pagar/[code]/checkout` | Checkout simulado | Presenta pago simulado sin cobro real ni datos bancarios. |
 | `/pagar/[code]/confirmacion` | Confirmacion | Informa que el pago fue registrado como simulado. |
 | `/ticket-extraviado` | Pago por extravio | Permite iniciar el flujo cuando el usuario no tiene codigo. |
+| `/ayuda` | Ayuda | Preguntas frecuentes sobre pago, descuentos, ticket extraviado y botones. |
 
 ### 6.2 Rutas Autenticadas
 
@@ -268,7 +271,7 @@ APIs sugeridas:
 
 Objetivo:
 
-- Auditar pagos registrados sin integrar Stripe real.
+- Auditar pagos simulados registrados sin pasarela externa.
 
 Contenido:
 
@@ -280,7 +283,8 @@ Contenido:
 Reglas visuales:
 
 - Ningun texto debe sugerir que se hizo un cargo real.
-- El metodo `simulated_stripe` debe mostrarse como "Stripe simulado".
+- El metodo vigente `simulated_payment` debe mostrarse como "Pago simulado".
+- El metodo legado `simulated_stripe` debe mostrarse como "Pago simulado legado".
 - El metodo `lost_ticket` debe marcarse como caso de extravio.
 
 APIs sugeridas:
@@ -300,6 +304,10 @@ Contenido:
 - Duracion del bloque en minutos.
 - Precio por bloque.
 - Tarifa por ticket extraviado.
+- Descuento adulto mayor.
+- Descuento estudiante.
+- Dominios escolares permitidos.
+- Aplicacion de descuentos a ticket extraviado.
 - Estado de regla activa.
 - Historial de cambios desde auditoria.
 
@@ -467,21 +475,22 @@ Ruta:
 
 Objetivo:
 
-- Presentar una experiencia visual tipo Stripe sin procesar cobro real.
+- Presentar una experiencia de pago simulado sin procesar cobro real.
 
 Contenido:
 
 - Resumen del ticket.
-- Monto final.
-- Metodo mostrado como "Stripe simulado".
+- Subtotal, descuento y monto final.
+- Metodo mostrado como "Pago simulado".
 - Aviso prominente: "No se usaran tarjetas reales".
 - Boton "Confirmar pago simulado".
+- Boton "Cancelar" para volver al resumen sin registrar pago.
 
 Reglas:
 
 - No pedir tarjeta.
 - No pedir CVV.
-- No usar llaves reales de Stripe.
+- No usar llaves reales de pasarelas externas.
 - La confirmacion debe llamar a `POST /payments/simulate`.
 
 API:
@@ -533,6 +542,27 @@ API:
 
 - `POST /payments/simulate` con `lost_ticket: true`.
 
+### 9.6 Ayuda
+
+Ruta:
+
+- `/ayuda`.
+
+Objetivo:
+
+- Explicar como funciona el sistema, que hace cada boton principal y como se
+  aplican pagos simulados, descuentos y ticket extraviado.
+
+Contenido minimo:
+
+- Que es un pago simulado.
+- Como consultar ticket.
+- Como confirmar o cancelar pago.
+- Como funciona descuento de adulto mayor.
+- Como funciona descuento de estudiante.
+- Cuando aplica descuento a ticket extraviado.
+- Que hacer despues de pagar.
+
 ## 10. Componentes Base
 
 Componentes compartidos:
@@ -546,6 +576,7 @@ Componentes compartidos:
 - `DateRangeFilter`: filtro reusable de fechas.
 - `TicketSearch`: busqueda por codigo.
 - `SimulationNotice`: aviso permanente de pago simulado.
+- `HelpLink`: acceso visible a preguntas frecuentes.
 - `ConfirmActionDialog`: confirmaciones para backups y acciones sensibles.
 - `EmptyState`: estado vacio con accion siguiente.
 - `ErrorState`: error con mensaje accionable.
@@ -631,7 +662,7 @@ El frontend cumple la planificacion cuando:
 - El dashboard no solicita ni muestra placas como dato requerido.
 - El flujo publico permite consultar y pagar mediante codigo de ticket.
 - La salida del usuario queda desbloqueable despues del pago simulado.
-- Stripe aparece solo como experiencia visual simulada.
+- El pago aparece como simulado y no depende de Stripe.
 - Las vistas administrativas cubren resumen, eventos, tickets, pagos, tarifas,
   reportes, backups y configuracion.
 - Los reportes pueden exportarse a PDF cuando exista soporte en API.

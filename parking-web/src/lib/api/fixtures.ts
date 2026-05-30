@@ -22,6 +22,9 @@ export const summaryFixture: SummaryReport = {
   paid_tickets: 18,
   lost_tickets: 2,
   simulated_revenue_today: 430,
+  total_discount_today: 80,
+  discounted_payments_senior: 2,
+  discounted_payments_student: 3,
 };
 
 export const ticketFixture: TicketResponse = {
@@ -38,16 +41,26 @@ export const calculationFixture: TicketCalculation = {
   ticket_code: "A1B2C",
   duration_minutes: 64,
   free_tolerance_minutes: 5,
-  amount: 3,
+  subtotal_amount: 20,
+  discount_type: "none",
+  discount_percent: 0,
+  discount_amount: 0,
+  amount: 20,
   currency: "MXN",
+  lost_ticket_discount_applied: false,
 };
 
 export const paymentFixture: SimulatedPayment = {
   payment_id: "simulated-payment-id",
   ticket_code: "A1B2C",
   status: "simulated",
-  amount: 3,
-  provider_reference: "sim_stripe_20260523_001",
+  subtotal_amount: 20,
+  discount_type: "none",
+  discount_percent: 0,
+  discount_amount: 0,
+  amount: 20,
+  simulation_reference: "sim_payment_A1B2C_20260523_001",
+  provider_reference: "sim_payment_A1B2C_20260523_001",
 };
 
 export const backupFixture: BackupExport = {

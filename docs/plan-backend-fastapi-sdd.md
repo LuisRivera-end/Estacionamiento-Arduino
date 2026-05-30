@@ -15,7 +15,9 @@
 Este plan parte de:
 
 - `docs/README.md`: el entregable actual es documental y no existe scaffolding de FastAPI, Supabase ni Render.
-- `docs/especificacion-sistema-estacionamiento.md`: MVP con dos casetas Arduino, API FastAPI, Supabase PostgreSQL, dashboard Next.js, pago Stripe simulado y sin camaras ni placas.
+- `docs/especificacion-sistema-estacionamiento.md`: MVP con dos casetas Arduino, API FastAPI, Supabase PostgreSQL, dashboard Next.js, pago simulado puro y sin camaras ni placas.
+- `docs/pagos-descuentos-ayuda.md`: reglas vigentes de pago simulado,
+  descuentos adulto mayor/estudiante y sistema de ayuda.
 - Skill Supabase: RLS obligatorio en tablas expuestas, llaves secretas solo en servidor, revisar exposicion de Data API y grants explicitos.
 - Skill Render: usar Blueprint cuando hay mas de un servicio o configuracion reproducible; validar `render.yaml` con Render CLI.
 - Docs oficiales consultados: Supabase API security, Supabase SSR Auth, Supabase secret key server-side, Render Blueprint YAML y Render FastAPI deploy.
@@ -151,7 +153,8 @@ revoke all on schema private from public, anon, authenticated;
 
 create type public.ticket_status as enum ('active', 'exited', 'cancelled');
 create type public.payment_status as enum ('unpaid', 'paid', 'exempted', 'refunded');
-create type public.payment_method as enum ('simulated_stripe', 'manual_admin', 'lost_ticket');
+create type public.payment_method as enum ('simulated_payment', 'manual_admin', 'lost_ticket');
+-- `simulated_stripe` debe aceptarse solo como alias legado durante migracion.
 create type public.payment_result as enum ('simulated', 'succeeded', 'voided', 'failed');
 create type public.device_type as enum ('entry', 'exit');
 create type public.backup_status as enum ('requested', 'completed', 'failed');
@@ -222,10 +225,15 @@ create index tickets_entry_at_idx on public.tickets (entry_at desc);
 create table public.payments (
   id uuid primary key default gen_random_uuid(),
   ticket_id uuid not null references public.tickets(id),
+  subtotal_amount integer not null default 0 check (subtotal_amount >= 0),
+  discount_type text not null default 'none',
+  discount_percent integer not null default 0 check (discount_percent >= 0),
+  discount_amount integer not null default 0 check (discount_amount >= 0),
   amount integer not null check (amount >= 0),
   method public.payment_method not null,
   status public.payment_result not null default 'simulated',
-  provider_reference text,
+  simulation_reference text,
+  discount_evidence jsonb,
   created_by uuid,
   created_at timestamptz not null default now()
 );
@@ -392,7 +400,7 @@ Estas rutas pueden ser consumidas por una pagina publica del frontend con rate l
 | --- | --- | --- |
 | GET | `/api/v1/public/tickets/{code}` | Consultar estado del ticket por codigo. |
 | POST | `/api/v1/public/tickets/{code}/calculate` | Calcular monto segun tarifa activa. |
-| POST | `/api/v1/public/payments/simulate` | Registrar pago visual tipo Stripe, sin cobro real. |
+| POST | `/api/v1/public/payments/simulate` | Registrar pago simulado, sin cobro real ni pasarela externa. |
 
 Request pago:
 
@@ -400,7 +408,7 @@ Request pago:
 {
   "ticket_code": "A1B2C",
   "lost_ticket": false,
-  "method": "simulated_stripe"
+  "method": "simulated_payment"
 }
 ```
 
@@ -412,7 +420,7 @@ Respuesta pago:
   "ticket_code": "A1B2C",
   "status": "simulated",
   "amount": 10,
-  "provider_reference": "sim_stripe_20260525_091000"
+  "simulation_reference": "sim_payment_20260525_091000"
 }
 ```
 
@@ -854,7 +862,7 @@ render blueprints validate
 - El backend puede emitir tickets sin superar capacidad configurada.
 - La salida se bloquea si el ticket requiere pago y no esta pagado.
 - La salida se autoriza si el ticket esta pagado o dentro de tolerancia.
-- El pago simulado nunca usa Stripe real.
+- El pago simulado nunca usa Stripe ni otra pasarela real.
 - No existe campo obligatorio de placa.
 - Todas las tablas operativas tienen RLS habilitado.
 - `anon` y `authenticated` no tienen grants directos a tablas operativas.

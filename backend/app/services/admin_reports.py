@@ -4,6 +4,7 @@ from datetime import datetime, time, timedelta
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.enums import DiscountType
 from app.repositories.parking import ParkingRepository
 from app.repositories.payments import PaymentRepository
 from app.repositories.tickets import TicketRepository
@@ -40,4 +41,11 @@ async def get_daily_summary(session: AsyncSession, now: datetime) -> SummaryRepo
         paid_tickets=await ticket_repository.count_paid_tickets(start_at, end_at),
         lost_tickets=await ticket_repository.count_lost_tickets(start_at, end_at),
         simulated_revenue_today=await payment_repository.sum_revenue(start_at, end_at),
+        total_discount_today=await payment_repository.sum_discounts(start_at, end_at),
+        discounted_payments_senior=await payment_repository.count_by_discount_type(
+            start_at=start_at, end_at=end_at, discount_type=DiscountType.SENIOR
+        ),
+        discounted_payments_student=await payment_repository.count_by_discount_type(
+            start_at=start_at, end_at=end_at, discount_type=DiscountType.STUDENT
+        ),
     )

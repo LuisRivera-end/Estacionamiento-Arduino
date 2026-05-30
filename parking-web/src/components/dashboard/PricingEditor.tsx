@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Button, Field, Input, Stack, Text } from "@chakra-ui/react";
+import { Button, Checkbox, Field, Input, Stack, Text } from "@chakra-ui/react";
 
 import { updatePricingRule } from "@/lib/api/admin-settings";
 import type { PricingRule } from "@/lib/api/types";
@@ -16,7 +16,9 @@ type NumberFieldKey =
   | "freeToleranceMinutes"
   | "blockMinutes"
   | "blockAmount"
-  | "lostTicketFee";
+  | "lostTicketFee"
+  | "seniorDiscountPercent"
+  | "studentDiscountPercent";
 
 type NumberFields = Record<NumberFieldKey, string>;
 
@@ -28,7 +30,18 @@ export function PricingEditor({ initialPricing }: PricingEditorProps) {
     blockMinutes: String(initialPricing.block_minutes),
     blockAmount: String(initialPricing.block_amount),
     lostTicketFee: String(initialPricing.lost_ticket_fee),
+    seniorDiscountPercent: String(initialPricing.senior_discount_percent),
+    studentDiscountPercent: String(initialPricing.student_discount_percent),
   });
+  const [studentAllowedDomains, setStudentAllowedDomains] = useState(
+    initialPricing.student_allowed_domains.join(", "),
+  );
+  const [seniorLostTicketEnabled, setSeniorLostTicketEnabled] = useState(
+    initialPricing.senior_discount_applies_to_lost_ticket,
+  );
+  const [studentLostTicketEnabled, setStudentLostTicketEnabled] = useState(
+    initialPricing.student_discount_applies_to_lost_ticket,
+  );
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -37,10 +50,23 @@ export function PricingEditor({ initialPricing }: PricingEditorProps) {
     setNumbers((current) => ({ ...current, [key]: value }));
   }
 
-  function parseNumberField(key: NumberFieldKey): number | null {
+  function parseNumberField(
+    key: NumberFieldKey,
+    min: number,
+    max: number,
+  ): number | null {
     const parsed = Number.parseInt(numbers[key], 10);
-    if (!Number.isFinite(parsed) || parsed < 0) return null;
+    if (!Number.isFinite(parsed) || parsed < min || parsed > max) return null;
     return parsed;
+  }
+
+  function parseDomains(rawDomains: string): string[] {
+    const domains = rawDomains
+      .split(",")
+      .map((domain) => domain.trim().toLowerCase())
+      .filter((domain) => domain.length > 0);
+
+    return Array.from(new Set(domains));
   }
 
   async function onSave() {
@@ -50,24 +76,29 @@ export function PricingEditor({ initialPricing }: PricingEditorProps) {
     const accessToken = await getBrowserAccessToken();
 
     if (!accessToken) {
-      setError("Sesión no válida. Vuelve a iniciar sesión.");
+      setError("Sesion no valida. Vuelve a iniciar sesion.");
       setIsSaving(false);
       return;
     }
 
-    const freeToleranceMinutes = parseNumberField("freeToleranceMinutes");
-    const blockMinutes = parseNumberField("blockMinutes");
-    const blockAmount = parseNumberField("blockAmount");
-    const lostTicketFee = parseNumberField("lostTicketFee");
+    const freeToleranceMinutes = parseNumberField("freeToleranceMinutes", 0, 1200);
+    const blockMinutes = parseNumberField("blockMinutes", 1, 1200);
+    const blockAmount = parseNumberField("blockAmount", 0, 100000);
+    const lostTicketFee = parseNumberField("lostTicketFee", 0, 100000);
+    const seniorDiscountPercent = parseNumberField("seniorDiscountPercent", 0, 100);
+    const studentDiscountPercent = parseNumberField("studentDiscountPercent", 0, 100);
+    const domains = parseDomains(studentAllowedDomains);
 
     if (
       freeToleranceMinutes === null ||
       blockMinutes === null ||
       blockAmount === null ||
       lostTicketFee === null ||
-      blockMinutes < 1
+      seniorDiscountPercent === null ||
+      studentDiscountPercent === null ||
+      domains.length === 0
     ) {
-      setError("Los valores numéricos deben ser válidos y positivos.");
+      setError("Verifica valores numericos, porcentajes y dominios permitidos.");
       setIsSaving(false);
       return;
     }
@@ -80,14 +111,21 @@ export function PricingEditor({ initialPricing }: PricingEditorProps) {
           block_minutes: blockMinutes,
           block_amount: blockAmount,
           lost_ticket_fee: lostTicketFee,
+          senior_discount_percent: seniorDiscountPercent,
+          student_discount_percent: studentDiscountPercent,
+          student_allowed_domains: domains,
+          senior_discount_applies_to_lost_ticket: seniorLostTicketEnabled,
+          student_discount_applies_to_lost_ticket: studentLostTicketEnabled,
         },
         accessToken,
       );
-      setSuccess("Tarifas guardadas en base de datos.");
+      setSuccess("Tarifas y descuentos guardados en base de datos.");
       router.refresh();
     } catch (saveError) {
       setError(
-        saveError instanceof Error ? saveError.message : "No se pudo guardar tarifas.",
+        saveError instanceof Error
+          ? saveError.message
+          : "No se pudo guardar tarifas y descuentos.",
       );
     } finally {
       setIsSaving(false);
@@ -116,7 +154,7 @@ export function PricingEditor({ initialPricing }: PricingEditorProps) {
         />
       </Field.Root>
       <Field.Root required>
-        <Field.Label>Duración por bloque (min)</Field.Label>
+        <Field.Label>Duracion por bloque (min)</Field.Label>
         <Input
           type="number"
           value={numbers.blockMinutes}
@@ -139,6 +177,53 @@ export function PricingEditor({ initialPricing }: PricingEditorProps) {
           onChange={(event) => setNumberField("lostTicketFee", event.target.value)}
         />
       </Field.Root>
+      <Field.Root required>
+        <Field.Label>Descuento adulto mayor (%)</Field.Label>
+        <Input
+          type="number"
+          value={numbers.seniorDiscountPercent}
+          onChange={(event) => setNumberField("seniorDiscountPercent", event.target.value)}
+        />
+      </Field.Root>
+      <Field.Root required>
+        <Field.Label>Descuento estudiante (%)</Field.Label>
+        <Input
+          type="number"
+          value={numbers.studentDiscountPercent}
+          onChange={(event) => setNumberField("studentDiscountPercent", event.target.value)}
+        />
+      </Field.Root>
+      <Field.Root required>
+        <Field.Label>Dominios escolares permitidos (coma separada)</Field.Label>
+        <Input
+          value={studentAllowedDomains}
+          onChange={(event) => setStudentAllowedDomains(event.target.value)}
+        />
+      </Field.Root>
+      <Checkbox.Root
+        checked={seniorLostTicketEnabled}
+        onCheckedChange={(details) =>
+          setSeniorLostTicketEnabled(details.checked === true)
+        }
+      >
+        <Checkbox.HiddenInput />
+        <Checkbox.Control />
+        <Checkbox.Label>
+          Permitir descuento adulto mayor en ticket extraviado
+        </Checkbox.Label>
+      </Checkbox.Root>
+      <Checkbox.Root
+        checked={studentLostTicketEnabled}
+        onCheckedChange={(details) =>
+          setStudentLostTicketEnabled(details.checked === true)
+        }
+      >
+        <Checkbox.HiddenInput />
+        <Checkbox.Control />
+        <Checkbox.Label>
+          Permitir descuento estudiante en ticket extraviado
+        </Checkbox.Label>
+      </Checkbox.Root>
       {error ? <Text color="red.300">{error}</Text> : null}
       {success ? <Text color="green.300">{success}</Text> : null}
       <Button colorPalette="cyan" loading={isSaving} onClick={onSave} w="fit-content">

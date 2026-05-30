@@ -34,6 +34,20 @@ function buildPageHref(
   return `/dashboard/pagos?${params.toString()}`;
 }
 
+function formatPaymentMethod(method: string): string {
+  if (method === "simulated_payment") return "Pago simulado";
+  if (method === "simulated_stripe") return "Pago simulado legado";
+  if (method === "lost_ticket") return "Ticket extraviado";
+  if (method === "manual_admin") return "Manual admin";
+  return method;
+}
+
+function formatDiscountType(discountType: string): string {
+  if (discountType === "senior") return "Adulto mayor";
+  if (discountType === "student") return "Estudiante";
+  return "Sin descuento";
+}
+
 export default async function PaymentsPage({
   searchParams,
 }: {
@@ -81,13 +95,14 @@ export default async function PaymentsPage({
           <Input
             defaultValue={ticketCode}
             name="ticket_code"
-            placeholder="Código ticket"
+            placeholder="Codigo ticket"
             w="220px"
           />
           <select defaultValue={method} name="method">
-            <option value="">Método: todos</option>
-            <option value="simulated_stripe">Stripe Simulado</option>
-            <option value="lost_ticket">Ticket Extraviado</option>
+            <option value="">Metodo: todos</option>
+            <option value="simulated_payment">Pago simulado</option>
+            <option value="simulated_stripe">Pago simulado legado</option>
+            <option value="lost_ticket">Ticket extraviado</option>
           </select>
           <select defaultValue={status} name="status">
             <option value="">Estado: todos</option>
@@ -108,14 +123,25 @@ export default async function PaymentsPage({
       </Text>
 
       <DataTable
-        headers={["Fecha", "Ticket", "Monto", "Método", "Estado", "Referencia"]}
+        headers={[
+          "Fecha",
+          "Ticket",
+          "Subtotal",
+          "Descuento",
+          "Total",
+          "Metodo",
+          "Estado",
+          "Referencia",
+        ]}
         rows={paymentsPage.items.map((payment) => [
           formatDateTime(payment.created_at),
           payment.ticket_code,
+          formatCurrency(payment.subtotal_amount, "MXN"),
+          `${formatDiscountType(payment.discount_type)} (-${formatCurrency(payment.discount_amount, "MXN")})`,
           formatCurrency(payment.amount, "MXN"),
-          payment.method,
+          formatPaymentMethod(payment.method),
           payment.status,
-          payment.provider_reference ?? "-",
+          payment.simulation_reference ?? payment.provider_reference ?? "-",
         ])}
       />
 
@@ -132,7 +158,7 @@ export default async function PaymentsPage({
           </Button>
         )}
         <Text color="opsMuted">
-          Página {currentPage} de {totalPages}
+          Pagina {currentPage} de {totalPages}
         </Text>
         {currentPage < totalPages ? (
           <Button asChild colorPalette="cyan" variant="outline">

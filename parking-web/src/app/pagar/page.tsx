@@ -19,6 +19,9 @@ export default function PayPage() {
         <Link asChild color="opsCyan">
           <NextLink href="/ticket-extraviado">Perdi mi ticket</NextLink>
         </Link>
+        <Link asChild color="opsCyan">
+          <NextLink href="/ayuda">Necesito ayuda</NextLink>
+        </Link>
         <SimulationNotice />
       </Stack>
     </PaymentShell>

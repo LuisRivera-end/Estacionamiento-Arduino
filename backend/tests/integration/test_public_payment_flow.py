@@ -25,20 +25,30 @@ def test_public_ticket_payment_flow_and_summary(client) -> None:
 
     calculation_response = client.post(
         f"/api/v1/public/tickets/{ticket_code}/calculate",
-        json={"lost_ticket": False},
+        json={
+            "lost_ticket": False,
+            "discount": {"type": "student", "student_email": "alumno@campus.edu.mx"},
+        },
     )
     assert calculation_response.status_code == 200
+    calculation_body = calculation_response.json()
+    assert calculation_body["discount_type"] == "student"
+    assert calculation_body["subtotal_amount"] >= calculation_body["amount"]
 
     payment_response = client.post(
         "/api/v1/public/payments/simulate",
         json={
             "ticket_code": ticket_code,
             "lost_ticket": False,
-            "method": "simulated_stripe",
+            "method": "simulated_payment",
+            "discount": {"type": "student", "student_email": "alumno@campus.edu.mx"},
         },
     )
     assert payment_response.status_code == 200
-    assert payment_response.json()["ticket_code"] == ticket_code
+    payment_body = payment_response.json()
+    assert payment_body["ticket_code"] == ticket_code
+    assert payment_body["discount_type"] == "student"
+    assert payment_body["simulation_reference"].startswith(f"sim_payment_{ticket_code}_")
 
     summary_response = client.get(
         "/api/v1/admin/reports/summary",

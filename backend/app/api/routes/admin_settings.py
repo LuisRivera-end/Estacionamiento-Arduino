@@ -58,6 +58,11 @@ async def get_pricing_route(
         block_minutes=pricing_rule.block_minutes,
         block_amount=pricing_rule.block_amount,
         lost_ticket_fee=pricing_rule.lost_ticket_fee,
+        senior_discount_percent=pricing_rule.senior_discount_percent,
+        student_discount_percent=pricing_rule.student_discount_percent,
+        student_allowed_domains=pricing_rule.student_allowed_domains,
+        senior_discount_applies_to_lost_ticket=pricing_rule.senior_discount_applies_to_lost_ticket,
+        student_discount_applies_to_lost_ticket=pricing_rule.student_discount_applies_to_lost_ticket,
         is_active=pricing_rule.is_active,
     )
 
@@ -74,6 +79,11 @@ async def update_pricing_route(
         block_minutes=payload.block_minutes,
         block_amount=payload.block_amount,
         lost_ticket_fee=payload.lost_ticket_fee,
+        senior_discount_percent=payload.senior_discount_percent,
+        student_discount_percent=payload.student_discount_percent,
+        student_allowed_domains=payload.student_allowed_domains,
+        senior_discount_applies_to_lost_ticket=payload.senior_discount_applies_to_lost_ticket,
+        student_discount_applies_to_lost_ticket=payload.student_discount_applies_to_lost_ticket,
     )
     await session.commit()
     return PricingRuleResponse(
@@ -82,5 +92,10 @@ async def update_pricing_route(
         block_minutes=pricing_rule.block_minutes,
         block_amount=pricing_rule.block_amount,
         lost_ticket_fee=pricing_rule.lost_ticket_fee,
+        senior_discount_percent=pricing_rule.senior_discount_percent,
+        student_discount_percent=pricing_rule.student_discount_percent,
+        student_allowed_domains=pricing_rule.student_allowed_domains,
+        senior_discount_applies_to_lost_ticket=pricing_rule.senior_discount_applies_to_lost_ticket,
+        student_discount_applies_to_lost_ticket=pricing_rule.student_discount_applies_to_lost_ticket,
         is_active=pricing_rule.is_active,
     )

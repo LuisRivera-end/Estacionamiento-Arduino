@@ -18,4 +18,5 @@ async def simulate_public_payment(
         ticket_code=payload.ticket_code,
         lost_ticket=payload.lost_ticket,
         method=payload.method,
+        discount=payload.discount,
     )

@@ -2,9 +2,9 @@ import NextLink from "next/link";
 import { Button, Stack } from "@chakra-ui/react";
 
 import { ErrorState } from "@/components/feedback/ErrorState";
+import { PaymentSummaryClient } from "@/components/payment/PaymentSummaryClient";
 import { PaymentShell } from "@/components/payment/PaymentShell";
 import { PaymentStepIndicator } from "@/components/payment/PaymentStepIndicator";
-import { PaymentSummaryCard } from "@/components/payment/PaymentSummaryCard";
 import { calculateTicket, getTicket } from "@/lib/api/tickets";
 import { normalizeTicketCode } from "@/lib/formatters";
 
@@ -26,7 +26,7 @@ export default async function TicketSummaryPage({
   try {
     const [ticket, calculation] = await Promise.all([
       getTicket(ticketCode),
-      calculateTicket(ticketCode),
+      calculateTicket(ticketCode, { discount: { type: "none" } }),
     ]);
     ticketData = ticket;
     calculationData = calculation;
@@ -55,7 +55,11 @@ export default async function TicketSummaryPage({
     <PaymentShell>
       <Stack gap="6">
         <PaymentStepIndicator current={2} />
-        <PaymentSummaryCard calculation={calculationData} ticket={ticketData} />
+        <PaymentSummaryClient
+          initialCalculation={calculationData}
+          ticket={ticketData}
+          ticketCode={ticketCode}
+        />
       </Stack>
     </PaymentShell>
   );

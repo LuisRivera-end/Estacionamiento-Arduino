@@ -3,6 +3,15 @@ export type TicketStatus = "active" | "paid" | "exited" | "lost" | "cancelled";
 export type PaymentStatus = "unpaid" | "paid" | "exempted" | "refunded";
 export type StaffRole = "admin" | "panelist";
 export type StaffStatus = "active" | "disabled";
+export type DiscountType = "none" | "senior" | "student";
+
+export type DiscountRequest = {
+  type: DiscountType;
+  student_email?: string;
+  senior_age?: number;
+  senior_document_type?: string;
+  senior_document_last4?: string;
+};
 
 export type StatusResponse = {
   capacity_total: number;
@@ -27,16 +36,26 @@ export type TicketCalculation = {
   ticket_code: string;
   duration_minutes: number;
   free_tolerance_minutes: number;
+  subtotal_amount: number;
+  discount_type: DiscountType;
+  discount_percent: number;
+  discount_amount: number;
   amount: number;
   currency: string;
+  lost_ticket_discount_applied: boolean;
 };
 
 export type SimulatedPayment = {
   payment_id: string;
   ticket_code: string;
   status: "simulated";
+  subtotal_amount: number;
+  discount_type: DiscountType;
+  discount_percent: number;
+  discount_amount: number;
   amount: number;
-  provider_reference: string;
+  simulation_reference: string;
+  provider_reference: string | null;
 };
 
 export type SummaryReport = {
@@ -45,6 +64,9 @@ export type SummaryReport = {
   paid_tickets: number;
   lost_tickets: number;
   simulated_revenue_today: number;
+  total_discount_today: number;
+  discounted_payments_senior: number;
+  discounted_payments_student: number;
 };
 
 export type BackupExport = {
@@ -71,6 +93,11 @@ export type PricingRule = {
   block_minutes: number;
   block_amount: number;
   lost_ticket_fee: number;
+  senior_discount_percent: number;
+  student_discount_percent: number;
+  student_allowed_domains: string[];
+  senior_discount_applies_to_lost_ticket: boolean;
+  student_discount_applies_to_lost_ticket: boolean;
   is_active: boolean;
 };
 
@@ -88,8 +115,13 @@ export type AdminTicketItem = {
 export type AdminPaymentItem = {
   payment_id: string;
   ticket_code: string;
+  subtotal_amount: number;
+  discount_type: DiscountType;
+  discount_percent: number;
+  discount_amount: number;
   amount: number;
   method: string;
+  simulation_reference: string | null;
   status: string;
   provider_reference: string | null;
   created_by: string | null;

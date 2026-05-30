@@ -21,6 +21,11 @@ class PricingRuleResponse(BaseModel):
     block_minutes: int
     block_amount: int
     lost_ticket_fee: int
+    senior_discount_percent: int
+    student_discount_percent: int
+    student_allowed_domains: list[str]
+    senior_discount_applies_to_lost_ticket: bool
+    student_discount_applies_to_lost_ticket: bool
     is_active: bool
 
 
@@ -30,6 +35,11 @@ class PricingRuleUpdateRequest(BaseModel):
     block_minutes: int = Field(ge=1)
     block_amount: int = Field(ge=0)
     lost_ticket_fee: int = Field(ge=0)
+    senior_discount_percent: int = Field(ge=0, le=100)
+    student_discount_percent: int = Field(ge=0, le=100)
+    student_allowed_domains: list[str] = Field(min_length=1)
+    senior_discount_applies_to_lost_ticket: bool = False
+    student_discount_applies_to_lost_ticket: bool = False
 
 
 class BackupExportRequest(BaseModel):

@@ -1,8 +1,8 @@
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
-from app.models.enums import PaymentStatus, TicketStatus
+from app.models.enums import DiscountType, PaymentStatus, TicketStatus
 
 
 class TicketResponse(BaseModel):
@@ -15,16 +15,30 @@ class TicketResponse(BaseModel):
     lost_ticket: bool
 
 
+class DiscountPayload(BaseModel):
+    type: DiscountType = DiscountType.NONE
+    student_email: str | None = None
+    senior_age: int | None = Field(default=None, ge=0, le=130)
+    senior_document_type: str | None = Field(default=None, min_length=2, max_length=30)
+    senior_document_last4: str | None = Field(default=None, min_length=2, max_length=12)
+
+
 class TicketCalculationRequest(BaseModel):
     lost_ticket: bool = False
+    discount: DiscountPayload | None = None
 
 
 class TicketCalculationResponse(BaseModel):
     ticket_code: str
     duration_minutes: int
     free_tolerance_minutes: int
+    subtotal_amount: int
+    discount_type: DiscountType
+    discount_percent: int
+    discount_amount: int
     amount: int
     currency: str
+    lost_ticket_discount_applied: bool
 
 
 class EntryTicketRequest(BaseModel):

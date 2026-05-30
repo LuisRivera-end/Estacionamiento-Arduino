@@ -28,6 +28,7 @@ def test_admin_panel_reads_and_writes_database(client) -> None:
     pricing_response = client.get("/api/v1/admin/pricing", headers=auth_headers)
     assert pricing_response.status_code == 200
     assert pricing_response.json()["block_minutes"] == 30
+    assert pricing_response.json()["student_allowed_domains"] == [".edu", ".edu.mx"]
 
     update_pricing_response = client.put(
         "/api/v1/admin/pricing",
@@ -38,6 +39,11 @@ def test_admin_panel_reads_and_writes_database(client) -> None:
             "block_minutes": 20,
             "block_amount": 12,
             "lost_ticket_fee": 160,
+            "senior_discount_percent": 50,
+            "student_discount_percent": 50,
+            "student_allowed_domains": [".edu", ".edu.mx", "universidad.mx"],
+            "senior_discount_applies_to_lost_ticket": False,
+            "student_discount_applies_to_lost_ticket": False,
         },
     )
     assert update_pricing_response.status_code == 200
@@ -59,7 +65,13 @@ def test_admin_panel_reads_and_writes_database(client) -> None:
         json={
             "ticket_code": ticket_code,
             "lost_ticket": False,
-            "method": "simulated_stripe",
+            "method": "simulated_payment",
+            "discount": {
+                "type": "senior",
+                "senior_age": 67,
+                "senior_document_type": "INAPAM",
+                "senior_document_last4": "1234",
+            },
         },
     )
     assert payment_response.status_code == 200
@@ -77,6 +89,7 @@ def test_admin_panel_reads_and_writes_database(client) -> None:
     payments_body = payments_response.json()
     assert payments_body["total"] >= 1
     assert any(item["ticket_code"] == ticket_code for item in payments_body["items"])
+    assert any(item["discount_type"] == "senior" for item in payments_body["items"])
 
     events_response = client.get("/api/v1/admin/reports/events", headers=auth_headers)
     assert events_response.status_code == 200
@@ -94,7 +107,7 @@ def test_admin_panel_reads_and_writes_database(client) -> None:
     assert filtered_tickets_body["page_size"] == 10
 
     filtered_payments_response = client.get(
-        "/api/v1/admin/reports/payments?page=1&page_size=10&method=simulated_stripe&status=simulated",
+        "/api/v1/admin/reports/payments?page=1&page_size=10&method=simulated_payment&status=simulated",
         headers=auth_headers,
     )
     assert filtered_payments_response.status_code == 200

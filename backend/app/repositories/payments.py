@@ -6,7 +6,7 @@ from uuid import uuid4
 from sqlalchemy import Select, desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.enums import PaymentMethod, PaymentResult
+from app.models.enums import DiscountType, PaymentMethod, PaymentResult
 from app.models.payment import Payment
 from app.models.ticket import Ticket
 
@@ -18,20 +18,32 @@ class PaymentRepository:
     async def create(
         self,
         *,
+        subtotal_amount: int,
+        discount_type: DiscountType,
+        discount_percent: int,
+        discount_amount: int,
         ticket_id: str,
         amount: int,
         method,
         status,
-        provider_reference: str,
+        simulation_reference: str,
+        provider_reference: str | None,
+        discount_evidence: dict | None,
         created_by: str | None,
     ) -> Payment:
         payment = Payment(
             id=str(uuid4()),
             ticket_id=ticket_id,
+            subtotal_amount=subtotal_amount,
+            discount_type=discount_type,
+            discount_percent=discount_percent,
+            discount_amount=discount_amount,
             amount=amount,
             method=method,
             status=status,
+            simulation_reference=simulation_reference,
             provider_reference=provider_reference,
+            discount_evidence=discount_evidence,
             created_by=created_by,
         )
         self.session.add(payment)
@@ -43,6 +55,24 @@ class PaymentRepository:
         statement = select(func.coalesce(func.sum(Payment.amount), 0)).where(
             Payment.created_at >= start_at,
             Payment.created_at < end_at,
+        )
+        return int((await self.session.execute(statement)).scalar_one())
+
+    async def sum_discounts(self, start_at: datetime, end_at: datetime) -> int:
+        statement = select(func.coalesce(func.sum(Payment.discount_amount), 0)).where(
+            Payment.created_at >= start_at,
+            Payment.created_at < end_at,
+        )
+        return int((await self.session.execute(statement)).scalar_one())
+
+    async def count_by_discount_type(
+        self, *, start_at: datetime, end_at: datetime, discount_type: DiscountType
+    ) -> int:
+        statement = select(func.count()).select_from(Payment).where(
+            Payment.created_at >= start_at,
+            Payment.created_at < end_at,
+            Payment.discount_type == discount_type,
+            Payment.discount_amount > 0,
         )
         return int((await self.session.execute(statement)).scalar_one())
 

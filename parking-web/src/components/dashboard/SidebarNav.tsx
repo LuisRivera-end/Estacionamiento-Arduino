@@ -10,6 +10,7 @@ const navItems = [
   ["Reportes", "/dashboard/reportes"],
   ["Backups", "/dashboard/backups"],
   ["Configuracion", "/dashboard/configuracion"],
+  ["Ayuda", "/ayuda"],
 ] as const;
 
 export function SidebarNav() {

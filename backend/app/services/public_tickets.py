@@ -8,8 +8,12 @@ from app.core.errors import AppError
 from app.core.security import normalize_ticket_code
 from app.repositories.parking import ParkingRepository
 from app.repositories.tickets import TicketRepository
-from app.schemas.tickets import TicketCalculationResponse, TicketResponse
-from app.services.pricing import calculate_amount, calculate_duration_minutes
+from app.schemas.tickets import DiscountPayload, TicketCalculationResponse, TicketResponse
+from app.services.pricing import (
+    PricingSnapshot,
+    calculate_duration_minutes,
+    calculate_payment_breakdown,
+)
 
 
 async def get_ticket_response(*, session: AsyncSession, code: str) -> TicketResponse:
@@ -32,6 +36,7 @@ async def calculate_ticket_response(
     session: AsyncSession,
     code: str,
     lost_ticket: bool,
+    discount: DiscountPayload | None,
 ) -> TicketCalculationResponse:
     ticket = await TicketRepository(session).get_by_code(normalize_ticket_code(code))
     if ticket is None:
@@ -42,19 +47,35 @@ async def calculate_ticket_response(
     settings = await parking_repository.get_settings()
 
     duration_minutes = calculate_duration_minutes(ticket.entry_at, datetime.now(UTC))
-    amount = calculate_amount(
-        duration_minutes=duration_minutes,
+    pricing = PricingSnapshot(
         free_tolerance_minutes=pricing_rule.free_tolerance_minutes,
         block_minutes=pricing_rule.block_minutes,
         block_amount=pricing_rule.block_amount,
         lost_ticket_fee=pricing_rule.lost_ticket_fee,
-        lost_ticket=lost_ticket,
+        currency=settings.currency,
+        senior_discount_percent=pricing_rule.senior_discount_percent,
+        student_discount_percent=pricing_rule.student_discount_percent,
+        student_allowed_domains=pricing_rule.student_allowed_domains,
+        senior_discount_applies_to_lost_ticket=pricing_rule.senior_discount_applies_to_lost_ticket,
+        student_discount_applies_to_lost_ticket=pricing_rule.student_discount_applies_to_lost_ticket,
     )
+    breakdown = calculate_payment_breakdown(
+        pricing=pricing,
+        duration_minutes=duration_minutes,
+        lost_ticket=lost_ticket,
+        discount=discount,
+    )
+
     return TicketCalculationResponse(
         ticket_code=ticket.code,
         duration_minutes=duration_minutes,
         free_tolerance_minutes=pricing_rule.free_tolerance_minutes,
-        amount=amount,
+        subtotal_amount=breakdown.subtotal_amount,
+        discount_type=breakdown.discount_type,
+        discount_percent=breakdown.discount_percent,
+        discount_amount=breakdown.discount_amount,
+        amount=breakdown.amount,
         currency=settings.currency,
+        lost_ticket_discount_applied=breakdown.lost_ticket_discount_applied,
     )
 

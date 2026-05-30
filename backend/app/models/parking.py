@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Integer, String, func
+from sqlalchemy import JSON, Boolean, DateTime, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, TimestampMixin
@@ -46,4 +46,15 @@ class PricingRule(Base, TimestampMixin):
     block_minutes: Mapped[int] = mapped_column(Integer, nullable=False)
     block_amount: Mapped[int] = mapped_column(Integer, nullable=False)
     lost_ticket_fee: Mapped[int] = mapped_column(Integer, nullable=False)
+    senior_discount_percent: Mapped[int] = mapped_column(Integer, nullable=False, default=50)
+    student_discount_percent: Mapped[int] = mapped_column(Integer, nullable=False, default=50)
+    student_allowed_domains: Mapped[list[str]] = mapped_column(
+        JSON, nullable=False, default=lambda: [".edu", ".edu.mx"]
+    )
+    senior_discount_applies_to_lost_ticket: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
+    student_discount_applies_to_lost_ticket: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)

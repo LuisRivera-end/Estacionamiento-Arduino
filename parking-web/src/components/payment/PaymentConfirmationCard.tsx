@@ -1,6 +1,12 @@
 import { Box, Heading, Text } from "@chakra-ui/react";
 
-export function PaymentConfirmationCard({ ticketCode }: { ticketCode: string }) {
+export function PaymentConfirmationCard({
+  ticketCode,
+  simulationReference,
+}: {
+  ticketCode: string;
+  simulationReference: string | null;
+}) {
   return (
     <Box
       bg="opsPanel"
@@ -16,6 +22,11 @@ export function PaymentConfirmationCard({ ticketCode }: { ticketCode: string }) 
       <Text mt="3">
         Ya puedes ingresar el codigo en la salida del estacionamiento.
       </Text>
+      {simulationReference ? (
+        <Text color="opsMuted" mt="3">
+          Referencia simulada: {simulationReference}
+        </Text>
+      ) : null}
     </Box>
   );
 }

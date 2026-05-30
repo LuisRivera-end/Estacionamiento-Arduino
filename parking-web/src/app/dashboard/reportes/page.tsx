@@ -32,6 +32,12 @@ export default async function ReportsPage() {
             "Ingresos simulados",
             formatCurrency(summary.simulated_revenue_today, "MXN"),
           ],
+          [
+            "Total descontado",
+            formatCurrency(summary.total_discount_today, "MXN"),
+          ],
+          ["Pagos con descuento adulto mayor", summary.discounted_payments_senior],
+          ["Pagos con descuento estudiante", summary.discounted_payments_student],
         ]}
       />
     </Grid>

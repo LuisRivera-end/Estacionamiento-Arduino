@@ -32,7 +32,8 @@ Decisiones heredadas:
 - El codigo de ticket es el identificador operativo.
 - FastAPI es la fuente de verdad para capacidad, pago, salida y auditoria.
 - Supabase PostgreSQL guarda tickets, pagos, estado y auditoria.
-- Stripe queda simulado en esta fase.
+- El pago queda simulado en esta fase y no depende de Stripe ni de otra
+  pasarela externa.
 - Los Arduinos se comunican con FastAPI por HTTP mediante ESP8266.
 
 ## 3. Supuestos de hardware

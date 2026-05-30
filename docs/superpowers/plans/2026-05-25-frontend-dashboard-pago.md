@@ -14,6 +14,11 @@
 
 - `docs/especificacion-sistema-estacionamiento.md`
 - `docs/planificacion-frontend-sdd.md`
+- Nota vigente: la especificacion de pagos fue actualizada en
+  `docs/pagos-descuentos-ayuda.md`. Donde este plan mencione
+  `simulated_stripe`, `provider_reference` o "Stripe simulado", debe
+  interpretarse como flujo legado y reemplazarse por `simulated_payment`,
+  `simulation_reference` y "Pago simulado".
 
 ## File Structure
 

@@ -29,6 +29,9 @@ def build_summary_response(
     paid_tickets: int,
     lost_tickets: int,
     simulated_revenue_today: int,
+    total_discount_today: int = 0,
+    discounted_payments_senior: int = 0,
+    discounted_payments_student: int = 0,
 ) -> SummaryReportResponse:
     return SummaryReportResponse(
         entries_today=entries_today,
@@ -36,4 +39,7 @@ def build_summary_response(
         paid_tickets=paid_tickets,
         lost_tickets=lost_tickets,
         simulated_revenue_today=simulated_revenue_today,
+        total_discount_today=total_discount_today,
+        discounted_payments_senior=discounted_payments_senior,
+        discounted_payments_student=discounted_payments_student,
     )
