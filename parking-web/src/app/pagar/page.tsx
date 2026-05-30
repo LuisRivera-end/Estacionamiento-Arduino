@@ -4,7 +4,6 @@ import NextLink from "next/link";
 import { PaymentShell } from "@/components/payment/PaymentShell";
 import { PaymentStepIndicator } from "@/components/payment/PaymentStepIndicator";
 import { TicketCodeInput } from "@/components/payment/TicketCodeInput";
-import { SimulationNotice } from "@/components/shared/SimulationNotice";
 
 export default function PayPage() {
   return (
@@ -22,8 +21,8 @@ export default function PayPage() {
         <Link asChild color="opsCyan">
           <NextLink href="/ayuda">Necesito ayuda</NextLink>
         </Link>
-        <SimulationNotice />
       </Stack>
     </PaymentShell>
   );
 }
+

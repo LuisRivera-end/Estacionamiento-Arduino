@@ -3,10 +3,10 @@ import { Button, Grid, Heading, HStack, Input, Text } from "@chakra-ui/react";
 import { redirect } from "next/navigation";
 
 import { DataTable } from "@/components/dashboard/DataTable";
-import { SimulationNotice } from "@/components/shared/SimulationNotice";
 import { getAdminPayments } from "@/lib/api/reports";
 import { getServerAccessToken } from "@/lib/auth/server";
 import { formatCurrency, formatDateTime } from "@/lib/formatters";
+
 
 type DashboardSearchParams = Record<string, string | string[] | undefined>;
 
@@ -88,7 +88,6 @@ export default async function PaymentsPage({
   return (
     <Grid gap="5">
       <Heading color="opsText">Pagos simulados</Heading>
-      <SimulationNotice />
 
       <form method="get">
         <HStack align="end" flexWrap="wrap" gap="3">
