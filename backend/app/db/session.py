@@ -30,6 +30,10 @@ def init_engine(database_url: str | None = None) -> AsyncEngine:
         resolved_database_url,
         future=True,
         pool_pre_ping=True,
+        pool_size=2,
+        max_overflow=1,
+        pool_timeout=5,
+        pool_recycle=300,
     )
     SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
     return engine
