@@ -81,9 +81,9 @@ void setup() {
   servoMotor.write(0);
 
   lcd.setCursor(0, 0);
-  lcd.print("Mod. Entrada");
+  lcd.print(F("Mod. Entrada"));
   lcd.setCursor(0, 1);
-  lcd.print("Conectando WiFi");
+  lcd.print(F("Conectando WiFi"));
 
   // --- Inicializar conexión Wi-Fi del ESP8266 ---
   wifiConectado = inicializarWiFi();
@@ -91,14 +91,14 @@ void setup() {
   lcd.clear();
   if (wifiConectado) {
     lcd.setCursor(0, 0);
-    lcd.print("WiFi Conectado!");
+    lcd.print(F("WiFi Conectado!"));
     lcd.setCursor(0, 1);
-    lcd.print("Sistema Listo");
+    lcd.print(F("Sistema Listo"));
   } else {
     lcd.setCursor(0, 0);
-    lcd.print("ERROR WiFi!");
+    lcd.print(F("ERROR WiFi!"));
     lcd.setCursor(0, 1);
-    lcd.print("Reinicie modulo");
+    lcd.print(F("Reinicie modulo"));
   }
   delay(2000);
   lcd.clear();
@@ -111,9 +111,9 @@ void loop() {
   if (!wifiConectado) {
     // Intentar reconexión cada 10 segundos
     lcd.setCursor(0, 0);
-    lcd.print("WiFi Desconect.");
+    lcd.print(F("WiFi Desconect."));
     lcd.setCursor(0, 1);
-    lcd.print("Reconectando...");
+    lcd.print(F("Reconectando..."));
     wifiConectado = inicializarWiFi();
     if (wifiConectado) {
       lcd.clear();
@@ -128,10 +128,10 @@ void loop() {
     if (lugaresDisponibles != ultimoEstadoLugares) {
       lcd.clear();
       lcd.setCursor(0, 0);
-      lcd.print("Disponibles: ");
+      lcd.print(F("Disponibles: "));
       lcd.print(lugaresDisponibles);
       lcd.setCursor(0, 1);
-      lcd.print("Acerque Vehiculo");
+      lcd.print(F("Acerque Vehiculo"));
       ultimoEstadoLugares = lugaresDisponibles;
     }
 
@@ -143,9 +143,9 @@ void loop() {
     if (lugaresDisponibles != ultimoEstadoLugares) {
       lcd.clear();
       lcd.setCursor(0, 0);
-      lcd.print("ESTACIONAMIENTO");
+      lcd.print(F("ESTACIONAMIENTO"));
       lcd.setCursor(0, 1);
-      lcd.print("   LLENO  X   ");
+      lcd.print(F("   LLENO  X   "));
       ultimoEstadoLugares = lugaresDisponibles;
     }
   } else {
@@ -153,9 +153,9 @@ void loop() {
     if (ultimoEstadoLugares != -1) {
       lcd.clear();
       lcd.setCursor(0, 0);
-      lcd.print("Acerque Vehiculo");
+      lcd.print(F("Acerque Vehiculo"));
       lcd.setCursor(0, 1);
-      lcd.print("Sistema Activo");
+      lcd.print(F("Sistema Activo"));
       ultimoEstadoLugares = -1;
     }
     if (digitalRead(irPin) == LOW) {
@@ -172,9 +172,9 @@ void loop() {
 void registrarEntrada() {
   lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print("Registrando...");
+  lcd.print(F("Registrando..."));
   lcd.setCursor(0, 1);
-  lcd.print("Espere...");
+  lcd.print(F("Espere..."));
 
   // Construir JSON body
   String jsonBody = "{\"device_id\":\"";
@@ -198,9 +198,9 @@ void registrarEntrada() {
       // Mostrar ticket en LCD
       lcd.clear();
       lcd.setCursor(0, 0);
-      lcd.print("Ticket Generado");
+      lcd.print(F("Ticket Generado"));
       lcd.setCursor(0, 1);
-      lcd.print("Cod: ");
+      lcd.print(F("Cod: "));
       lcd.print(ticketCode);
 
       // Abrir barrera
@@ -215,21 +215,21 @@ void registrarEntrada() {
       delay(800);
       servoMotor.write(0); // Cerrar barrera
     } else {
-      mostrarError("Error Respuesta");
+      mostrarError(F("Error Respuesta"));
     }
   } else if (httpCode == 409) {
     // Estacionamiento lleno
     lugaresDisponibles = 0;
     lcd.clear();
     lcd.setCursor(0, 0);
-    lcd.print("ESTACIONAMIENTO");
+    lcd.print(F("ESTACIONAMIENTO"));
     lcd.setCursor(0, 1);
-    lcd.print("   LLENO  X   ");
+    lcd.print(F("   LLENO  X   "));
     delay(3000);
   } else if (httpCode == 401 || httpCode == 403) {
-    mostrarError("Auth Invalida");
+    mostrarError(F("Auth Invalida"));
   } else {
-    mostrarError("Error Servidor");
+    mostrarError(F("Error Servidor"));
   }
 
   ultimoEstadoLugares = -2; // Forzar re-dibujo del estado
@@ -239,29 +239,69 @@ void registrarEntrada() {
 // FUNCIONES DE COMUNICACIÓN ESP8266 (AT Commands)
 // =============================================================================
 
+// --- Funciones auxiliares para mostrar progreso en LCD ---
+void mostrarPasoLCD(const __FlashStringHelper* linea1, const __FlashStringHelper* linea2) {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print(linea1);
+  lcd.setCursor(0, 1);
+  lcd.print(linea2);
+  delay(600); // Pausa de legibilidad
+}
+
+void mostrarPasoLCD(const __FlashStringHelper* linea1, const char* linea2) {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print(linea1);
+  lcd.setCursor(0, 1);
+  lcd.print(linea2);
+  delay(600); // Pausa de legibilidad
+}
+
+void mostrarPasoLCD(const char* linea1, const char* linea2) {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print(linea1);
+  lcd.setCursor(0, 1);
+  lcd.print(linea2);
+  delay(600); // Pausa de legibilidad
+}
+
 // --- Inicializar WiFi ---
 bool inicializarWiFi() {
   // Reset del módulo
+  mostrarPasoLCD(F("WiFi: Reset..."), F("AT+RST"));
   enviarAT("AT+RST", "ready", 5000);
   delay(1000);
 
   // Modo estación (cliente WiFi)
+  mostrarPasoLCD(F("WiFi: Modo..."), F("AT+CWMODE=1"));
   if (!enviarAT("AT+CWMODE=1", "OK", 3000)) {
+    mostrarPasoLCD(F("WiFi ERROR:"), F("Modo Estacion"));
+    delay(2000);
     return false;
   }
 
   // Conectar a la red WiFi
+  mostrarPasoLCD(F("WiFi: Conectando"), F(WIFI_SSID));
   String cmdJoin = "AT+CWJAP=\"";
   cmdJoin += WIFI_SSID;
   cmdJoin += "\",\"";
   cmdJoin += WIFI_PASS;
   cmdJoin += "\"";
   if (!enviarAT(cmdJoin.c_str(), "OK", 15000)) {
+    mostrarPasoLCD(F("WiFi ERROR:"), F("Fallo conexion"));
+    delay(2000);
     return false;
   }
 
   // Modo conexión única
+  mostrarPasoLCD(F("WiFi: Single Mux"), F("AT+CIPMUX=0"));
   enviarAT("AT+CIPMUX=0", "OK", 3000);
+
+  // Optimizar SSL para evitar desbordamiento de RAM en el ESP8266
+  enviarAT("AT+CIPSSLCCONF=0", "OK", 3000);  // Desactivar verificación de certificados
+  enviarAT("AT+CIPSSLSIZE=4096", "OK", 3000); // Ajustar buffer de SSL a 4096 bytes
 
   return true;
 }
@@ -297,6 +337,7 @@ int enviarHTTPPost(const char* path, String& jsonBody) {
   // Limpiar buffer de respuesta
   memset(respuestaBuffer, 0, BUFFER_SIZE);
 
+  mostrarPasoLCD(F("API: Conectando"), F(SERVER_HOST));
   // Abrir conexión TCP/SSL al servidor
   String cmdConnect = "AT+CIPSTART=\"";
   cmdConnect += USE_SSL ? "SSL" : "TCP";
@@ -306,6 +347,8 @@ int enviarHTTPPost(const char* path, String& jsonBody) {
   cmdConnect += SERVER_PORT;
 
   if (!enviarAT(cmdConnect.c_str(), "OK", 10000)) {
+    mostrarPasoLCD(F("API ERROR:"), F("TCP Connect"));
+    delay(2000);
     return -1; // Error de conexión
   }
 
@@ -329,17 +372,22 @@ int enviarHTTPPost(const char* path, String& jsonBody) {
   httpReq += "Connection: close\r\n\r\n";
   httpReq += jsonBody;
 
+  mostrarPasoLCD(F("API: Preparando"), F("Envio..."));
   // Indicar al ESP8266 cuántos bytes se enviarán
   String cmdSend = "AT+CIPSEND=";
   cmdSend += httpReq.length();
   if (!enviarAT(cmdSend.c_str(), ">", 5000)) {
     enviarAT("AT+CIPCLOSE", "OK", 3000);
+    mostrarPasoLCD(F("API ERROR:"), F("Send init"));
+    delay(2000);
     return -2; // Error al preparar envío
   }
 
+  mostrarPasoLCD(F("API: Enviando"), path);
   // Enviar la petición HTTP
   Serial.print(httpReq);
 
+  mostrarPasoLCD(F("API: Esperando"), F("Respuesta..."));
   // Leer respuesta del servidor
   unsigned long inicio = millis();
   int idx = 0;
@@ -359,9 +407,16 @@ int enviarHTTPPost(const char* path, String& jsonBody) {
   // Extraer código de estado HTTP
   char* statusLine = strstr(respuestaBuffer, "HTTP/1.1 ");
   if (statusLine != NULL) {
-    return atoi(statusLine + 9); // "HTTP/1.1 200" → 200
+    int code = atoi(statusLine + 9); // "HTTP/1.1 200" → 200
+    String codeStr = "HTTP Code: ";
+    codeStr += code;
+    mostrarPasoLCD(F("API: Completado"), codeStr.c_str());
+    delay(1000);
+    return code;
   }
 
+  mostrarPasoLCD(F("API ERROR:"), F("No status code"));
+  delay(2000);
   return -3; // No se pudo parsear la respuesta
 }
 
@@ -411,10 +466,19 @@ String extraerValorJSON(const char* clave) {
 // UTILIDADES LCD
 // =============================================================================
 
+void mostrarError(const __FlashStringHelper* mensaje) {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print(F("ERROR:"));
+  lcd.setCursor(0, 1);
+  lcd.print(mensaje);
+  delay(3000);
+}
+
 void mostrarError(const char* mensaje) {
   lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print("ERROR:");
+  lcd.print(F("ERROR:"));
   lcd.setCursor(0, 1);
   lcd.print(mensaje);
   delay(3000);

@@ -10,11 +10,13 @@ services:
     envVars:
       - key: APP_ENV
         value: production
+      - key: LOG_LEVEL
+        value: INFO
+      - key: BOOTSTRAP_FIRST_USER_AS_ADMIN
+        value: "true"
       - key: ALLOWED_ORIGINS
         sync: false
       - key: SUPABASE_URL
-        sync: false
-      - key: SUPABASE_JWKS_URL
         sync: false
       - key: SUPABASE_DB_URL
         sync: false

@@ -114,9 +114,9 @@ void setup() {
   servoMotor.write(0);
 
   lcd.setCursor(0, 0);
-  lcd.print("Mod. Salida");
+  lcd.print(F("Mod. Salida"));
   lcd.setCursor(0, 1);
-  lcd.print("Conectando WiFi");
+  lcd.print(F("Conectando WiFi"));
 
   // --- Inicializar conexión Wi-Fi del ESP8266 ---
   wifiConectado = inicializarWiFi();
@@ -124,14 +124,14 @@ void setup() {
   lcd.clear();
   if (wifiConectado) {
     lcd.setCursor(0, 0);
-    lcd.print("WiFi Conectado!");
+    lcd.print(F("WiFi Conectado!"));
     lcd.setCursor(0, 1);
-    lcd.print("Sistema Listo");
+    lcd.print(F("Sistema Listo"));
   } else {
     lcd.setCursor(0, 0);
-    lcd.print("ERROR WiFi!");
+    lcd.print(F("ERROR WiFi!"));
     lcd.setCursor(0, 1);
-    lcd.print("Reinicie modulo");
+    lcd.print(F("Reinicie modulo"));
   }
   delay(2000);
   lcd.clear();
@@ -145,9 +145,9 @@ void loop() {
   // --- Verificar conexión WiFi ---
   if (!wifiConectado) {
     lcd.setCursor(0, 0);
-    lcd.print("WiFi Desconect.");
+    lcd.print(F("WiFi Desconect."));
     lcd.setCursor(0, 1);
-    lcd.print("Reconectando...");
+    lcd.print(F("Reconectando..."));
     wifiConectado = inicializarWiFi();
     if (wifiConectado) {
       lcd.clear();
@@ -181,7 +181,7 @@ void loop() {
         verificarTicket();
       } else {
         lcd.setCursor(0, 1);
-        lcd.print("Faltan digitos! ");
+        lcd.print(F("Faltan digitos! "));
         delay(1500);
         actualizarPantalla();
       }
@@ -209,9 +209,9 @@ void mostrarSalida() {
   if (pantallaActual != "SALIDA") {
     lcd.clear();
     lcd.setCursor(0, 0);
-    lcd.print("SALIDA");
+    lcd.print(F("SALIDA"));
     lcd.setCursor(0, 1);
-    lcd.print("Sin vehiculo");
+    lcd.print(F("Sin vehiculo"));
     pantallaActual = "SALIDA";
   }
 }
@@ -219,7 +219,7 @@ void mostrarSalida() {
 void mostrarIngreseTicket() {
   lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print("Ingrese Ticket:");
+  lcd.print(F("Ingrese Ticket:"));
   lcd.setCursor(0, 1);
   lcd.print(codigoIngresado);
   pantallaActual = "INGRESE";
@@ -227,7 +227,7 @@ void mostrarIngreseTicket() {
 
 void actualizarPantalla() {
   lcd.setCursor(0, 1);
-  lcd.print("                ");
+  lcd.print(F("                "));
   lcd.setCursor(0, 1);
   lcd.print(codigoIngresado);
 }
@@ -245,9 +245,9 @@ void verificarTicket() {
 
   lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print("Verificando...");
+  lcd.print(F("Verificando..."));
   lcd.setCursor(0, 1);
-  lcd.print("Espere...");
+  lcd.print(F("Espere..."));
 
   // Construir JSON body
   String jsonBody = "{\"ticket_code\":\"";
@@ -270,9 +270,9 @@ void verificarTicket() {
 
     if (autorizado == "true") {
       // ✅ SALIDA AUTORIZADA
-      lcd.print("Salida OK!");
+      lcd.print(F("Salida OK!"));
       lcd.setCursor(0, 1);
-      lcd.print("Abriendo...");
+      lcd.print(F("Abriendo..."));
 
       // Sonido de éxito
       tone(buzzerPin, 2500, 150);
@@ -291,9 +291,9 @@ void verificarTicket() {
       // Vehículo salió, esperar antes de cerrar
       lcd.clear();
       lcd.setCursor(0, 0);
-      lcd.print("Vehiculo salio");
+      lcd.print(F("Vehiculo salio"));
       lcd.setCursor(0, 1);
-      lcd.print("Cerrando...");
+      lcd.print(F("Cerrando..."));
 
       delay(DELAY_BAJADA_SERVO);
       servoMotor.write(0); // Cerrar barrera
@@ -301,11 +301,11 @@ void verificarTicket() {
     } else {
       // ❌ NO AUTORIZADO
       if (razon == "payment_required") {
-        lcd.print("PAGO PENDIENTE");
+        lcd.print(F("PAGO PENDIENTE"));
         lcd.setCursor(0, 1);
-        lcd.print("Pague primero");
+        lcd.print(F("Pague primero"));
       } else {
-        lcd.print("NO AUTORIZADO");
+        lcd.print(F("NO AUTORIZADO"));
         lcd.setCursor(0, 1);
         // Mostrar mensaje del servidor (truncado a 16 chars)
         if (mensaje.length() > 16) mensaje = mensaje.substring(0, 16);
@@ -319,30 +319,30 @@ void verificarTicket() {
 
   } else if (httpCode == 404) {
     // Ticket no encontrado
-    lcd.print("TICKET NO");
+    lcd.print(F("TICKET NO"));
     lcd.setCursor(0, 1);
-    lcd.print("ENCONTRADO");
+    lcd.print(F("ENCONTRADO"));
     tone(buzzerPin, 500, 1000);
     delay(3000);
 
   } else if (httpCode == 409) {
     // Ticket ya usado
-    lcd.print("TICKET YA");
+    lcd.print(F("TICKET YA"));
     lcd.setCursor(0, 1);
-    lcd.print("UTILIZADO");
+    lcd.print(F("UTILIZADO"));
     tone(buzzerPin, 600, 800);
     delay(3000);
 
   } else if (httpCode == 401 || httpCode == 403) {
-    lcd.print("ERROR:");
+    lcd.print(F("ERROR:"));
     lcd.setCursor(0, 1);
-    lcd.print("Auth Invalida");
+    lcd.print(F("Auth Invalida"));
     delay(3000);
 
   } else {
-    lcd.print("ERROR:");
+    lcd.print(F("ERROR:"));
     lcd.setCursor(0, 1);
-    lcd.print("Sin conexion");
+    lcd.print(F("Sin conexion"));
     delay(3000);
   }
 
@@ -354,29 +354,70 @@ void verificarTicket() {
 // FUNCIONES DE COMUNICACIÓN ESP8266 (AT Commands)
 // =============================================================================
 
+// --- Función auxiliar para mostrar progreso en LCD ---
+// --- Funciones auxiliares para mostrar progreso en LCD ---
+void mostrarPasoLCD(const __FlashStringHelper* linea1, const __FlashStringHelper* linea2) {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print(linea1);
+  lcd.setCursor(0, 1);
+  lcd.print(linea2);
+  delay(600); // Pausa de legibilidad
+}
+
+void mostrarPasoLCD(const __FlashStringHelper* linea1, const char* linea2) {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print(linea1);
+  lcd.setCursor(0, 1);
+  lcd.print(linea2);
+  delay(600); // Pausa de legibilidad
+}
+
+void mostrarPasoLCD(const char* linea1, const char* linea2) {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print(linea1);
+  lcd.setCursor(0, 1);
+  lcd.print(linea2);
+  delay(600); // Pausa de legibilidad
+}
+
 // --- Inicializar WiFi ---
 bool inicializarWiFi() {
   // Reset del módulo
+  mostrarPasoLCD(F("WiFi: Reset..."), F("AT+RST"));
   enviarAT("AT+RST", "ready", 5000);
   delay(1000);
 
   // Modo estación (cliente WiFi)
+  mostrarPasoLCD(F("WiFi: Modo..."), F("AT+CWMODE=1"));
   if (!enviarAT("AT+CWMODE=1", "OK", 3000)) {
+    mostrarPasoLCD(F("WiFi ERROR:"), F("Modo Estacion"));
+    delay(2000);
     return false;
   }
 
   // Conectar a la red WiFi
+  mostrarPasoLCD(F("WiFi: Conectando"), F(WIFI_SSID));
   String cmdJoin = "AT+CWJAP=\"";
   cmdJoin += WIFI_SSID;
   cmdJoin += "\",\"";
   cmdJoin += WIFI_PASS;
   cmdJoin += "\"";
   if (!enviarAT(cmdJoin.c_str(), "OK", 15000)) {
+    mostrarPasoLCD(F("WiFi ERROR:"), F("Fallo conexion"));
+    delay(2000);
     return false;
   }
 
   // Modo conexión única (cliente)
+  mostrarPasoLCD(F("WiFi: Single Mux"), F("AT+CIPMUX=0"));
   enviarAT("AT+CIPMUX=0", "OK", 3000);
+
+  // Optimizar SSL para evitar desbordamiento de RAM en el ESP8266
+  enviarAT("AT+CIPSSLCCONF=0", "OK", 3000);  // Desactivar verificación de certificados
+  enviarAT("AT+CIPSSLSIZE=4096", "OK", 3000); // Ajustar buffer de SSL a 4096 bytes
 
   return true;
 }
@@ -412,6 +453,7 @@ int enviarHTTPPost(const char* path, String& jsonBody) {
   // Limpiar buffer de respuesta
   memset(respuestaBuffer, 0, BUFFER_SIZE);
 
+  mostrarPasoLCD(F("API: Conectando"), F(SERVER_HOST));
   // Abrir conexión TCP/SSL al servidor
   String cmdConnect = "AT+CIPSTART=\"";
   cmdConnect += USE_SSL ? "SSL" : "TCP";
@@ -421,6 +463,8 @@ int enviarHTTPPost(const char* path, String& jsonBody) {
   cmdConnect += SERVER_PORT;
 
   if (!enviarAT(cmdConnect.c_str(), "OK", 10000)) {
+    mostrarPasoLCD(F("API ERROR:"), F("TCP Connect"));
+    delay(2000);
     return -1; // Error de conexión
   }
 
@@ -444,17 +488,22 @@ int enviarHTTPPost(const char* path, String& jsonBody) {
   httpReq += "Connection: close\r\n\r\n";
   httpReq += jsonBody;
 
+  mostrarPasoLCD(F("API: Preparando"), F("Envio..."));
   // Indicar al ESP8266 cuántos bytes se enviarán
   String cmdSend = "AT+CIPSEND=";
   cmdSend += httpReq.length();
   if (!enviarAT(cmdSend.c_str(), ">", 5000)) {
     enviarAT("AT+CIPCLOSE", "OK", 3000);
+    mostrarPasoLCD(F("API ERROR:"), F("Send init"));
+    delay(2000);
     return -2; // Error al preparar envío
   }
 
+  mostrarPasoLCD(F("API: Enviando"), path);
   // Enviar la petición HTTP
   Serial.print(httpReq);
 
+  mostrarPasoLCD(F("API: Esperando"), F("Respuesta..."));
   // Leer respuesta del servidor
   unsigned long inicio = millis();
   int idx = 0;
@@ -474,9 +523,16 @@ int enviarHTTPPost(const char* path, String& jsonBody) {
   // Extraer código de estado HTTP
   char* statusLine = strstr(respuestaBuffer, "HTTP/1.1 ");
   if (statusLine != NULL) {
-    return atoi(statusLine + 9); // "HTTP/1.1 200" → 200
+    int code = atoi(statusLine + 9); // "HTTP/1.1 200" → 200
+    String codeStr = "HTTP Code: ";
+    codeStr += code;
+    mostrarPasoLCD(F("API: Completado"), codeStr.c_str());
+    delay(1000);
+    return code;
   }
 
+  mostrarPasoLCD(F("API ERROR:"), F("No status code"));
+  delay(2000);
   return -3; // No se pudo parsear la respuesta
 }
 

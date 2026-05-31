@@ -73,7 +73,7 @@ def upgrade() -> None:
     op.create_table(
         "tickets",
         sa.Column("id", sa.String(length=36), primary_key=True),
-        sa.Column("code", sa.String(length=5), nullable=False, unique=True),
+        sa.Column("code", sa.String(length=6), nullable=False, unique=True),
         sa.Column("status", sa.String(length=20), nullable=False),
         sa.Column("payment_status", sa.String(length=20), nullable=False),
         sa.Column(
