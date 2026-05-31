@@ -1,7 +1,7 @@
 """expand ticket code length
 
 Revision ID: 0004_expand_ticket_code_length
-Revises: 0003_discount_and_simulated_payment_updates
+Revises: 0003_discount_payment_updates
 Create Date: 2026-05-30
 """
 
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "0004_expand_ticket_code_length"
-down_revision = "0003_discount_and_simulated_payment_updates"
+down_revision = "0003_discount_payment_updates"
 branch_labels = None
 depends_on = None
 

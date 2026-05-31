@@ -1,6 +1,6 @@
 """add discounts and simulated payment references
 
-Revision ID: 0003_discount_and_simulated_payment_updates
+Revision ID: 0003_discount_payment_updates
 Revises: 0002_security_and_fk_indexes
 Create Date: 2026-05-30
 """
@@ -10,7 +10,7 @@ from __future__ import annotations
 import sqlalchemy as sa
 from alembic import op
 
-revision = "0003_discount_and_simulated_payment_updates"
+revision = "0003_discount_payment_updates"
 down_revision = "0002_security_and_fk_indexes"
 branch_labels = None
 depends_on = None
