@@ -1,10 +1,12 @@
+from collections.abc import Callable
+from contextlib import AbstractAsyncContextManager
 from datetime import UTC, datetime
 from typing import Literal
 
 from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_staff_user, get_jwt_verifier
+from app.api.deps import get_current_staff_user, get_jwt_verifier, get_session_context
 from app.connectors.supabase_auth import SupabaseJWTVerifier
 from app.db.session import get_session
 from app.models.enums import PaymentMethod, PaymentResult, PaymentStatus, TicketStatus
@@ -24,6 +26,23 @@ from app.services.admin_reports import get_daily_summary
 from app.services.realtime import admin_events_broker
 
 router = APIRouter()
+
+SessionContext = Callable[[], AbstractAsyncContextManager[AsyncSession]]
+
+
+async def authorize_reports_ws_staff_user(
+    access_token: str,
+    verifier: SupabaseJWTVerifier,
+    session_context: SessionContext,
+) -> bool:
+    try:
+        claims = verifier.verify_access_token(access_token)
+    except Exception:
+        return False
+
+    async with session_context() as session:
+        staff_user = await StaffRepository(session).get_by_user_id(claims.sub)
+        return staff_user is not None
 
 
 @router.get("/summary", response_model=SummaryReportResponse)
@@ -164,17 +183,10 @@ async def report_events(
 async def reports_ws(
     websocket: WebSocket,
     access_token: str = Query(..., min_length=10),
-    session: AsyncSession = Depends(get_session),
     verifier: SupabaseJWTVerifier = Depends(get_jwt_verifier),
+    session_context: SessionContext = Depends(get_session_context),
 ) -> None:
-    try:
-        claims = verifier.verify_access_token(access_token)
-    except Exception:
-        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
-        return
-
-    staff_user = await StaffRepository(session).get_by_user_id(claims.sub)
-    if staff_user is None:
+    if not await authorize_reports_ws_staff_user(access_token, verifier, session_context):
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
 

@@ -41,7 +41,7 @@ export default async function TicketSummaryPage({
       <PaymentShell>
         <Stack gap="6">
           <ErrorState title="Ticket no disponible" description={errorDescription ?? "No fue posible consultar la información del ticket por ahora."} />
-          <Button asChild colorPalette="cyan" variant="outline" w="fit-content">
+          <Button asChild colorPalette="cyan" variant="outline" borderColor="opsCyan" color="opsCyan" w="fit-content" _hover={{ bg: "rgba(6, 182, 212, 0.12)" }}>
             <NextLink href="/pagar">Consultar otro ticket</NextLink>
           </Button>
         </Stack>

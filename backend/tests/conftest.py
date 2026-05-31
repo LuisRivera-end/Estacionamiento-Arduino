@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from typing import Any
 
 import jwt
@@ -8,7 +9,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from app.api.deps import get_session
+from app.api.deps import get_session, get_session_context
 from app.core.config import get_settings
 from app.main import create_app
 from app.models.base import Base
@@ -90,7 +91,13 @@ def client(session_factory: async_sessionmaker[AsyncSession]) -> TestClient:
         async with session_factory() as session:
             yield session
 
+    @asynccontextmanager
+    async def override_session_context() -> AsyncIterator[AsyncSession]:
+        async with session_factory() as session:
+            yield session
+
     app.dependency_overrides[get_session] = override_get_session
+    app.dependency_overrides[get_session_context] = lambda: override_session_context
     return TestClient(app)
 
 

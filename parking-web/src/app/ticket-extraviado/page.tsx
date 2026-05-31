@@ -31,6 +31,8 @@ export default function LostTicketPage() {
           asChild
           colorPalette="cyan"
           variant="outline"
+          borderColor="opsCyan"
+          color="opsCyan"
           h="14"
           mt="2"
           borderRadius="xl"
@@ -39,6 +41,7 @@ export default function LostTicketPage() {
           letterSpacing="0.08em"
           textTransform="uppercase"
           _hover={{
+            bg: "rgba(6, 182, 212, 0.12)",
             borderColor: "opsCyan",
             boxShadow: "0 0 10px rgba(6, 182, 212, 0.3)",
           }}

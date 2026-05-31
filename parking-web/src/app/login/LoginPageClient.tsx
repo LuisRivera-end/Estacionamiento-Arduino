@@ -155,6 +155,9 @@ export function LoginPageClient({
               onClick={handleCreateInitialAccount}
               type="button"
               variant="outline"
+              borderColor="opsBorder"
+              color="opsText"
+              _hover={{ bg: "rgba(255, 255, 255, 0.05)", borderColor: "opsText" }}
             >
               Crear cuenta inicial
             </Button>

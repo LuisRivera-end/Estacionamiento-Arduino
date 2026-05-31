@@ -129,13 +129,13 @@ export default async function TicketsPage({
 
       <HStack justify="space-between">
         {currentPage > 1 ? (
-          <Button asChild variant="outline">
+          <Button asChild variant="outline" borderColor="opsBorder" color="opsText" _hover={{ bg: "rgba(255, 255, 255, 0.06)", borderColor: "opsText" }}>
             <NextLink href={buildPageHref(currentPage - 1, baseQuery)}>
               Anterior
             </NextLink>
           </Button>
         ) : (
-          <Button disabled variant="outline">
+          <Button disabled variant="outline" borderColor="rgba(30, 46, 74, 0.6)" color="opsMuted" opacity={0.35}>
             Anterior
           </Button>
         )}
@@ -143,13 +143,13 @@ export default async function TicketsPage({
           Página {currentPage} de {totalPages}
         </Text>
         {currentPage < totalPages ? (
-          <Button asChild colorPalette="cyan" variant="outline">
+          <Button asChild colorPalette="cyan" variant="outline" borderColor="opsCyan" color="opsCyan" _hover={{ bg: "rgba(6, 182, 212, 0.12)" }}>
             <NextLink href={buildPageHref(currentPage + 1, baseQuery)}>
               Siguiente
             </NextLink>
           </Button>
         ) : (
-          <Button disabled colorPalette="cyan" variant="outline">
+          <Button disabled colorPalette="cyan" variant="outline" borderColor="rgba(6, 182, 212, 0.3)" color="opsMuted" opacity={0.35}>
             Siguiente
           </Button>
         )}

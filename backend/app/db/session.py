@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -40,6 +41,16 @@ def init_engine(database_url: str | None = None) -> AsyncEngine:
 
 
 async def get_session() -> AsyncIterator[AsyncSession]:
+    if SessionLocal is None:
+        init_engine()
+
+    assert SessionLocal is not None
+    async with SessionLocal() as session:
+        yield session
+
+
+@asynccontextmanager
+async def session_context() -> AsyncIterator[AsyncSession]:
     if SessionLocal is None:
         init_engine()
 

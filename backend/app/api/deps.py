@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Callable
+from contextlib import AbstractAsyncContextManager
 from functools import lru_cache
 
 from fastapi import Depends, Header
@@ -9,7 +11,7 @@ from app.connectors.supabase_auth import SupabaseJWTVerifier
 from app.core.config import Settings, get_settings
 from app.core.errors import AppError
 from app.core.security import extract_bearer_token, verify_device_credentials
-from app.db.session import get_session
+from app.db.session import get_session, session_context
 from app.models.enums import DeviceType, StaffRole, StaffStatus
 from app.repositories.staff import StaffRepository
 from app.schemas.auth import AuthClaims
@@ -17,6 +19,10 @@ from app.schemas.auth import AuthClaims
 
 def get_app_settings() -> Settings:
     return get_settings()
+
+
+def get_session_context() -> Callable[[], AbstractAsyncContextManager[AsyncSession]]:
+    return session_context
 
 
 @lru_cache
