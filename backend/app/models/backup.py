@@ -4,7 +4,7 @@ from sqlalchemy import DateTime, Enum, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base
-from app.models.enums import BackupStatus
+from app.models.enums import BackupStatus, enum_values
 
 
 class BackupExport(Base):
@@ -12,7 +12,7 @@ class BackupExport(Base):
 
     id: Mapped[str] = mapped_column(primary_key=True)
     status: Mapped[BackupStatus] = mapped_column(
-        Enum(BackupStatus, native_enum=False),
+        Enum(BackupStatus, native_enum=False, values_callable=enum_values),
         nullable=False,
         default=BackupStatus.REQUESTED,
     )

@@ -4,7 +4,7 @@ from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, String, fun
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, TimestampMixin
-from app.models.enums import PaymentStatus, TicketStatus
+from app.models.enums import PaymentStatus, TicketStatus, enum_values
 
 
 class Ticket(Base, TimestampMixin):
@@ -13,12 +13,12 @@ class Ticket(Base, TimestampMixin):
     id: Mapped[str] = mapped_column(primary_key=True)
     code: Mapped[str] = mapped_column(String(6), unique=True, nullable=False)
     status: Mapped[TicketStatus] = mapped_column(
-        Enum(TicketStatus, native_enum=False),
+        Enum(TicketStatus, native_enum=False, values_callable=enum_values),
         nullable=False,
         default=TicketStatus.ACTIVE,
     )
     payment_status: Mapped[PaymentStatus] = mapped_column(
-        Enum(PaymentStatus, native_enum=False),
+        Enum(PaymentStatus, native_enum=False, values_callable=enum_values),
         nullable=False,
         default=PaymentStatus.UNPAID,
     )

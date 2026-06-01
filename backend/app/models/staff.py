@@ -4,7 +4,7 @@ from sqlalchemy import DateTime, Enum, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base
-from app.models.enums import StaffRole, StaffStatus
+from app.models.enums import StaffRole, StaffStatus, enum_values
 
 
 class StaffUser(Base):
@@ -13,9 +13,11 @@ class StaffUser(Base):
     user_id: Mapped[str] = mapped_column(primary_key=True)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     display_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    role: Mapped[StaffRole] = mapped_column(Enum(StaffRole, native_enum=False), nullable=False)
+    role: Mapped[StaffRole] = mapped_column(
+        Enum(StaffRole, native_enum=False, values_callable=enum_values), nullable=False
+    )
     status: Mapped[StaffStatus] = mapped_column(
-        Enum(StaffStatus, native_enum=False),
+        Enum(StaffStatus, native_enum=False, values_callable=enum_values),
         nullable=False,
         default=StaffStatus.ACTIVE,
     )

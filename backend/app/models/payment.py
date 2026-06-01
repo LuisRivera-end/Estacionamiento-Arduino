@@ -4,7 +4,7 @@ from sqlalchemy import JSON, DateTime, Enum, ForeignKey, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base
-from app.models.enums import DiscountType, PaymentMethod, PaymentResult
+from app.models.enums import DiscountType, PaymentMethod, PaymentResult, enum_values
 
 
 class Payment(Base):
@@ -14,16 +14,18 @@ class Payment(Base):
     ticket_id: Mapped[str] = mapped_column(ForeignKey("tickets.id"), nullable=False)
     amount: Mapped[int] = mapped_column(Integer, nullable=False)
     method: Mapped[PaymentMethod] = mapped_column(
-        Enum(PaymentMethod, native_enum=False), nullable=False
+        Enum(PaymentMethod, native_enum=False, values_callable=enum_values), nullable=False
     )
     status: Mapped[PaymentResult] = mapped_column(
-        Enum(PaymentResult, native_enum=False),
+        Enum(PaymentResult, native_enum=False, values_callable=enum_values),
         nullable=False,
         default=PaymentResult.SIMULATED,
     )
     subtotal_amount: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     discount_type: Mapped[DiscountType] = mapped_column(
-        Enum(DiscountType, native_enum=False), nullable=False, default=DiscountType.NONE
+        Enum(DiscountType, native_enum=False, values_callable=enum_values),
+        nullable=False,
+        default=DiscountType.NONE,
     )
     discount_percent: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     discount_amount: Mapped[int] = mapped_column(Integer, nullable=False, default=0)

@@ -32,14 +32,14 @@ const int buzzerPin = 10;  // Buzzer para retroalimentación sonora
 // =============================================================================
 // CONFIGURACIÓN DEL DISPOSITIVO
 // =============================================================================
-const char* DEVICE_ID    = "exit-001";        // Identificador único de este Arduino
+const char* DEVICE_ID    = "salida-01";       // Identificador registrado en backend
 const char* DEVICE_TOKEN = DEVICE_TOKEN_EXIT; // Token de wifi_credentials.h
 
 // =============================================================================
 // ENDPOINT API
 // =============================================================================
 // POST /api/v1/arduino/exit/validate
-// Body:    {"ticket_code":"A1B2C3","device_id":"exit-001"}
+// Body:    {"ticket_code":"A1B2C3","device_id":"salida-01"}
 // Headers: X-Device-Id, X-Device-Token, Content-Type: application/json
 //
 // Respuesta exitosa — salida autorizada (200):
@@ -87,6 +87,7 @@ const int LONGITUD_TICKET = 6;   // Tickets de 6 caracteres (0-9, A-D)
 String codigoIngresado = "";
 String pantallaActual = "";
 bool wifiConectado = false;
+String ultimaRespuestaAT = "";
 
 // Tiempo extra antes de bajar el servo tras salida
 const unsigned long DELAY_BAJADA_SERVO = 4000; // 4 segundos
@@ -394,9 +395,13 @@ bool inicializarWiFi() {
   mostrarPasoLCD(F("WiFi: Modo..."), F("AT+CWMODE=1"));
   if (!enviarAT("AT+CWMODE=1", "OK", 3000)) {
     mostrarPasoLCD(F("WiFi ERROR:"), F("Modo Estacion"));
+    mostrarRespuestaAT();
     delay(2000);
     return false;
   }
+
+  enviarAT("AT+CWQAP", "OK", 5000);
+  delay(500);
 
   // Conectar a la red WiFi
   mostrarPasoLCD(F("WiFi: Conectando"), F(WIFI_SSID));
@@ -405,19 +410,41 @@ bool inicializarWiFi() {
   cmdJoin += "\",\"";
   cmdJoin += WIFI_PASS;
   cmdJoin += "\"";
-  if (!enviarAT(cmdJoin.c_str(), "OK", 15000)) {
+  if (!enviarAT(cmdJoin.c_str(), "OK", 30000)) {
     mostrarPasoLCD(F("WiFi ERROR:"), F("Fallo conexion"));
+    mostrarRespuestaAT();
     delay(2000);
     return false;
   }
 
-  // Modo conexión única (cliente)
-  mostrarPasoLCD(F("WiFi: Single Mux"), F("AT+CIPMUX=0"));
-  enviarAT("AT+CIPMUX=0", "OK", 3000);
+  // Limpiar configuracion previa de pruebas donde el ESP8266 funcionaba
+  // como servidor local en puerto 80.
+  enviarAT("AT+CIPCLOSE", "OK", 2000);
+  enviarAT("AT+CIPSERVER=0", "OK", 3000);
 
-  // Optimizar SSL para evitar desbordamiento de RAM en el ESP8266
-  enviarAT("AT+CIPSSLCCONF=0", "OK", 3000);  // Desactivar verificación de certificados
-  enviarAT("AT+CIPSSLSIZE=4096", "OK", 3000); // Ajustar buffer de SSL a 4096 bytes
+  // Modo conexion multiple: firmware AT viejo suele ser mas estable con link ID.
+  mostrarPasoLCD(F("WiFi: Multi Mux"), F("AT+CIPMUX=1"));
+  if (!enviarAT("AT+CIPMUX=1", "OK", 3000)) {
+    mostrarPasoLCD(F("WiFi ERROR:"), F("CIPMUX=1"));
+    delay(2000);
+    return false;
+  }
+  enviarAT("AT+CIPMODE=0", "OK", 3000);
+
+  // Configurar SSL antes de abrir conexiones HTTPS.
+  // SNI es necesario para varios hosts modernos, incluido Render.
+  if (USE_SSL) {
+    enviarAT("AT+CIPSSLCCONF=0", "OK", 3000);  // Sin validacion de certificado
+    String cmdSni = "AT+CIPSSLCSNI=\"";
+    cmdSni += SERVER_HOST;
+    cmdSni += "\"";
+    if (!enviarAT(cmdSni.c_str(), "OK", 3000)) {
+      mostrarPasoLCD(F("SSL ERROR:"), F("SNI no soportado"));
+      delay(2500);
+      return false;
+    }
+    enviarAT("AT+CIPSSLSIZE=4096", "OK", 3000); // Firmware AT antiguo
+  }
 
   return true;
 }
@@ -438,14 +465,61 @@ bool enviarAT(const char* comando, const char* respuestaEsperada, unsigned long 
       respuesta += c;
     }
     if (respuesta.indexOf(respuestaEsperada) >= 0) {
+      ultimaRespuestaAT = respuesta;
       return true;
     }
     if (respuesta.indexOf("FAIL") >= 0 || respuesta.indexOf("ERROR") >= 0) {
+      ultimaRespuestaAT = respuesta;
       return false;
     }
     delay(10);
   }
+  ultimaRespuestaAT = respuesta;
   return false;
+}
+
+bool conexionActivaAT() {
+  enviarAT("AT+CIPSTATUS", "OK", 5000);
+  return ultimaRespuestaAT.indexOf("STATUS:3") >= 0 ||
+         ultimaRespuestaAT.indexOf("+CIPSTATUS:0,\"TCP\"") >= 0 ||
+         ultimaRespuestaAT.indexOf("0,\"TCP\"") >= 0 ||
+         ultimaRespuestaAT.indexOf("\"TCP\"") >= 0;
+}
+
+bool abrirConexionAT(const char* comando, unsigned long timeout) {
+  while (Serial.available()) Serial.read();
+
+  Serial.println(comando);
+
+  unsigned long inicio = millis();
+  String respuesta = "";
+  bool estadoConsultado = false;
+
+  while (millis() - inicio < timeout) {
+    while (Serial.available()) {
+      char c = Serial.read();
+      respuesta += c;
+    }
+    ultimaRespuestaAT = respuesta;
+    if (respuesta.indexOf("FAIL") >= 0 || respuesta.indexOf("ERROR") >= 0) {
+      return false;
+    }
+    if (respuesta.indexOf("OK") >= 0 ||
+        respuesta.indexOf("CONNECT") >= 0 ||
+        respuesta.indexOf("Linked") >= 0 ||
+        respuesta.indexOf("ALREADY CONNECTED") >= 0) {
+      return true;
+    }
+    if (!estadoConsultado && millis() - inicio > 5000 && respuesta.indexOf("AT+CIPSTART") >= 0) {
+      estadoConsultado = true;
+      if (conexionActivaAT()) {
+        return true;
+      }
+      Serial.println(comando);
+    }
+    delay(10);
+  }
+  return conexionActivaAT();
 }
 
 // --- Enviar petición HTTP POST y devolver código de estado ---
@@ -455,53 +529,64 @@ int enviarHTTPPost(const char* path, String& jsonBody) {
 
   mostrarPasoLCD(F("API: Conectando"), F(SERVER_HOST));
   // Abrir conexión TCP/SSL al servidor
-  String cmdConnect = "AT+CIPSTART=\"";
+  String cmdConnect = "AT+CIPSTART=0,\"";
   cmdConnect += USE_SSL ? "SSL" : "TCP";
   cmdConnect += "\",\"";
   cmdConnect += SERVER_HOST;
   cmdConnect += "\",";
   cmdConnect += SERVER_PORT;
 
-  if (!enviarAT(cmdConnect.c_str(), "OK", 10000)) {
+  enviarAT("AT+CIPCLOSE=0", "OK", 2000); // Cerrar conexion previa si quedo abierta
+  delay(200);
+
+  if (!abrirConexionAT(cmdConnect.c_str(), 25000)) {
     mostrarPasoLCD(F("API ERROR:"), F("TCP Connect"));
+    mostrarRespuestaAT();
     delay(2000);
     return -1; // Error de conexión
   }
 
-  // Construir petición HTTP completa
-  String httpReq = "POST ";
-  httpReq += path;
-  httpReq += " HTTP/1.1\r\n";
-  httpReq += "Host: ";
-  httpReq += SERVER_HOST;
-  httpReq += "\r\n";
-  httpReq += "Content-Type: application/json\r\n";
-  httpReq += "X-Device-Id: ";
-  httpReq += DEVICE_ID;
-  httpReq += "\r\n";
-  httpReq += "X-Device-Token: ";
-  httpReq += DEVICE_TOKEN;
-  httpReq += "\r\n";
-  httpReq += "Content-Length: ";
-  httpReq += jsonBody.length();
-  httpReq += "\r\n";
-  httpReq += "Connection: close\r\n\r\n";
-  httpReq += jsonBody;
+  int contentLength = jsonBody.length();
+  String contentLengthText = String(contentLength);
+  int httpLength =
+    (sizeof("POST ") - 1) + strlen(path) + (sizeof(" HTTP/1.1\r\n") - 1) +
+    (sizeof("Host: ") - 1) + strlen(SERVER_HOST) + (sizeof("\r\n") - 1) +
+    (sizeof("Content-Type: application/json\r\n") - 1) +
+    (sizeof("X-Device-Id: ") - 1) + strlen(DEVICE_ID) + (sizeof("\r\n") - 1) +
+    (sizeof("X-Device-Token: ") - 1) + strlen(DEVICE_TOKEN) + (sizeof("\r\n") - 1) +
+    (sizeof("Content-Length: ") - 1) + contentLengthText.length() + (sizeof("\r\n") - 1) +
+    (sizeof("Connection: close\r\n\r\n") - 1) +
+    contentLength;
 
   mostrarPasoLCD(F("API: Preparando"), F("Envio..."));
   // Indicar al ESP8266 cuántos bytes se enviarán
-  String cmdSend = "AT+CIPSEND=";
-  cmdSend += httpReq.length();
-  if (!enviarAT(cmdSend.c_str(), ">", 5000)) {
-    enviarAT("AT+CIPCLOSE", "OK", 3000);
+  String cmdSend = "AT+CIPSEND=0,";
+  cmdSend += httpLength;
+  if (!enviarAT(cmdSend.c_str(), ">", 10000)) {
     mostrarPasoLCD(F("API ERROR:"), F("Send init"));
+    if (ultimaRespuestaAT.length() == 0) {
+      enviarAT("AT+CIPSTATUS", "OK", 3000);
+    }
+    mostrarRespuestaAT();
+    enviarAT("AT+CIPCLOSE=0", "OK", 3000);
     delay(2000);
     return -2; // Error al preparar envío
   }
 
   mostrarPasoLCD(F("API: Enviando"), path);
   // Enviar la petición HTTP
-  Serial.print(httpReq);
+  Serial.print(F("POST "));
+  Serial.print(path);
+  Serial.print(F(" HTTP/1.1\r\nHost: "));
+  Serial.print(SERVER_HOST);
+  Serial.print(F("\r\nContent-Type: application/json\r\nX-Device-Id: "));
+  Serial.print(DEVICE_ID);
+  Serial.print(F("\r\nX-Device-Token: "));
+  Serial.print(DEVICE_TOKEN);
+  Serial.print(F("\r\nContent-Length: "));
+  Serial.print(contentLengthText);
+  Serial.print(F("\r\nConnection: close\r\n\r\n"));
+  Serial.print(jsonBody);
 
   mostrarPasoLCD(F("API: Esperando"), F("Respuesta..."));
   // Leer respuesta del servidor
@@ -521,9 +606,9 @@ int enviarHTTPPost(const char* path, String& jsonBody) {
   respuestaBuffer[idx] = '\0';
 
   // Extraer código de estado HTTP
-  char* statusLine = strstr(respuestaBuffer, "HTTP/1.1 ");
+  char* statusLine = strstr(respuestaBuffer, "HTTP/1.");
   if (statusLine != NULL) {
-    int code = atoi(statusLine + 9); // "HTTP/1.1 200" → 200
+    int code = atoi(statusLine + 9); // "HTTP/1.x 200" -> 200
     String codeStr = "HTTP Code: ";
     codeStr += code;
     mostrarPasoLCD(F("API: Completado"), codeStr.c_str());
@@ -576,4 +661,43 @@ String extraerValorJSON(const char* clave) {
     }
     return bufStr.substring(inicio, fin);
   }
+}
+
+void mostrarRespuestaAT() {
+  String detalle = ultimaRespuestaAT;
+  detalle.replace("\r", " ");
+  detalle.replace("\n", " ");
+  detalle.trim();
+
+  if (detalle.length() == 0) {
+    detalle = "timeout";
+  } else if (detalle.indexOf("STATUS:") >= 0) {
+    int pos = detalle.indexOf("STATUS:");
+    String estado = detalle.substring(pos, pos + 8);
+    if (detalle.indexOf("\"TCP\"") >= 0 || detalle.indexOf("+CIPSTATUS") >= 0) {
+      estado += " TCP";
+    }
+    detalle = estado;
+  } else if (detalle.indexOf("busy") >= 0) {
+    detalle = "busy";
+  } else if (detalle.indexOf("link") >= 0) {
+    detalle = "sin link";
+  } else if (detalle.indexOf("ERROR") >= 0) {
+    detalle = "ERROR";
+  } else if (detalle.indexOf("FAIL") >= 0) {
+    detalle = "FAIL";
+  } else if (detalle.indexOf("CLOSED") >= 0) {
+    detalle = "CLOSED";
+  }
+
+  if (detalle.length() > 16) {
+    detalle = detalle.substring(0, 16);
+  }
+
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print(F("AT resp:"));
+  lcd.setCursor(0, 1);
+  lcd.print(detalle);
+  delay(3000);
 }
