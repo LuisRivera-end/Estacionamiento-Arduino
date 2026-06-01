@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -13,6 +14,36 @@ TARGET_BASE_URL = os.environ.get(
 HOST = os.environ.get("ARDUINO_BRIDGE_HOST", "0.0.0.0")
 PORT = int(os.environ.get("ARDUINO_BRIDGE_PORT", "8080"))
 ALLOWED_PATH_PREFIX = "/api/v1/arduino/"
+
+
+def parse_json_body(body: bytes) -> dict[str, object]:
+    try:
+        payload = json.loads(body.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        return {}
+
+    return payload if isinstance(payload, dict) else {}
+
+
+def compact_response_body(path: str, status: int, payload: dict[str, object], body: bytes) -> bytes:
+    if status != 200 or not payload:
+        return body
+
+    if path.endswith("/entry/tickets"):
+        compact_payload = {
+            "ticket_code": payload.get("ticket_code"),
+            "available_spaces": payload.get("available_spaces"),
+        }
+    elif path.endswith("/exit/validate"):
+        compact_payload = {
+            "authorized": payload.get("authorized"),
+            "message": payload.get("message"),
+            "reason": payload.get("reason"),
+        }
+    else:
+        return body
+
+    return json.dumps(compact_payload, separators=(",", ":")).encode("utf-8")
 
 
 class LoggingThreadingHTTPServer(ThreadingHTTPServer):
@@ -60,11 +91,25 @@ class ArduinoBridgeHandler(BaseHTTPRequestHandler):
             with urlopen(request, timeout=30) as response:
                 response_body = response.read()
                 print(f"Target response {response.status} body={response_body.decode('utf-8', 'replace')[:200]}")
+                response_payload = parse_json_body(response_body)
+                response_body = compact_response_body(
+                    self.path,
+                    response.status,
+                    response_payload,
+                    response_body,
+                )
+                print(f"Bridge response {response.status} body={response_body.decode('utf-8', 'replace')[:200]}")
                 self.send_response(response.status)
                 self.send_header(
                     "Content-Type",
                     response.headers.get("Content-Type", "application/json"),
                 )
+                ticket_code = response_payload.get("ticket_code")
+                available_spaces = response_payload.get("available_spaces")
+                if ticket_code is not None:
+                    self.send_header("X-Ticket-Code", str(ticket_code))
+                if available_spaces is not None:
+                    self.send_header("X-Available-Spaces", str(available_spaces))
                 self.send_header("Content-Length", str(len(response_body)))
                 self.end_headers()
                 self.wfile.write(response_body)

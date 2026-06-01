@@ -58,12 +58,12 @@ const char* API_PATH = "/api/v1/arduino/entry/tickets";
 int lugaresDisponibles = -1;  // Se obtiene del servidor (-1 = desconocido)
 int ultimoEstadoLugares = -2; // Para detectar cambios en LCD
 bool wifiConectado = false;
-String ultimaRespuestaAT = "";
+char ultimaRespuestaAT[80] = "";
 
 // =============================================================================
 // BUFFER DE RESPUESTA HTTP
 // =============================================================================
-const int BUFFER_SIZE = 512;
+const int BUFFER_SIZE = 224;
 char respuestaBuffer[BUFFER_SIZE];
 
 // =============================================================================
@@ -184,16 +184,28 @@ void registrarEntrada() {
 
   // Enviar POST al servidor
   int httpCode = enviarHTTPPost(API_PATH, jsonBody);
+  char ticketCode[9] = "";
+  char espacios[8] = "";
+  extraerValorJSON("ticket_code", ticketCode, sizeof(ticketCode));
+  if (ticketCode[0] == '\0') {
+    extraerHeaderHTTP("X-Ticket-Code", ticketCode, sizeof(ticketCode));
+  }
 
-  if (httpCode == 200) {
+  if (httpCode == 200 || ticketCode[0] != '\0') {
     // --- Parsear respuesta exitosa ---
-    String ticketCode = extraerValorJSON("ticket_code");
-    String espacios   = extraerValorJSON("available_spaces");
+    extraerValorJSON("available_spaces", espacios, sizeof(espacios));
+    if (espacios[0] == '\0') {
+      extraerHeaderHTTP("X-Available-Spaces", espacios, sizeof(espacios));
+    }
+    if (ticketCode[0] == '\0' && httpCode == 200) {
+      strncpy(ticketCode, "OK WEB", sizeof(ticketCode) - 1);
+      ticketCode[sizeof(ticketCode) - 1] = '\0';
+    }
 
-    if (ticketCode.length() > 0) {
+    if (ticketCode[0] != '\0') {
       // Actualizar lugares disponibles desde el servidor
-      if (espacios.length() > 0) {
-        lugaresDisponibles = espacios.toInt();
+      if (espacios[0] != '\0') {
+        lugaresDisponibles = atoi(espacios);
       }
 
       // Mostrar ticket en LCD
@@ -274,6 +286,9 @@ bool inicializarWiFi() {
   mostrarPasoLCD(F("WiFi: Reset..."), F("AT+RST"));
   enviarAT("AT+RST", "ready", 5000);
   delay(1000);
+  enviarAT("AT", "OK", 2000);
+  enviarAT("ATE0", "OK", 3000); // Desactivar eco para evitar lecturas "solo echo"
+  delay(200);
 
   // Modo estación (cliente WiFi)
   mostrarPasoLCD(F("WiFi: Modo..."), F("AT+CWMODE=1"));
@@ -333,72 +348,100 @@ bool inicializarWiFi() {
   return true;
 }
 
+void limpiarUltimaRespuestaAT() {
+  ultimaRespuestaAT[0] = '\0';
+}
+
+void agregarRespuestaAT(char c) {
+  size_t len = strlen(ultimaRespuestaAT);
+  if (len < sizeof(ultimaRespuestaAT) - 1) {
+    ultimaRespuestaAT[len] = c;
+    ultimaRespuestaAT[len + 1] = '\0';
+  } else {
+    memmove(ultimaRespuestaAT, ultimaRespuestaAT + 1, sizeof(ultimaRespuestaAT) - 2);
+    ultimaRespuestaAT[sizeof(ultimaRespuestaAT) - 2] = c;
+    ultimaRespuestaAT[sizeof(ultimaRespuestaAT) - 1] = '\0';
+  }
+}
+
+void copiarRespuestaAT(char* destino, size_t destinoLen) {
+  if (destinoLen == 0) return;
+  strncpy(destino, ultimaRespuestaAT, destinoLen - 1);
+  destino[destinoLen - 1] = '\0';
+}
+
 // --- Enviar comando AT y esperar respuesta ---
 bool enviarAT(const char* comando, const char* respuestaEsperada, unsigned long timeout) {
-  // Limpiar buffer de entrada
   while (Serial.available()) Serial.read();
+  limpiarUltimaRespuestaAT();
 
   Serial.println(comando);
 
   unsigned long inicio = millis();
-  String respuesta = "";
-
   while (millis() - inicio < timeout) {
     while (Serial.available()) {
-      char c = Serial.read();
-      respuesta += c;
+      agregarRespuestaAT((char)Serial.read());
     }
-    if (respuesta.indexOf(respuestaEsperada) >= 0) {
-      ultimaRespuestaAT = respuesta;
+    if (strstr(ultimaRespuestaAT, respuestaEsperada) != NULL) {
       return true;
     }
-    if (respuesta.indexOf("FAIL") >= 0 || respuesta.indexOf("ERROR") >= 0) {
-      ultimaRespuestaAT = respuesta;
+    if (strstr(ultimaRespuestaAT, "FAIL") != NULL || strstr(ultimaRespuestaAT, "ERROR") != NULL) {
       return false;
     }
     delay(10);
   }
-  ultimaRespuestaAT = respuesta;
   return false;
 }
 
 bool conexionActivaAT() {
-  enviarAT("AT+CIPSTATUS", "OK", 5000);
-  return ultimaRespuestaAT.indexOf("STATUS:3") >= 0 ||
-         ultimaRespuestaAT.indexOf("+CIPSTATUS:0,\"TCP\"") >= 0 ||
-         ultimaRespuestaAT.indexOf("0,\"TCP\"") >= 0 ||
-         ultimaRespuestaAT.indexOf("\"TCP\"") >= 0;
+  char respuestaAnterior[sizeof(ultimaRespuestaAT)];
+  copiarRespuestaAT(respuestaAnterior, sizeof(respuestaAnterior));
+
+  bool respondio = enviarAT("AT+CIPSTATUS", "STATUS:", 5000);
+  bool activa = strstr(ultimaRespuestaAT, "STATUS:3") != NULL ||
+                strstr(ultimaRespuestaAT, "+CIPSTATUS:0,\"TCP\"") != NULL ||
+                strstr(ultimaRespuestaAT, "0,\"TCP\"") != NULL ||
+                strstr(ultimaRespuestaAT, "\"TCP\"") != NULL;
+
+  if (!respondio && !activa && strstr(ultimaRespuestaAT, "AT+CIPSTATUS") != NULL) {
+    strncpy(ultimaRespuestaAT, respuestaAnterior, sizeof(ultimaRespuestaAT) - 1);
+    ultimaRespuestaAT[sizeof(ultimaRespuestaAT) - 1] = '\0';
+  }
+  return activa;
 }
 
 bool abrirConexionAT(const char* comando, unsigned long timeout) {
   while (Serial.available()) Serial.read();
+  limpiarUltimaRespuestaAT();
 
   Serial.println(comando);
 
   unsigned long inicio = millis();
-  String respuesta = "";
   bool estadoConsultado = false;
 
   while (millis() - inicio < timeout) {
     while (Serial.available()) {
-      char c = Serial.read();
-      respuesta += c;
+      agregarRespuestaAT((char)Serial.read());
     }
-    ultimaRespuestaAT = respuesta;
-    if (respuesta.indexOf("FAIL") >= 0 || respuesta.indexOf("ERROR") >= 0) {
+    if (strstr(ultimaRespuestaAT, "FAIL") != NULL || strstr(ultimaRespuestaAT, "ERROR") != NULL) {
       return false;
     }
-    if (respuesta.indexOf("OK") >= 0 ||
-        respuesta.indexOf("CONNECT") >= 0 ||
-        respuesta.indexOf("Linked") >= 0 ||
-        respuesta.indexOf("ALREADY CONNECTED") >= 0) {
+    if (strstr(ultimaRespuestaAT, "OK") != NULL ||
+        strstr(ultimaRespuestaAT, "CONNECT") != NULL ||
+        strstr(ultimaRespuestaAT, "Linked") != NULL ||
+        strstr(ultimaRespuestaAT, "ALREADY CONNECTED") != NULL) {
       return true;
     }
-    if (!estadoConsultado && millis() - inicio > 5000 && respuesta.indexOf("AT+CIPSTART") >= 0) {
+    if (!estadoConsultado && millis() - inicio > 7000 && ultimaRespuestaAT[0] != '\0') {
       estadoConsultado = true;
+      char respuestaCipstart[sizeof(ultimaRespuestaAT)];
+      copiarRespuestaAT(respuestaCipstart, sizeof(respuestaCipstart));
       if (conexionActivaAT()) {
         return true;
       }
+      strncpy(ultimaRespuestaAT, respuestaCipstart, sizeof(ultimaRespuestaAT) - 1);
+      ultimaRespuestaAT[sizeof(ultimaRespuestaAT) - 1] = '\0';
+      while (Serial.available()) Serial.read();
       Serial.println(comando);
     }
     delay(10);
@@ -420,10 +463,17 @@ int enviarHTTPPost(const char* path, String& jsonBody) {
   cmdConnect += "\",";
   cmdConnect += SERVER_PORT;
 
-  enviarAT("AT+CIPCLOSE=0", "OK", 2000); // Cerrar conexion previa si quedo abierta
-  delay(200);
+  bool conectado = false;
+  for (byte intento = 0; intento < 2 && !conectado; intento++) {
+    enviarAT("AT+CIPCLOSE=0", "OK", 2000); // Cerrar conexion previa si quedo abierta
+    delay(300);
+    conectado = abrirConexionAT(cmdConnect.c_str(), 25000);
+    if (!conectado) {
+      delay(1000);
+    }
+  }
 
-  if (!abrirConexionAT(cmdConnect.c_str(), 25000)) {
+  if (!conectado) {
     mostrarPasoLCD(F("API ERROR:"), F("TCP Connect"));
     mostrarRespuestaAT();
     delay(2000);
@@ -448,7 +498,7 @@ int enviarHTTPPost(const char* path, String& jsonBody) {
   cmdSend += httpLength;
   if (!enviarAT(cmdSend.c_str(), ">", 10000)) {
     mostrarPasoLCD(F("API ERROR:"), F("Send init"));
-    if (ultimaRespuestaAT.length() == 0) {
+    if (ultimaRespuestaAT[0] == '\0') {
       enviarAT("AT+CIPSTATUS", "OK", 3000);
     }
     mostrarRespuestaAT();
@@ -476,28 +526,53 @@ int enviarHTTPPost(const char* path, String& jsonBody) {
   // Leer respuesta del servidor
   unsigned long inicio = millis();
   int idx = 0;
+  int httpCode = -1;
   bool cerrado = false;
 
   while (millis() - inicio < 15000 && !cerrado) {
-    while (Serial.available() && idx < BUFFER_SIZE - 1) {
-      respuestaBuffer[idx++] = Serial.read();
+    while (Serial.available()) {
+      char c = (char)Serial.read();
+      if (idx < BUFFER_SIZE - 1) {
+        respuestaBuffer[idx++] = c;
+        respuestaBuffer[idx] = '\0';
+      } else {
+        memmove(respuestaBuffer, respuestaBuffer + 1, BUFFER_SIZE - 2);
+        respuestaBuffer[BUFFER_SIZE - 2] = c;
+        respuestaBuffer[BUFFER_SIZE - 1] = '\0';
+      }
+
+      if (httpCode < 0) {
+        char* statusLine = strstr(respuestaBuffer, "HTTP/1.");
+        if (statusLine != NULL) {
+          httpCode = atoi(statusLine + 9); // "HTTP/1.x 200" -> 200
+        }
+      }
     }
     if (strstr(respuestaBuffer, "CLOSED") != NULL) {
       cerrado = true;
     }
     delay(10);
   }
-  respuestaBuffer[idx] = '\0';
+  if (idx < BUFFER_SIZE) {
+    respuestaBuffer[idx] = '\0';
+  } else {
+    respuestaBuffer[BUFFER_SIZE - 1] = '\0';
+  }
 
   // Extraer código de estado HTTP
-  char* statusLine = strstr(respuestaBuffer, "HTTP/1.");
-  if (statusLine != NULL) {
-    int code = atoi(statusLine + 9); // "HTTP/1.x 200" -> 200
+  if (httpCode > 0) {
     String codeStr = "HTTP Code: ";
-    codeStr += code;
+    codeStr += httpCode;
     mostrarPasoLCD(F("API: Completado"), codeStr.c_str());
     delay(1000);
-    return code;
+    return httpCode;
+  }
+
+  if (strstr(respuestaBuffer, "\"ticket_code\"") != NULL ||
+      strstr(respuestaBuffer, "X-Ticket-Code:") != NULL) {
+    mostrarPasoLCD(F("API: Completado"), F("Datos OK"));
+    delay(1000);
+    return 200;
   }
 
   mostrarPasoLCD(F("API ERROR:"), F("No status code"));
@@ -511,40 +586,63 @@ int enviarHTTPPost(const char* path, String& jsonBody) {
 
 // Extrae el valor de una clave JSON string del buffer de respuesta.
 // Funciona para strings ("key":"value") y números ("key":123).
-String extraerValorJSON(const char* clave) {
-  String bufStr = String(respuestaBuffer);
-  String buscar = "\"";
-  buscar += clave;
-  buscar += "\"";
+bool copiarRango(const char* inicio, const char* fin, char* destino, size_t destinoLen) {
+  if (destinoLen == 0 || inicio == NULL || fin == NULL || fin <= inicio) return false;
 
-  int pos = bufStr.indexOf(buscar);
-  if (pos < 0) return "";
+  size_t len = fin - inicio;
+  if (len >= destinoLen) len = destinoLen - 1;
+  memcpy(destino, inicio, len);
+  destino[len] = '\0';
+  return len > 0;
+}
 
-  // Avanzar hasta después del ":"
-  pos = bufStr.indexOf(':', pos);
-  if (pos < 0) return "";
-  pos++; // Saltar el ':'
+bool extraerHeaderHTTP(const char* nombre, char* destino, size_t destinoLen) {
+  if (destinoLen == 0) return false;
+  destino[0] = '\0';
 
-  // Saltar espacios
-  while (pos < (int)bufStr.length() && bufStr.charAt(pos) == ' ') pos++;
+  const char* pos = strstr(respuestaBuffer, nombre);
+  if (pos == NULL) return false;
 
-  if (bufStr.charAt(pos) == '"') {
-    // Valor tipo string
-    int inicio = pos + 1;
-    int fin = bufStr.indexOf('"', inicio);
-    if (fin < 0) return "";
-    return bufStr.substring(inicio, fin);
+  pos += strlen(nombre);
+  if (*pos != ':') return false;
+  pos++;
+  while (*pos == ' ' || *pos == '\t') pos++;
+
+  const char* fin = pos;
+  while (*fin != '\0' && *fin != '\r' && *fin != '\n') fin++;
+  return copiarRango(pos, fin, destino, destinoLen);
+}
+
+bool extraerValorJSON(const char* clave, char* destino, size_t destinoLen) {
+  if (destinoLen == 0) return false;
+  destino[0] = '\0';
+
+  char buscar[32];
+  snprintf(buscar, sizeof(buscar), "\"%s\"", clave);
+
+  const char* json = strchr(respuestaBuffer, '{');
+  const char* pos = strstr(json != NULL ? json : respuestaBuffer, buscar);
+  if (pos == NULL) return false;
+
+  pos = strchr(pos, ':');
+  if (pos == NULL) return false;
+  pos++;
+  while (*pos == ' ' || *pos == '\r' || *pos == '\n' || *pos == '\t') pos++;
+
+  const char* inicio = pos;
+  const char* fin = pos;
+  if (*pos == '"') {
+    inicio = pos + 1;
+    fin = strchr(inicio, '"');
+    if (fin == NULL) return false;
   } else {
-    // Valor numérico o booleano
-    int inicio = pos;
-    int fin = inicio;
-    while (fin < (int)bufStr.length()) {
-      char c = bufStr.charAt(fin);
-      if (c == ',' || c == '}' || c == ' ' || c == '\r' || c == '\n') break;
+    while (*fin != '\0' && *fin != ',' && *fin != '}' && *fin != ' ' &&
+           *fin != '\r' && *fin != '\n') {
       fin++;
     }
-    return bufStr.substring(inicio, fin);
   }
+
+  return copiarRango(inicio, fin, destino, destinoLen);
 }
 
 // =============================================================================
@@ -594,6 +692,10 @@ void mostrarRespuestaAT() {
     detalle = "FAIL";
   } else if (detalle.indexOf("CLOSED") >= 0) {
     detalle = "CLOSED";
+  } else if (detalle.indexOf("AT+CIPSTATUS") >= 0) {
+    detalle = "sin status";
+  } else if (detalle.indexOf("AT+") >= 0) {
+    detalle = "solo echo";
   }
 
   if (detalle.length() > 16) {
