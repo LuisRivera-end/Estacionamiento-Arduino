@@ -2,20 +2,24 @@ import { createSystem, defaultConfig, defineConfig } from "@chakra-ui/react";
 
 const config = defineConfig({
   theme: {
+    semanticTokens: {
+      colors: {
+        opsBg:         { value: { _dark: "#070b19",  _light: "#eef4ff" } },
+        opsPanel:      { value: { _dark: "#0f172a",  _light: "#ffffff" } },
+        opsPanelMuted: { value: { _dark: "#1e293b",  _light: "#f8faff" } },
+        opsBorder:     { value: { _dark: "#1e293b",  _light: "#c7d9f5" } },
+        opsText:       { value: { _dark: "#f8fafc",  _light: "#0f2057" } },
+        opsMuted:      { value: { _dark: "#64748b",  _light: "#4e6490" } },
+        opsGreen:      { value: { _dark: "#10b981",  _light: "#15803d" } },
+        opsRed:        { value: { _dark: "#ef4444",  _light: "#dc2626" } },
+        opsYellow:     { value: { _dark: "#f59e0b",  _light: "#b45309" } },
+        opsCyan:       { value: { _dark: "#0ea5e9",  _light: "#0ea5e9" } },
+      },
+    },
     tokens: {
       colors: {
-        opsBg: { value: "#070b19" },
-        opsPanel: { value: "#0f172a" },
-        opsPanelMuted: { value: "#1e293b" },
-        opsBorder: { value: "#1e293b" },
-        opsText: { value: "#f8fafc" },
-        opsMuted: { value: "#64748b" },
-        opsGreen: { value: "#10b981" },
-        opsRed: { value: "#ef4444" },
-        opsYellow: { value: "#f59e0b" },
-        opsCyan: { value: "#2563eb" },
         cyan: {
-          50: { value: "#eff6ff" },
+          50:  { value: "#f0f6ff" },
           100: { value: "#dbeafe" },
           200: { value: "#bfdbfe" },
           300: { value: "#93c5fd" },
@@ -30,7 +34,7 @@ const config = defineConfig({
       },
       fonts: {
         heading: { value: "var(--font-orbitron), var(--font-geist-sans)" },
-        body: { value: "var(--font-inter), var(--font-geist-sans)" },
+        body:    { value: "var(--font-inter), var(--font-geist-sans)" },
       },
     },
   },
