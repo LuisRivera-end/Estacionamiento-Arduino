@@ -5,9 +5,27 @@
   --font-inter: 'Inter', sans-serif;
   --font-orbitron: 'Orbitron', sans-serif;
   --font-geist-sans: var(--font-inter);
-  
+
+  --background: #eef4ff;
+  --foreground: #0f2057;
+  --glass-bg: rgba(255, 255, 255, 0.80);
+  --glass-border: rgba(37, 99, 235, 0.12);
+  --select-bg: #f0f6ff;
+  --select-color: #0f2057;
+  --select-border: #c7d9f5;
+  --select-option-bg: #ffffff;
+}
+
+[data-theme="dark"],
+html.dark {
   --background: #070b19;
   --foreground: #f8fafc;
+  --glass-bg: rgba(15, 23, 42, 0.75);
+  --glass-border: rgba(148, 163, 184, 0.12);
+  --select-bg: #0d1527;
+  --select-color: #f8fafc;
+  --select-border: #1e293b;
+  --select-option-bg: #070b19;
 }
 
 @theme inline {
@@ -17,18 +35,19 @@
   --font-orbitron: var(--font-orbitron);
 }
 
-body {
+html, body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-inter), "Geist", ui-sans-serif, system-ui, sans-serif;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
-/* Glassmorphism Utilities */
 @utility glass-panel {
-  background: rgba(15, 23, 42, 0.75);
+  background: var(--glass-bg);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(148, 163, 184, 0.12);
+  border: 1px solid var(--glass-border);
+  transition: background 0.2s ease, border-color 0.2s ease;
 }
 
 @utility neon-glow-cyan {
@@ -63,9 +82,9 @@ body {
 }
 
 select {
-  background-color: #0d1527;
-  color: #f8fafc;
-  border: 1px solid #1e293b;
+  background-color: var(--select-bg);
+  color: var(--select-color);
+  border: 1px solid var(--select-border);
   padding: 8px 12px;
   border-radius: 8px;
   height: 40px;
@@ -84,7 +103,7 @@ select:focus {
 }
 
 select option {
-  background-color: #070b19;
-  color: #f8fafc;
+  background-color: var(--select-option-bg);
+  color: var(--select-color);
   padding: 8px;
 }
