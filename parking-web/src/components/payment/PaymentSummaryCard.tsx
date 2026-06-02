@@ -113,12 +113,11 @@ export function PaymentSummaryCard({
           letterSpacing="0.08em"
           textTransform="uppercase"
           bg="opsCyan"
-          color="black"
+          color="white"
           borderRadius="xl"
           _hover={{
-            bg: "cyan.300",
+            bg: "blue.700",
             transform: "translateY(-2px)",
-            boxShadow: "0 8px 24px rgba(6, 182, 212, 0.45)",
           }}
           transition="all 0.25s cubic-bezier(0.16, 1, 0.3, 1)"
         >

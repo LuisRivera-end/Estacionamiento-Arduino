@@ -79,7 +79,7 @@ export function TicketCodeInput() {
         <Input
           aria-describedby="ticket-code-help"
           autoComplete="off"
-          bg="rgba(13, 21, 39, 0.4)"
+          bg="opsPanelMuted"
           borderColor="opsBorder"
           borderRadius="xl"
           h="16"
@@ -90,8 +90,7 @@ export function TicketCodeInput() {
           textAlign="center"
           _focus={{
             borderColor: "opsCyan",
-            boxShadow: "0 0 16px rgba(6, 182, 212, 0.45)",
-            bg: "rgba(13, 21, 39, 0.65)",
+            bg: "opsPanel",
           }}
           onChange={(event) => {
             setCode(event.target.value);
@@ -123,12 +122,11 @@ export function TicketCodeInput() {
         letterSpacing="0.08em"
         textTransform="uppercase"
         bg="opsCyan"
-        color="black"
+        color="white"
         borderRadius="xl"
         _hover={{
-          bg: "cyan.300",
+          bg: "blue.700",
           transform: "translateY(-2px)",
-          boxShadow: "0 8px 24px rgba(6, 182, 212, 0.45)",
         }}
         transition="all 0.25s cubic-bezier(0.16, 1, 0.3, 1)"
       >

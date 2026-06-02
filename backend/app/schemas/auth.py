@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from app.models.enums import StaffRole, StaffStatus
 
@@ -34,3 +34,10 @@ class BootstrapResponse(BaseModel):
 
 class AuthSetupStatusResponse(BaseModel):
     allow_initial_account_creation: bool
+
+
+class StaffUserCreateRequest(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=6, max_length=128)
+    display_name: str | None = None
+    role: StaffRole = StaffRole.PANELIST

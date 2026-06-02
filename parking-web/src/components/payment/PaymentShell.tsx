@@ -28,7 +28,7 @@ export function PaymentShell({ children }: { children: React.ReactNode }) {
   return (
     <Box
       bg="opsBg"
-      bgGradient="radial(circle at 50% 10%, rgba(6, 182, 212, 0.06), transparent 60%), radial(circle at 20% 80%, rgba(16, 185, 129, 0.025), transparent 50%)"
+      bgGradient="none"
       color="opsText"
       minH="100vh"
       pt={{ base: "12", md: "20" }}
@@ -52,8 +52,7 @@ export function PaymentShell({ children }: { children: React.ReactNode }) {
           w="fit-content"
           mx="auto"
           gap="2"
-          borderColor="rgba(6, 182, 212, 0.15)"
-          boxShadow="0 8px 32px rgba(0, 0, 0, 0.4), 0 0 1px rgba(6, 182, 212, 0.2)"
+          borderColor="opsBorder"
         >
           <Link
             asChild
@@ -69,11 +68,9 @@ export function PaymentShell({ children }: { children: React.ReactNode }) {
             {...(isPayActive
               ? {
                   color: "opsText",
-                  bg: "rgba(6, 182, 212, 0.12)",
+                  bg: "rgba(37, 99, 235, 0.08)",
                   border: "1px solid",
-                  borderColor: "rgba(6, 182, 212, 0.4)",
-                  textShadow: "0 0 10px rgba(6, 182, 212, 0.8)",
-                  boxShadow: "0 4px 12px rgba(6, 182, 212, 0.15)",
+                  borderColor: "rgba(37, 99, 235, 0.3)",
                 }
               : {
                   color: "opsCyan",
@@ -82,7 +79,6 @@ export function PaymentShell({ children }: { children: React.ReactNode }) {
                   _hover: {
                     color: "opsText",
                     opacity: 1,
-                    textShadow: "0 0 8px rgba(6, 182, 212, 0.5)",
                   },
                 })}
           >
@@ -102,11 +98,9 @@ export function PaymentShell({ children }: { children: React.ReactNode }) {
             {...(isHelpActive
               ? {
                   color: "opsText",
-                  bg: "rgba(6, 182, 212, 0.12)",
+                  bg: "rgba(37, 99, 235, 0.08)",
                   border: "1px solid",
-                  borderColor: "rgba(6, 182, 212, 0.4)",
-                  textShadow: "0 0 10px rgba(6, 182, 212, 0.8)",
-                  boxShadow: "0 4px 12px rgba(6, 182, 212, 0.15)",
+                  borderColor: "rgba(37, 99, 235, 0.3)",
                 }
               : {
                   color: "opsCyan",
@@ -115,7 +109,6 @@ export function PaymentShell({ children }: { children: React.ReactNode }) {
                   _hover: {
                     color: "opsText",
                     opacity: 1,
-                    textShadow: "0 0 8px rgba(6, 182, 212, 0.5)",
                   },
                 })}
           >

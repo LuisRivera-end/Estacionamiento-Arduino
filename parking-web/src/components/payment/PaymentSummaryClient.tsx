@@ -145,9 +145,9 @@ export function PaymentSummaryClient({
               Correo escolar
             </Field.Label>
             <Input
-              bg="rgba(13, 21, 39, 0.4)"
+              bg="opsPanelMuted"
               borderColor="opsBorder"
-              _focus={{ borderColor: "opsCyan", boxShadow: "0 0 10px rgba(6, 182, 212, 0.2)" }}
+              _focus={{ borderColor: "opsCyan" }}
               placeholder="alumno@escuela.edu.mx"
               value={studentEmail}
               onChange={(event) => setStudentEmail(event.target.value)}
@@ -163,9 +163,9 @@ export function PaymentSummaryClient({
               </Field.Label>
               <Input
                 type="number"
-                bg="rgba(13, 21, 39, 0.4)"
+                bg="opsPanelMuted"
                 borderColor="opsBorder"
-                _focus={{ borderColor: "opsCyan", boxShadow: "0 0 10px rgba(6, 182, 212, 0.2)" }}
+                _focus={{ borderColor: "opsCyan" }}
                 placeholder="60 o más"
                 value={seniorAge}
                 onChange={(event) => setSeniorAge(event.target.value)}
@@ -176,9 +176,9 @@ export function PaymentSummaryClient({
                 Tipo de documento
               </Field.Label>
               <Input
-                bg="rgba(13, 21, 39, 0.4)"
+                bg="opsPanelMuted"
                 borderColor="opsBorder"
-                _focus={{ borderColor: "opsCyan", boxShadow: "0 0 10px rgba(6, 182, 212, 0.2)" }}
+                _focus={{ borderColor: "opsCyan" }}
                 placeholder="INAPAM"
                 value={seniorDocumentType}
                 onChange={(event) => setSeniorDocumentType(event.target.value)}
@@ -190,9 +190,9 @@ export function PaymentSummaryClient({
               </Field.Label>
               <Input
                 maxLength={4}
-                bg="rgba(13, 21, 39, 0.4)"
+                bg="opsPanelMuted"
                 borderColor="opsBorder"
-                _focus={{ borderColor: "opsCyan", boxShadow: "0 0 10px rgba(6, 182, 212, 0.2)" }}
+                _focus={{ borderColor: "opsCyan" }}
                 placeholder="123A"
                 value={seniorDocumentLast4}
                 onChange={(event) => setSeniorDocumentLast4(event.target.value)}
@@ -215,12 +215,11 @@ export function PaymentSummaryClient({
           letterSpacing="0.08em"
           textTransform="uppercase"
           bg="opsCyan"
-          color="black"
+          color="white"
           borderRadius="xl"
           _hover={{
-            bg: "cyan.300",
+            bg: "blue.700",
             transform: "translateY(-2px)",
-            boxShadow: "0 8px 24px rgba(6, 182, 212, 0.45)",
           }}
           transition="all 0.25s cubic-bezier(0.16, 1, 0.3, 1)"
         >
