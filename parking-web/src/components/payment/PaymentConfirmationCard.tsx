@@ -59,7 +59,7 @@ export function PaymentConfirmationCard({
         </Text>
 
         {/* Digital Ticket Block */}
-        <Stack bg="rgba(13, 21, 39, 0.55)" border="1px solid" borderColor="opsBorder" p="4" borderRadius="xl" w="full" gap="2">
+        <Stack bg="opsPanelMuted" border="1px solid" borderColor="opsBorder" p="4" borderRadius="xl" w="full" gap="2">
           <Text color="opsMuted" fontSize="xxs" fontWeight="bold" textTransform="uppercase" letterSpacing="0.05em">
             Boleto Autorizado
           </Text>
@@ -69,7 +69,6 @@ export function PaymentConfirmationCard({
             fontWeight="900"
             color="opsCyan"
             letterSpacing="0.1em"
-            textShadow="0 0 8px rgba(6, 182, 212, 0.3)"
           >
             {ticketCode}
           </Text>
@@ -97,12 +96,11 @@ export function PaymentConfirmationCard({
           letterSpacing="0.08em"
           textTransform="uppercase"
           bg="opsGreen"
-          color="black"
+          color="white"
           borderRadius="xl"
           _hover={{
-            bg: "green.300",
+            bg: "green.600",
             transform: "translateY(-2px)",
-            boxShadow: "0 8px 24px rgba(16, 185, 129, 0.5)",
           }}
           transition="all 0.25s cubic-bezier(0.16, 1, 0.3, 1)"
         >

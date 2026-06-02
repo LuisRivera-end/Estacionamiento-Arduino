@@ -176,3 +176,10 @@ export type BootstrapResponse = {
 export type AuthSetupStatus = {
   allow_initial_account_creation: boolean;
 };
+
+export type StaffUserCreateRequest = {
+  email: string;
+  password: string;
+  display_name?: string | null;
+  role: StaffRole;
+};

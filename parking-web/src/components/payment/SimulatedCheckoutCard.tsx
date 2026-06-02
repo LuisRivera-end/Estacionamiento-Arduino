@@ -34,9 +34,9 @@ export function SimulatedCheckoutCard({
       </Heading>
 
       <Box
-        bg="rgba(6, 182, 212, 0.04)"
+        bg="opsPanelMuted"
         border="1px solid"
-        borderColor="rgba(6, 182, 212, 0.15)"
+        borderColor="opsBorder"
         p="6"
         borderRadius="xl"
       >
@@ -64,7 +64,7 @@ export function SimulatedCheckoutCard({
 
       <Button
         bg="opsCyan"
-        color="black"
+        color="white"
         h="16"
         fontFamily="var(--font-orbitron)"
         fontWeight="bold"
@@ -72,9 +72,8 @@ export function SimulatedCheckoutCard({
         textTransform="uppercase"
         borderRadius="xl"
         _hover={{
-          bg: "cyan.300",
+          bg: "blue.700",
           transform: "translateY(-2px)",
-          boxShadow: "0 8px 24px rgba(6, 182, 212, 0.45)",
         }}
         transition="all 0.25s cubic-bezier(0.16, 1, 0.3, 1)"
         onClick={async () => {

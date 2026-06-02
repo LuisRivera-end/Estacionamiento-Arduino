@@ -18,6 +18,14 @@ class StaffRepository:
         statement: Select[tuple[StaffUser]] = select(StaffUser).where(StaffUser.user_id == user_id)
         return (await self.session.execute(statement)).scalar_one_or_none()
 
+    async def get_by_email(self, email: str) -> StaffUser | None:
+        statement: Select[tuple[StaffUser]] = select(StaffUser).where(StaffUser.email == email)
+        return (await self.session.execute(statement)).scalar_one_or_none()
+
+    async def get_all(self) -> list[StaffUser]:
+        statement = select(StaffUser).order_by(StaffUser.created_at.desc())
+        return list((await self.session.execute(statement)).scalars().all())
+
     async def create(
         self,
         *,

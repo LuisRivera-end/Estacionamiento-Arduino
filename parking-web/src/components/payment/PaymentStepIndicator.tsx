@@ -12,7 +12,7 @@ export function PaymentStepIndicator({ current }: { current: number }) {
         left="10"
         right="10"
         h="3px"
-        bg="rgba(30, 46, 74, 0.45)"
+        bg="opsBorder"
         zIndex="1"
       />
       
@@ -28,7 +28,6 @@ export function PaymentStepIndicator({ current }: { current: number }) {
         <Box
           h="3px"
           bg="opsCyan"
-          boxShadow="0 0 14px #06b6d4, 0 0 6px #06b6d4"
           w={current <= 1 ? "0%" : `${((current - 1) / (steps.length - 1)) * 100}%`}
           transition="all 0.5s cubic-bezier(0.4, 0, 0.2, 1)"
         />
@@ -39,14 +38,12 @@ export function PaymentStepIndicator({ current }: { current: number }) {
         const isCurrent = stepNum === current;
         const isCompleted = stepNum < current;
 
-        let nodeBorderColor = "rgba(30, 46, 74, 0.8)";
+        let nodeBorderColor = "opsBorder";
         let textColor = "opsMuted";
-        let glowShadow = "none";
         
         if (isCurrent) {
           nodeBorderColor = "opsCyan";
           textColor = "opsCyan";
-          glowShadow = "0 0 20px rgba(6, 182, 212, 0.55)";
         } else if (isCompleted) {
           nodeBorderColor = "opsCyan";
           textColor = "opsText";
@@ -65,19 +62,19 @@ export function PaymentStepIndicator({ current }: { current: number }) {
               w={{ base: "9", md: "12" }}
               h={{ base: "9", md: "12" }}
               borderRadius="full"
-              bg={isCurrent ? "opsCyan" : "rgba(13, 21, 39, 0.95)"}
+              bg={isCurrent ? "opsCyan" : "opsPanelMuted"}
               border="2.5px solid"
               borderColor={nodeBorderColor}
               align="center"
               justify="center"
-              boxShadow={glowShadow}
+              boxShadow="none"
               transition="all 0.3s ease"
             >
               <Text
                 fontFamily="var(--font-orbitron)"
                 fontWeight="900"
                 fontSize={{ base: "sm", md: "md" }}
-                color={isCurrent ? "black" : (isCompleted ? "opsCyan" : "opsMuted")}
+                color={isCurrent ? "white" : (isCompleted ? "opsCyan" : "opsMuted")}
               >
                 {stepNum}
               </Text>
@@ -92,7 +89,7 @@ export function PaymentStepIndicator({ current }: { current: number }) {
               textAlign="center"
               whiteSpace="nowrap"
               display={{ base: "none", sm: "block" }}
-              textShadow={isCurrent ? "0 0 10px rgba(6, 182, 212, 0.35)" : "none"}
+              textShadow="none"
             >
               {step}
             </Text>
