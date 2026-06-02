@@ -9,7 +9,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from app.api.deps import get_session, get_session_context
+from app.api.deps import get_jwt_verifier, get_session, get_session_context
 from app.core.config import get_settings
 from app.main import create_app
 from app.models.base import Base
@@ -22,11 +22,13 @@ TEST_JWT_SECRET = "test-jwt-secret-with-32-plus-length"
 
 @pytest.fixture(autouse=True)
 def clear_settings_cache(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("APP_ENV", "test")
     monkeypatch.setenv("SUPABASE_JWT_SECRET", TEST_JWT_SECRET)
     monkeypatch.setenv("API_DEVICE_TOKEN_ENTRY", "entry-test-token")
     monkeypatch.setenv("API_DEVICE_TOKEN_EXIT", "exit-test-token")
     monkeypatch.setenv("ALLOWED_ORIGINS", "http://localhost:3000")
     get_settings.cache_clear()
+    get_jwt_verifier.cache_clear()
 
 
 @pytest.fixture
