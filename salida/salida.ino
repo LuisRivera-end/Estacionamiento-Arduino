@@ -36,6 +36,8 @@ SoftwareSerial  espSerial(12, 13);  // RX=12 ← ESP TX  |  TX=13 → ESP RX
 const int IR_PIN     = 11;
 const int SERVO_PIN  = 9;
 const int BUZZER_PIN = 10;
+const int LED_GREEN  = A3;
+const int LED_RED    = A2;
 
 // =============================================================================
 // CONFIGURACIÓN DEL DISPOSITIVO
@@ -91,12 +93,18 @@ void setup() {
 
   pinMode(IR_PIN,     INPUT);
   pinMode(BUZZER_PIN, OUTPUT);
+  pinMode(LED_GREEN,  OUTPUT);
+  pinMode(LED_RED,    OUTPUT);
+  digitalWrite(LED_GREEN, LOW);
+  digitalWrite(LED_RED,   LOW);
 
   lcd.begin(16, 2);
   lcd.backlight();
 
   servoMotor.attach(SERVO_PIN);
   servoMotor.write(0);
+  delay(500);
+  servoMotor.detach();  // Liberar Timer1 para que SoftwareSerial funcione
 
   lcd.setCursor(0, 0); lcd.print(F("Mod. Salida"));
   lcd.setCursor(0, 1); lcd.print(F("Conectando WiFi"));
@@ -126,6 +134,7 @@ void setup() {
 void loop() {
   // Reconexión automática si se perdió el WiFi
   if (!wifiConectado) {
+    servoMotor.detach();  // Liberar Timer1 durante reconexión WiFi
     lcd.setCursor(0, 0); lcd.print(F("WiFi Desconect."));
     lcd.setCursor(0, 1); lcd.print(F("Reconectando..."));
     wifiConectado = inicializarWiFi();
@@ -223,11 +232,15 @@ void verificarTicket() {
   lcd.setCursor(0, 0); lcd.print(F("Verificando..."));
   lcd.setCursor(0, 1); lcd.print(F("Espere..."));
 
-  String jsonBody = "{\"ticket_code\":\"";
-  jsonBody += codigoIngresado;
-  jsonBody += "\",\"device_id\":\"";
-  jsonBody += DEVICE_ID;
-  jsonBody += "\"}";
+  // Asegurar que el servo NO esté generando interrupciones Timer1
+  // que corrompan la comunicación SoftwareSerial con el ESP8266
+  servoMotor.detach();
+
+  // Buffer fijo para el JSON body — evita fragmentación de heap
+  char jsonBuf[64];
+  snprintf(jsonBuf, sizeof(jsonBuf), "{\"ticket_code\":\"%s\",\"device_id\":\"%s\"}",
+           codigoIngresado.c_str(), DEVICE_ID);
+  String jsonBody = jsonBuf;
 
   Serial.print(F("[API] Enviando ticket: ")); Serial.println(codigoIngresado);
 
@@ -250,7 +263,10 @@ void verificarTicket() {
       lcd.setCursor(0, 1); lcd.print(F("Abriendo..."));
       Serial.println(F("[ACCESO] Autorizado"));
 
+      digitalWrite(LED_GREEN, HIGH);
+      digitalWrite(LED_RED,   LOW);
       tone(BUZZER_PIN, 2500, 150); delay(200); tone(BUZZER_PIN, 2500, 150);
+      servoMotor.attach(SERVO_PIN);
       servoMotor.write(90);
 
       unsigned long t = millis();
@@ -261,9 +277,14 @@ void verificarTicket() {
       lcd.setCursor(0, 1); lcd.print(F("Cerrando..."));
       delay(DELAY_SERVO_MS);
       servoMotor.write(0);
+      delay(500);
+      servoMotor.detach();
+      digitalWrite(LED_GREEN, LOW);
 
     } else {
       // ❌ No autorizado
+      digitalWrite(LED_RED,   HIGH);
+      digitalWrite(LED_GREEN, LOW);
       if (strcmp(razon, "payment_required") == 0) {
         lcd.print(F("PAGO PENDIENTE"));
         lcd.setCursor(0, 1); lcd.print(F("Pague primero"));
@@ -274,28 +295,37 @@ void verificarTicket() {
       Serial.print(F("[ACCESO] Denegado: ")); Serial.println(razon);
       tone(BUZZER_PIN, 800, 800);
       delay(3000);
+      digitalWrite(LED_RED, LOW);
     }
 
   } else if (httpCode == 404) {
+    digitalWrite(LED_RED, HIGH);
     lcd.print(F("TICKET NO"));
     lcd.setCursor(0, 1); lcd.print(F("ENCONTRADO"));
     tone(BUZZER_PIN, 500, 1000); delay(3000);
+    digitalWrite(LED_RED, LOW);
 
   } else if (httpCode == 409) {
+    digitalWrite(LED_RED, HIGH);
     lcd.print(F("TICKET YA"));
     lcd.setCursor(0, 1); lcd.print(F("UTILIZADO"));
     tone(BUZZER_PIN, 600, 800); delay(3000);
+    digitalWrite(LED_RED, LOW);
 
   } else if (httpCode == 401 || httpCode == 403) {
+    digitalWrite(LED_RED, HIGH);
     lcd.print(F("ERROR:"));
     lcd.setCursor(0, 1); lcd.print(F("Auth Invalida"));
     delay(3000);
+    digitalWrite(LED_RED, LOW);
 
   } else {
+    digitalWrite(LED_RED, HIGH);
     lcd.print(F("ERROR:"));
     lcd.setCursor(0, 1); lcd.print(F("Sin conexion"));
     Serial.print(F("[API] Codigo HTTP: ")); Serial.println(httpCode);
     delay(3000);
+    digitalWrite(LED_RED, LOW);
   }
 
   codigoIngresado = "";
@@ -343,12 +373,9 @@ bool inicializarWiFi() {
 
   // Conectar a la red
   mostrarPasoLCD(F("WiFi: Conectando"), WIFI_SSID);
-  String cmdJoin = "AT+CWJAP=\"";
-  cmdJoin += WIFI_SSID;
-  cmdJoin += "\",\"";
-  cmdJoin += WIFI_PASS;
-  cmdJoin += "\"";
-  if (!enviarAT(cmdJoin.c_str(), "OK", 30000)) {
+  char cmdBuf[64];
+  snprintf(cmdBuf, sizeof(cmdBuf), "AT+CWJAP=\"%s\",\"%s\"", WIFI_SSID, WIFI_PASS);
+  if (!enviarAT(cmdBuf, "OK", 30000)) {
     mostrarPasoLCD(F("WiFi ERROR:"), F("Fallo conexion"));
     mostrarRespuestaAT();
     delay(2000);
@@ -373,10 +400,8 @@ bool inicializarWiFi() {
   // SSL (solo si USE_SSL = true)
   if (USE_SSL) {
     enviarAT("AT+CIPSSLCCONF=0", "OK", 3000);
-    String cmdSni = "AT+CIPSSLCSNI=\"";
-    cmdSni += SERVER_HOST;
-    cmdSni += "\"";
-    if (!enviarAT(cmdSni.c_str(), "OK", 3000)) {
+    snprintf(cmdBuf, sizeof(cmdBuf), "AT+CIPSSLCSNI=\"%s\"", SERVER_HOST);
+    if (!enviarAT(cmdBuf, "OK", 3000)) {
       mostrarPasoLCD(F("SSL ERROR:"), F("SNI no soportado"));
       Serial.println(F("[SSL] Firmware viejo — prueba USE_SSL=false"));
       delay(2500);
@@ -497,19 +522,28 @@ int enviarHTTPPost(const char* path, String& jsonBody) {
 
   mostrarPasoLCD(F("API: Conectando"), SERVER_HOST);
 
-  String cmdConn = "AT+CIPSTART=0,\"";
-  cmdConn += USE_SSL ? "SSL" : "TCP";
-  cmdConn += "\",\"";
-  cmdConn += SERVER_HOST;
-  cmdConn += "\",";
-  cmdConn += SERVER_PORT;
+  // Asegurar servo desacoplado para no interferir con SoftwareSerial
+  servoMotor.detach();
+
+  // Usar buffer fijo — String fragmenta el heap de 2KB y falla silenciosamente
+  char cmdBuf[48];
+  snprintf(cmdBuf, sizeof(cmdBuf), "AT+CIPSTART=0,\"%s\",\"%s\",%d",
+           USE_SSL ? "SSL" : "TCP", SERVER_HOST, SERVER_PORT);
+
+  Serial.print(F("[TCP] Comando: ")); Serial.println(cmdBuf);
 
   bool conectado = false;
   for (byte i = 0; i < 2 && !conectado; i++) {
     enviarAT("AT+CIPCLOSE=0", "OK", 2000);
     delay(300);
-    conectado = abrirConexionAT(cmdConn.c_str(), 25000);
-    if (!conectado) delay(1000);
+    conectado = abrirConexionAT(cmdBuf, 25000);
+    if (!conectado) {
+      Serial.print(F("[TCP] Intento "));
+      Serial.print(i + 1);
+      Serial.print(F(" fallo. AT resp: "));
+      Serial.println(ultimaRespuestaAT);
+      delay(1000);
+    }
   }
 
   if (!conectado) {
@@ -520,7 +554,8 @@ int enviarHTTPPost(const char* path, String& jsonBody) {
   }
 
   // Calcular longitud total del request HTTP
-  String contentLenStr = String(jsonBody.length());
+  char contentLenStr[8];
+  itoa(jsonBody.length(), contentLenStr, 10);
   int httpLength =
     (sizeof("POST ") - 1)              + strlen(path)          +
     (sizeof(" HTTP/1.1\r\n") - 1)      +
@@ -528,14 +563,13 @@ int enviarHTTPPost(const char* path, String& jsonBody) {
     (sizeof("Content-Type: application/json\r\n") - 1)         +
     (sizeof("X-Device-Id: ") - 1)      + strlen(DEVICE_ID)     + 2 +
     (sizeof("X-Device-Token: ") - 1)   + strlen(DEVICE_TOKEN)  + 2 +
-    (sizeof("Content-Length: ") - 1)   + contentLenStr.length()+ 2 +
+    (sizeof("Content-Length: ") - 1)   + strlen(contentLenStr) + 2 +
     (sizeof("Connection: close\r\n\r\n") - 1)                  +
     jsonBody.length();
 
   mostrarPasoLCD(F("API: Preparando"), F("Envio..."));
-  String cmdSend = "AT+CIPSEND=0,";
-  cmdSend += httpLength;
-  if (!enviarAT(cmdSend.c_str(), ">", 10000)) {
+  snprintf(cmdBuf, sizeof(cmdBuf), "AT+CIPSEND=0,%d", httpLength);
+  if (!enviarAT(cmdBuf, ">", 10000)) {
     mostrarPasoLCD(F("API ERROR:"), F("Send init"));
     mostrarRespuestaAT();
     enviarAT("AT+CIPCLOSE=0", "OK", 3000);
@@ -545,15 +579,21 @@ int enviarHTTPPost(const char* path, String& jsonBody) {
 
   mostrarPasoLCD(F("API: Enviando"), path);
 
-  // Enviar HTTP request por espSerial
+  // Enviar HTTP request por espSerial con pequeñas pausas para evitar
+  // saturar el buffer UART RX del ESP8266 (128 bytes)
   espSerial.print(F("POST ")); espSerial.print(path);
   espSerial.print(F(" HTTP/1.1\r\nHost: ")); espSerial.print(SERVER_HOST);
+  delay(20);
   espSerial.print(F("\r\nContent-Type: application/json\r\nX-Device-Id: "));
   espSerial.print(DEVICE_ID);
+  delay(20);
   espSerial.print(F("\r\nX-Device-Token: ")); espSerial.print(DEVICE_TOKEN);
+  delay(20);
   espSerial.print(F("\r\nContent-Length: ")); espSerial.print(contentLenStr);
   espSerial.print(F("\r\nConnection: close\r\n\r\n"));
+  delay(50);
   espSerial.print(jsonBody);
+
 
   mostrarPasoLCD(F("API: Esperando"), F("Respuesta..."));
 
@@ -576,7 +616,12 @@ int enviarHTTPPost(const char* path, String& jsonBody) {
       }
       if (httpCode < 0) {
         char* sl = strstr(respuestaBuffer, "HTTP/1.");
-        if (sl != NULL) httpCode = atoi(sl + 9);
+        if (sl != NULL) {
+          char* p = sl + 9;
+          if (isdigit(p[0]) && isdigit(p[1]) && isdigit(p[2])) {
+            httpCode = atoi(p);
+          }
+        }
       }
     }
     if (strstr(respuestaBuffer, "CLOSED") != NULL) cerrado = true;
@@ -585,10 +630,10 @@ int enviarHTTPPost(const char* path, String& jsonBody) {
   respuestaBuffer[idx < BUFFER_SIZE ? idx : BUFFER_SIZE - 1] = '\0';
 
   Serial.print(F("[HTTP] Codigo: ")); Serial.println(httpCode);
+  Serial.print(F("[HTTP] Respuesta: ")); Serial.println(respuestaBuffer);
 
   if (httpCode > 0) {
-    String msg = "HTTP Code: "; msg += httpCode;
-    mostrarPasoLCD(F("API: Completado"), msg.c_str());
+    mostrarPasoLCD(F("API: Completado"), F("OK"));
     delay(1000);
     return httpCode;
   }

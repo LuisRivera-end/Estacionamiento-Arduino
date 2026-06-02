@@ -72,6 +72,7 @@ class ArduinoBridgeHandler(BaseHTTPRequestHandler):
 
         content_length = int(self.headers.get("Content-Length", "0"))
         body = self.rfile.read(content_length)
+        print(f"DEBUG: raw body bytes = {body!r}")
         target_url = f"{TARGET_BASE_URL}{self.path}"
 
         headers = {
