@@ -8,7 +8,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <Flex
       bg="opsBg"
-      bgGradient="radial(circle at 80% 20%, rgba(6, 182, 212, 0.04), transparent 50%), radial(circle at 20% 80%, rgba(16, 185, 129, 0.025), transparent 50%)"
       minH="100vh"
     >
       <SidebarNav />

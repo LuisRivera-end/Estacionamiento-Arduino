@@ -22,7 +22,7 @@ export function SidebarNav() {
   return (
     <Box
       as="aside"
-      className="glass-panel"
+      bg="opsPanel"
       borderRightWidth="1px"
       minH="100vh"
       p="5"
@@ -34,7 +34,6 @@ export function SidebarNav() {
     >
       <Flex align="center" gap="2" mb="8">
         <Box
-          className="pulse-glow"
           w="2.5"
           h="2.5"
           bg="opsGreen"
@@ -42,10 +41,9 @@ export function SidebarNav() {
         />
         <Text
           color="opsCyan"
-          fontFamily="var(--font-orbitron)"
-          fontWeight="900"
+          fontWeight="bold"
           fontSize="lg"
-          letterSpacing="0.08em"
+          letterSpacing="0.05em"
         >
           PARKING OPS
         </Text>

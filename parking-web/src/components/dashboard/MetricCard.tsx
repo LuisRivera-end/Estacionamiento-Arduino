@@ -35,16 +35,18 @@ export function MetricCard({
   value,
   tone = "default",
 }: MetricCardProps) {
-  const glowClass = glowClassByTone[tone];
-
   return (
     <Box
-      className={`glass-panel ${glowClass}`}
+      bg="opsPanel"
+      borderWidth="1px"
+      borderColor="opsBorder"
+      boxShadow="sm"
       borderRadius="xl"
       p="5"
       transition="all 0.25s cubic-bezier(0.4, 0, 0.2, 1)"
       _hover={{
-        transform: "translateY(-4px) scale(1.02)",
+        transform: "translateY(-2px)",
+        boxShadow: "md",
         borderColor: "opsCyan",
       }}
     >
@@ -60,11 +62,8 @@ export function MetricCard({
       </Text>
       <Text
         color={colorByTone[tone]}
-        fontFamily="var(--font-orbitron)"
         fontSize="3xl"
-        fontWeight="900"
-        letterSpacing="0.02em"
-        textShadow={textShadowByTone[tone]}
+        fontWeight="bold"
       >
         {value}
       </Text>

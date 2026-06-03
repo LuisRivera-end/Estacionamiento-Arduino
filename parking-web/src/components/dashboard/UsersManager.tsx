@@ -78,7 +78,7 @@ export function UsersManager({
     <Grid templateColumns={{ base: "1fr", lg: "1fr 340px" }} gap="6" w="full" alignSelf="start">
       {/* List of Users */}
       <Stack gap="4">
-        <Heading size="md" color="opsText" fontFamily="var(--font-orbitron)">
+        <Heading size="md" color="opsText">
           Usuarios Registrados
         </Heading>
         <Box
@@ -147,7 +147,7 @@ export function UsersManager({
 
       {/* Creation Form */}
       <Stack gap="4">
-        <Heading size="md" color="opsText" fontFamily="var(--font-orbitron)">
+        <Heading size="md" color="opsText">
           Nuevo Usuario
         </Heading>
         <Stack
@@ -159,6 +159,7 @@ export function UsersManager({
           borderWidth="1px"
           p="5"
           gap="4"
+          maxW="md"
         >
           <Field.Root required>
             <Field.Label color="opsMuted" fontSize="xs" fontWeight="bold">Correo Electrónico</Field.Label>
