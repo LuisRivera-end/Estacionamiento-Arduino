@@ -5,6 +5,7 @@ from datetime import datetime, time, timedelta
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.enums import DiscountType
+from app.repositories.archived_tickets import ArchivedTicketRepository
 from app.repositories.parking import ParkingRepository
 from app.repositories.payments import PaymentRepository
 from app.repositories.tickets import TicketRepository
@@ -33,13 +34,25 @@ async def get_status_summary(session: AsyncSession) -> StatusResponse:
 
 async def get_daily_summary(session: AsyncSession, now: datetime) -> SummaryReportResponse:
     ticket_repository = TicketRepository(session)
+    archived_repository = ArchivedTicketRepository(session)
     payment_repository = PaymentRepository(session)
     start_at, end_at = day_window(now)
+
+    # Combine active + archived ticket counts for accurate daily totals
+    entries_active = await ticket_repository.summary_count("entry_at", start_at, end_at)
+    entries_archived = await archived_repository.summary_count("entry_at", start_at, end_at)
+
+    exits_active = await ticket_repository.summary_count("exit_at", start_at, end_at)
+    exits_archived = await archived_repository.summary_count("exit_at", start_at, end_at)
+
+    lost_active = await ticket_repository.count_lost_tickets(start_at, end_at)
+    lost_archived = await archived_repository.count_lost_tickets(start_at, end_at)
+
     return build_summary_response(
-        entries_today=await ticket_repository.summary_count("entry_at", start_at, end_at),
-        exits_today=await ticket_repository.summary_count("exit_at", start_at, end_at),
+        entries_today=entries_active + entries_archived,
+        exits_today=exits_active + exits_archived,
         paid_tickets=await ticket_repository.count_paid_tickets(start_at, end_at),
-        lost_tickets=await ticket_repository.count_lost_tickets(start_at, end_at),
+        lost_tickets=lost_active + lost_archived,
         simulated_revenue_today=await payment_repository.sum_revenue(start_at, end_at),
         total_discount_today=await payment_repository.sum_discounts(start_at, end_at),
         discounted_payments_senior=await payment_repository.count_by_discount_type(

@@ -17,6 +17,10 @@ export function SettingsEditor({ initialSettings }: SettingsEditorProps) {
   const [capacity, setCapacity] = useState(String(initialSettings.capacity_total));
   const timezone = initialSettings.timezone;
   const [currency, setCurrency] = useState(initialSettings.currency);
+  const [parkingName, setParkingName] = useState(initialSettings.parking_name);
+  const [expirationMinutes, setExpirationMinutes] = useState(
+    String(initialSettings.ticket_expiration_minutes),
+  );
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -40,12 +44,28 @@ export function SettingsEditor({ initialSettings }: SettingsEditorProps) {
       return;
     }
 
+    const parsedExpiration = Number.parseInt(expirationMinutes, 10);
+    if (!Number.isFinite(parsedExpiration) || parsedExpiration < 1) {
+      setError("La expiración debe ser al menos 1 minuto.");
+      setIsSaving(false);
+      return;
+    }
+
+    const trimmedName = parkingName.trim();
+    if (!trimmedName) {
+      setError("El nombre del estacionamiento no puede estar vacío.");
+      setIsSaving(false);
+      return;
+    }
+
     try {
       await updateParkingSettings(
         {
           capacity_total: parsedCapacity,
           timezone: timezone.trim(),
           currency: currency.trim().toUpperCase(),
+          parking_name: trimmedName,
+          ticket_expiration_minutes: parsedExpiration,
         },
         accessToken,
       );
@@ -73,11 +93,29 @@ export function SettingsEditor({ initialSettings }: SettingsEditorProps) {
       maxW="md"
     >
       <Field.Root required>
+        <Field.Label>Nombre del estacionamiento</Field.Label>
+        <Input
+          value={parkingName}
+          onChange={(event) => setParkingName(event.target.value)}
+          maxLength={100}
+        />
+      </Field.Root>
+
+      <Field.Root required>
         <Field.Label>Capacidad total</Field.Label>
         <Input
           type="number"
           value={capacity}
           onChange={(event) => setCapacity(event.target.value)}
+        />
+      </Field.Root>
+
+      <Field.Root required>
+        <Field.Label>Expiración de boletos (minutos)</Field.Label>
+        <Input
+          type="number"
+          value={expirationMinutes}
+          onChange={(event) => setExpirationMinutes(event.target.value)}
         />
       </Field.Root>
 

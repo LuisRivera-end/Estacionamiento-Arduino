@@ -7,12 +7,16 @@ class ParkingSettingsResponse(BaseModel):
     capacity_total: int
     timezone: str
     currency: str
+    parking_name: str
+    ticket_expiration_minutes: int
 
 
 class ParkingSettingsUpdateRequest(BaseModel):
     capacity_total: int = Field(ge=1)
     timezone: str = Field(min_length=3, max_length=64)
     currency: str = Field(min_length=3, max_length=3)
+    parking_name: str = Field(min_length=1, max_length=100)
+    ticket_expiration_minutes: int = Field(ge=1, le=43200)
 
 
 class PricingRuleResponse(BaseModel):

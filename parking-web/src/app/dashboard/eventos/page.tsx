@@ -1,5 +1,8 @@
 import NextLink from "next/link";
 import { Box, Button, Grid, Heading, HStack, Input, Text } from "@chakra-ui/react";
+
+const SelectBox = Box as any;
+
 import { redirect } from "next/navigation";
 
 import { DataTable } from "@/components/dashboard/DataTable";
@@ -96,17 +99,17 @@ export default async function EventsPage({
             borderColor="opsBorder"
             color="opsText"
           />
-          <Box as="select" defaultValue={eventTypeRaw} name="event_type" h="10" bg="opsPanel" color="opsText" borderColor="opsBorder" borderWidth="1px" borderRadius="md" px="3" outline="none" _focus={{ borderColor: "opsCyan" }}>
+          <SelectBox as="select" defaultValue={eventTypeRaw} name="event_type" h="10" bg="opsPanel" color="opsText" borderColor="opsBorder" borderWidth="1px" borderRadius="md" px="3" outline="none" _focus={{ borderColor: "opsCyan" }}>
             <option value="">Tipo: todos</option>
             <option value="entry">Entrada</option>
             <option value="exit">Salida</option>
-          </Box>
+          </SelectBox>
           <Input defaultValue={deviceId} name="device_id" placeholder="Dispositivo" w="220px" bg="opsPanel" borderColor="opsBorder" color="opsText" />
-          <Box as="select" defaultValue={lostTicketRaw} name="lost_ticket" h="10" bg="opsPanel" color="opsText" borderColor="opsBorder" borderWidth="1px" borderRadius="md" px="3" outline="none" _focus={{ borderColor: "opsCyan" }}>
+          <SelectBox as="select" defaultValue={lostTicketRaw} name="lost_ticket" h="10" bg="opsPanel" color="opsText" borderColor="opsBorder" borderWidth="1px" borderRadius="md" px="3" outline="none" _focus={{ borderColor: "opsCyan" }}>
             <option value="">Extraviado: todos</option>
             <option value="true">Extraviado: sí</option>
             <option value="false">Extraviado: no</option>
-          </Box>
+          </SelectBox>
           <Input defaultValue={String(pageSize)} name="page_size" type="number" w="120px" bg="opsPanel" borderColor="opsBorder" color="opsText" />
           <input name="page" type="hidden" value="1" />
           <Button colorPalette="cyan" type="submit">

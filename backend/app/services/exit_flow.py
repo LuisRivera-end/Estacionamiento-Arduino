@@ -14,6 +14,7 @@ from app.repositories.tickets import TicketRepository
 from app.schemas.tickets import ExitValidationResponse
 from app.services.pricing import calculate_amount, calculate_duration_minutes
 from app.services.realtime import admin_events_broker
+from app.services.ticket_expiration import is_ticket_expired
 
 
 async def validate_exit(
@@ -38,8 +39,12 @@ async def validate_exit(
     if ticket.status == TicketStatus.EXITED:
         raise AppError(409, "ticket_already_exited", "El ticket ya fue usado para salir")
 
-    state = await parking_repository.lock_state()
+    # Defensive expiration check
     settings = await parking_repository.get_settings()
+    if is_ticket_expired(ticket.entry_at, settings.ticket_expiration_minutes):
+        raise AppError(404, "ticket_not_found", "Ticket no encontrado")
+
+    state = await parking_repository.lock_state()
     pricing_rule = await parking_repository.get_active_pricing_rule()
 
     now = datetime.now(UTC)

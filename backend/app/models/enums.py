@@ -57,3 +57,13 @@ class StaffRole(StrEnum):
 class StaffStatus(StrEnum):
     ACTIVE = "active"
     DISABLED = "disabled"
+
+
+class ArchiveReason(StrEnum):
+    EXPIRED = "expired"
+
+
+class SeniorIdentifierType(StrEnum):
+    CODE = "code"
+    LICENSE_PLATE = "license_plate"
+    DOCUMENT = "document"

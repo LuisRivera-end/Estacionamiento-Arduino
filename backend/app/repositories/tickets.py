@@ -134,3 +134,23 @@ class TicketRepository:
             statement = statement.where(*filters)
 
         return list((await self.session.execute(statement)).scalars().all())
+
+    async def delete(self, ticket: Ticket) -> None:
+        await self.session.delete(ticket)
+        await self.session.flush()
+
+    async def get_expired_active_tickets(
+        self, expiration_minutes: int, now: datetime
+    ) -> list[Ticket]:
+        from datetime import timedelta
+
+        cutoff = now - timedelta(minutes=expiration_minutes)
+        statement: Select[tuple[Ticket]] = (
+            select(Ticket)
+            .where(
+                Ticket.status == TicketStatus.ACTIVE,
+                Ticket.entry_at <= cutoff,
+            )
+            .with_for_update()
+        )
+        return list((await self.session.execute(statement)).scalars().all())

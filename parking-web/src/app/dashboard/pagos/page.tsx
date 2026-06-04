@@ -1,5 +1,8 @@
 import NextLink from "next/link";
 import { Box, Button, Grid, Heading, HStack, Input, Text } from "@chakra-ui/react";
+
+const SelectBox = Box as any;
+
 import { redirect } from "next/navigation";
 
 import { DataTable } from "@/components/dashboard/DataTable";
@@ -100,18 +103,18 @@ export default async function PaymentsPage({
             borderColor="opsBorder"
             color="opsText"
           />
-          <Box as="select" defaultValue={method} name="method" h="10" bg="opsPanel" color="opsText" borderColor="opsBorder" borderWidth="1px" borderRadius="md" px="3" outline="none" _focus={{ borderColor: "opsCyan" }}>
+          <SelectBox as="select" defaultValue={method} name="method" h="10" bg="opsPanel" color="opsText" borderColor="opsBorder" borderWidth="1px" borderRadius="md" px="3" outline="none" _focus={{ borderColor: "opsCyan" }}>
             <option value="">Método: todos</option>
             <option value="simulated_payment">Pago digital</option>
             <option value="simulated_stripe">Pago Stripe legado</option>
             <option value="lost_ticket">Ticket extraviado</option>
-          </Box>
-          <Box as="select" defaultValue={status} name="status" h="10" bg="opsPanel" color="opsText" borderColor="opsBorder" borderWidth="1px" borderRadius="md" px="3" outline="none" _focus={{ borderColor: "opsCyan" }}>
+          </SelectBox>
+          <SelectBox as="select" defaultValue={status} name="status" h="10" bg="opsPanel" color="opsText" borderColor="opsBorder" borderWidth="1px" borderRadius="md" px="3" outline="none" _focus={{ borderColor: "opsCyan" }}>
             <option value="">Estado: todos</option>
             <option value="simulated">Registrado</option>
             <option value="succeeded">Exitoso</option>
             <option value="failed">Fallido</option>
-          </Box>
+          </SelectBox>
           <Input defaultValue={String(pageSize)} name="page_size" type="number" w="120px" bg="opsPanel" borderColor="opsBorder" color="opsText" />
           <input name="page" type="hidden" value="1" />
           <Button colorPalette="cyan" type="submit">

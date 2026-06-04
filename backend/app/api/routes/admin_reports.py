@@ -10,6 +10,7 @@ from app.api.deps import get_current_staff_user, get_jwt_verifier, get_session_c
 from app.connectors.supabase_auth import SupabaseJWTVerifier
 from app.db.session import get_session
 from app.models.enums import PaymentMethod, PaymentResult, PaymentStatus, TicketStatus
+from app.repositories.archived_tickets import ArchivedTicketRepository
 from app.repositories.payments import PaymentRepository
 from app.repositories.staff import StaffRepository
 from app.repositories.tickets import TicketRepository
@@ -61,6 +62,7 @@ async def report_tickets(
     status: TicketStatus | None = Query(default=None),
     payment_status: PaymentStatus | None = Query(default=None),
     lost_ticket: bool | None = Query(default=None),
+    include_archived: bool = Query(default=True),
     _: tuple = Depends(get_current_staff_user),
     session: AsyncSession = Depends(get_session),
 ) -> AdminTicketsPageResponse:
@@ -73,7 +75,7 @@ async def report_tickets(
         payment_status=payment_status,
         lost_ticket=lost_ticket,
     )
-    items = [
+    items: list[AdminTicketItemResponse] = [
         AdminTicketItemResponse(
             ticket_code=ticket.code,
             status=ticket.status,
@@ -86,6 +88,35 @@ async def report_tickets(
         )
         for ticket in tickets
     ]
+
+    # Append archived tickets if requested and there's room on this page
+    if include_archived:
+        archived_repo = ArchivedTicketRepository(session)
+        archived_remaining = page_size - len(items)
+        if archived_remaining > 0:
+            archived_offset = max(0, offset - total)
+            archived_tickets, archived_total = await archived_repo.list_for_admin(
+                offset=max(0, archived_offset),
+                limit=archived_remaining,
+                code=code,
+            )
+            for at in archived_tickets:
+                items.append(
+                    AdminTicketItemResponse(
+                        ticket_code=at.code,
+                        status=at.status,
+                        payment_status=at.payment_status,
+                        entry_at=at.entry_at,
+                        paid_at=at.paid_at,
+                        exit_at=at.exit_at,
+                        calculated_amount=at.calculated_amount,
+                        lost_ticket=at.lost_ticket,
+                        archive_reason=str(at.archive_reason),
+                        archived_at=at.archived_at,
+                    )
+                )
+            total += archived_total
+
     return AdminTicketsPageResponse(items=items, total=total, page=page, page_size=page_size)
 
 
@@ -139,14 +170,24 @@ async def report_events(
     _: tuple = Depends(get_current_staff_user),
     session: AsyncSession = Depends(get_session),
 ) -> AdminEventsPageResponse:
+    # Active tickets
     tickets = await TicketRepository(session).list_for_events(
         code=ticket_code,
         lost_ticket=lost_ticket,
         entry_device_id=device_id if event_type in (None, "entry") else None,
         exit_device_id=device_id if event_type in (None, "exit") else None,
     )
+    # Archived tickets
+    archived_tickets = await ArchivedTicketRepository(session).list_for_events(
+        code=ticket_code,
+        lost_ticket=lost_ticket,
+        entry_device_id=device_id if event_type in (None, "entry") else None,
+        exit_device_id=device_id if event_type in (None, "exit") else None,
+    )
+
     events: list[AdminEventItemResponse] = []
 
+    # Events from active tickets
     for ticket in tickets:
         if event_type in (None, "entry"):
             if device_id is None or ticket.entry_device_id == device_id:
@@ -167,6 +208,31 @@ async def report_events(
                         event_type="exit",
                         ticket_code=ticket.code,
                         device_id=ticket.exit_device_id,
+                        result="procesada",
+                    )
+                )
+
+    # Events from archived tickets
+    for at in archived_tickets:
+        if event_type in (None, "entry"):
+            if device_id is None or at.entry_device_id == device_id:
+                events.append(
+                    AdminEventItemResponse(
+                        event_at=at.entry_at,
+                        event_type="entry",
+                        ticket_code=at.code,
+                        device_id=at.entry_device_id,
+                        result="autorizada",
+                    )
+                )
+        if event_type in (None, "exit") and at.exit_at:
+            if device_id is None or at.exit_device_id == device_id:
+                events.append(
+                    AdminEventItemResponse(
+                        event_at=at.exit_at,
+                        event_type="exit",
+                        ticket_code=at.code,
+                        device_id=at.exit_device_id,
                         result="procesada",
                     )
                 )

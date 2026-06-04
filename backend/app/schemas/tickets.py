@@ -18,9 +18,10 @@ class TicketResponse(BaseModel):
 class DiscountPayload(BaseModel):
     type: DiscountType = DiscountType.NONE
     student_email: str | None = None
-    senior_age: int | None = Field(default=None, ge=0, le=130)
-    senior_document_type: str | None = Field(default=None, min_length=2, max_length=30)
-    senior_document_last4: str | None = Field(default=None, min_length=2, max_length=12)
+    senior_identifier_type: str | None = Field(
+        default=None, pattern=r"^(code|license_plate|document)$"
+    )
+    senior_identifier_value: str | None = Field(default=None, min_length=1, max_length=50)
 
 
 class TicketCalculationRequest(BaseModel):

@@ -40,11 +40,15 @@ class ParkingRepository:
         capacity_total: int,
         timezone: str,
         currency: str,
+        parking_name: str,
+        ticket_expiration_minutes: int,
     ) -> ParkingSettings:
         settings = await self.get_settings()
         settings.capacity_total = capacity_total
         settings.timezone = timezone
         settings.currency = currency
+        settings.parking_name = parking_name
+        settings.ticket_expiration_minutes = ticket_expiration_minutes
         await self.session.flush()
         await self.session.refresh(settings)
         return settings
