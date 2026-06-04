@@ -1,5 +1,5 @@
 import NextLink from "next/link";
-import { Button, Grid, Heading, HStack, Input, Text } from "@chakra-ui/react";
+import { Box, Button, Grid, Heading, HStack, Input, Text } from "@chakra-ui/react";
 import { redirect } from "next/navigation";
 
 import { DataTable } from "@/components/dashboard/DataTable";
@@ -96,20 +96,23 @@ export default async function PaymentsPage({
             name="ticket_code"
             placeholder="Código de ticket"
             w="220px"
+            bg="opsPanel"
+            borderColor="opsBorder"
+            color="opsText"
           />
-          <select defaultValue={method} name="method">
+          <Box as="select" defaultValue={method} name="method" h="10" bg="opsPanel" color="opsText" borderColor="opsBorder" borderWidth="1px" borderRadius="md" px="3" outline="none" _focus={{ borderColor: "opsCyan" }}>
             <option value="">Método: todos</option>
             <option value="simulated_payment">Pago digital</option>
             <option value="simulated_stripe">Pago Stripe legado</option>
             <option value="lost_ticket">Ticket extraviado</option>
-          </select>
-          <select defaultValue={status} name="status">
+          </Box>
+          <Box as="select" defaultValue={status} name="status" h="10" bg="opsPanel" color="opsText" borderColor="opsBorder" borderWidth="1px" borderRadius="md" px="3" outline="none" _focus={{ borderColor: "opsCyan" }}>
             <option value="">Estado: todos</option>
             <option value="simulated">Registrado</option>
             <option value="succeeded">Exitoso</option>
             <option value="failed">Fallido</option>
-          </select>
-          <Input defaultValue={String(pageSize)} name="page_size" type="number" w="120px" />
+          </Box>
+          <Input defaultValue={String(pageSize)} name="page_size" type="number" w="120px" bg="opsPanel" borderColor="opsBorder" color="opsText" />
           <input name="page" type="hidden" value="1" />
           <Button colorPalette="cyan" type="submit">
             Filtrar

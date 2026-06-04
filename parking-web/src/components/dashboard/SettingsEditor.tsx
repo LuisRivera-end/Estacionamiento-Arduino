@@ -70,6 +70,7 @@ export function SettingsEditor({ initialSettings }: SettingsEditorProps) {
       borderWidth="1px"
       gap="4"
       p="5"
+      maxW="md"
     >
       <Field.Root required>
         <Field.Label>Capacidad total</Field.Label>

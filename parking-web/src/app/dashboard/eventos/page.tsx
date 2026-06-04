@@ -1,5 +1,5 @@
 import NextLink from "next/link";
-import { Button, Grid, Heading, HStack, Input, Text } from "@chakra-ui/react";
+import { Box, Button, Grid, Heading, HStack, Input, Text } from "@chakra-ui/react";
 import { redirect } from "next/navigation";
 
 import { DataTable } from "@/components/dashboard/DataTable";
@@ -92,19 +92,22 @@ export default async function EventsPage({
             name="ticket_code"
             placeholder="Código ticket"
             w="220px"
+            bg="opsPanel"
+            borderColor="opsBorder"
+            color="opsText"
           />
-          <select defaultValue={eventTypeRaw} name="event_type">
+          <Box as="select" defaultValue={eventTypeRaw} name="event_type" h="10" bg="opsPanel" color="opsText" borderColor="opsBorder" borderWidth="1px" borderRadius="md" px="3" outline="none" _focus={{ borderColor: "opsCyan" }}>
             <option value="">Tipo: todos</option>
             <option value="entry">Entrada</option>
             <option value="exit">Salida</option>
-          </select>
-          <Input defaultValue={deviceId} name="device_id" placeholder="Dispositivo" w="220px" />
-          <select defaultValue={lostTicketRaw} name="lost_ticket">
+          </Box>
+          <Input defaultValue={deviceId} name="device_id" placeholder="Dispositivo" w="220px" bg="opsPanel" borderColor="opsBorder" color="opsText" />
+          <Box as="select" defaultValue={lostTicketRaw} name="lost_ticket" h="10" bg="opsPanel" color="opsText" borderColor="opsBorder" borderWidth="1px" borderRadius="md" px="3" outline="none" _focus={{ borderColor: "opsCyan" }}>
             <option value="">Extraviado: todos</option>
             <option value="true">Extraviado: sí</option>
             <option value="false">Extraviado: no</option>
-          </select>
-          <Input defaultValue={String(pageSize)} name="page_size" type="number" w="120px" />
+          </Box>
+          <Input defaultValue={String(pageSize)} name="page_size" type="number" w="120px" bg="opsPanel" borderColor="opsBorder" color="opsText" />
           <input name="page" type="hidden" value="1" />
           <Button colorPalette="cyan" type="submit">
             Filtrar

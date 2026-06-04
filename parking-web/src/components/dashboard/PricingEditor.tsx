@@ -140,6 +140,7 @@ export function PricingEditor({ initialPricing }: PricingEditorProps) {
       borderWidth="1px"
       gap="4"
       p="5"
+      maxW="xl"
     >
       <Field.Root required>
         <Field.Label>Nombre de regla</Field.Label>
