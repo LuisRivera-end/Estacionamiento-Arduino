@@ -53,10 +53,9 @@ export function TicketCodeInput() {
       <Stack gap="2.5">
         <Heading
           size="xl"
-          fontFamily="var(--font-orbitron)"
+          fontFamily="var(--font-outfit)"
           letterSpacing="0.06em"
           color="opsCyan"
-          textShadow="0 0 10px rgba(6, 182, 212, 0.35)"
         >
           Consulta tu ticket
         </Heading>
@@ -64,7 +63,7 @@ export function TicketCodeInput() {
           Ingresa el código alfanumérico entregado al entrar al estacionamiento.
         </Text>
       </Stack>
-      
+
       <Field.Root required>
         <Field.Label
           color="opsMuted"
@@ -85,7 +84,7 @@ export function TicketCodeInput() {
           h="16"
           fontSize="3xl"
           fontWeight="bold"
-          fontFamily="var(--font-orbitron)"
+          fontFamily="var(--font-outfit)"
           letterSpacing="0.25em"
           textAlign="center"
           _focus={{
@@ -117,7 +116,7 @@ export function TicketCodeInput() {
         type="submit"
         h="16"
         fontSize="md"
-        fontFamily="var(--font-orbitron)"
+        fontFamily="var(--font-outfit)"
         fontWeight="bold"
         letterSpacing="0.08em"
         textTransform="uppercase"
@@ -139,7 +138,7 @@ export function TicketCodeInput() {
           color="opsCyan"
           fontSize="sm"
           fontWeight="bold"
-          _hover={{ color: "opsText", textShadow: "0 0 8px rgba(6, 182, 212, 0.6)" }}
+          _hover={{ color: "opsText" }}
           transition="all 0.25s"
         >
           <NextLink href="/ticket-extraviado">¿Perdiste tu ticket?</NextLink>
@@ -149,7 +148,7 @@ export function TicketCodeInput() {
           color="opsCyan"
           fontSize="sm"
           fontWeight="bold"
-          _hover={{ color: "opsText", textShadow: "0 0 8px rgba(6, 182, 212, 0.6)" }}
+          _hover={{ color: "opsText" }}
           transition="all 0.25s"
         >
           <NextLink href="/ayuda">Ayuda y soporte</NextLink>
