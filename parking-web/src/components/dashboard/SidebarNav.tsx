@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Box, Flex, Link, Stack, Text } from "@chakra-ui/react";
 import NextLink from "next/link";
 import { usePathname } from "next/navigation";
@@ -18,6 +19,21 @@ const navItems = [
 
 export function SidebarNav() {
   const pathname = usePathname();
+  const [parkingName, setParkingName] = useState("PARKING OPS");
+
+  useEffect(() => {
+    const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL;
+    if (!apiBase || apiBase === "fixture") return;
+
+    fetch(`${apiBase}/api/v1/public/parking-name`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.parking_name) {
+          setParkingName(data.parking_name.toUpperCase());
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <Box
@@ -45,7 +61,7 @@ export function SidebarNav() {
           fontSize="lg"
           letterSpacing="0.05em"
         >
-          PARKING OPS
+          {parkingName}
         </Text>
       </Flex>
       <Stack gap="1.5">
@@ -79,4 +95,3 @@ export function SidebarNav() {
     </Box>
   );
 }
-

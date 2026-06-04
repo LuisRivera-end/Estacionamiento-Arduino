@@ -68,9 +68,8 @@ def test_admin_panel_reads_and_writes_database(client) -> None:
             "method": "simulated_payment",
             "discount": {
                 "type": "senior",
-                "senior_age": 67,
-                "senior_document_type": "INAPAM",
-                "senior_document_last4": "1234",
+                "senior_identifier_type": "document",
+                "senior_identifier_value": "INAPAM-1234",
             },
         },
     )
@@ -82,9 +81,7 @@ def test_admin_panel_reads_and_writes_database(client) -> None:
     assert tickets_body["total"] >= 1
     assert any(item["ticket_code"] == ticket_code for item in tickets_body["items"])
 
-    payments_response = client.get(
-        "/api/v1/admin/reports/payments", headers=auth_headers
-    )
+    payments_response = client.get("/api/v1/admin/reports/payments", headers=auth_headers)
     assert payments_response.status_code == 200
     payments_body = payments_response.json()
     assert payments_body["total"] >= 1

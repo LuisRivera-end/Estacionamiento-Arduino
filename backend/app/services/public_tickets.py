@@ -14,12 +14,19 @@ from app.services.pricing import (
     calculate_duration_minutes,
     calculate_payment_breakdown,
 )
+from app.services.ticket_expiration import is_ticket_expired
 
 
 async def get_ticket_response(*, session: AsyncSession, code: str) -> TicketResponse:
     ticket = await TicketRepository(session).get_by_code(normalize_ticket_code(code))
     if ticket is None:
         raise AppError(404, "ticket_not_found", "Ticket no encontrado")
+
+    # Defensive expiration check
+    settings = await ParkingRepository(session).get_settings()
+    if is_ticket_expired(ticket.entry_at, settings.ticket_expiration_minutes):
+        raise AppError(404, "ticket_not_found", "Ticket no encontrado")
+
     return TicketResponse(
         ticket_code=ticket.code,
         status=ticket.status,
@@ -43,8 +50,13 @@ async def calculate_ticket_response(
         raise AppError(404, "ticket_not_found", "Ticket no encontrado")
 
     parking_repository = ParkingRepository(session)
-    pricing_rule = await parking_repository.get_active_pricing_rule()
     settings = await parking_repository.get_settings()
+
+    # Defensive expiration check
+    if is_ticket_expired(ticket.entry_at, settings.ticket_expiration_minutes):
+        raise AppError(404, "ticket_not_found", "Ticket no encontrado")
+
+    pricing_rule = await parking_repository.get_active_pricing_rule()
 
     duration_minutes = calculate_duration_minutes(ticket.entry_at, datetime.now(UTC))
     pricing = PricingSnapshot(
@@ -78,4 +90,3 @@ async def calculate_ticket_response(
         currency=settings.currency,
         lost_ticket_discount_applied=breakdown.lost_ticket_discount_applied,
     )
-

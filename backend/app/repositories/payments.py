@@ -68,11 +68,15 @@ class PaymentRepository:
     async def count_by_discount_type(
         self, *, start_at: datetime, end_at: datetime, discount_type: DiscountType
     ) -> int:
-        statement = select(func.count()).select_from(Payment).where(
-            Payment.created_at >= start_at,
-            Payment.created_at < end_at,
-            Payment.discount_type == discount_type,
-            Payment.discount_amount > 0,
+        statement = (
+            select(func.count())
+            .select_from(Payment)
+            .where(
+                Payment.created_at >= start_at,
+                Payment.created_at < end_at,
+                Payment.discount_type == discount_type,
+                Payment.discount_amount > 0,
+            )
         )
         return int((await self.session.execute(statement)).scalar_one())
 
@@ -111,8 +115,8 @@ class PaymentRepository:
             .offset(offset)
             .limit(limit)
         )
-        count_statement = select(func.count()).select_from(Payment).join(
-            Ticket, Ticket.id == Payment.ticket_id
+        count_statement = (
+            select(func.count()).select_from(Payment).join(Ticket, Ticket.id == Payment.ticket_id)
         )
 
         if filters:

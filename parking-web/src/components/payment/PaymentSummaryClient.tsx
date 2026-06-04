@@ -8,6 +8,7 @@ import { calculateTicket } from "@/lib/api/tickets";
 import type {
   DiscountRequest,
   DiscountType,
+  SeniorIdentifierType,
   TicketCalculation,
   TicketResponse,
 } from "@/lib/api/types";
@@ -16,6 +17,12 @@ type PaymentSummaryClientProps = {
   ticketCode: string;
   ticket: TicketResponse;
   initialCalculation: TicketCalculation;
+};
+
+const seniorIdentifierLabels: Record<SeniorIdentifierType, string> = {
+  code: "Código INAPAM",
+  license_plate: "Placa / Matrícula",
+  document: "Documento de identidad",
 };
 
 export function PaymentSummaryClient({
@@ -27,9 +34,8 @@ export function PaymentSummaryClient({
     initialCalculation.discount_type,
   );
   const [studentEmail, setStudentEmail] = useState("");
-  const [seniorAge, setSeniorAge] = useState("");
-  const [seniorDocumentType, setSeniorDocumentType] = useState("INAPAM");
-  const [seniorDocumentLast4, setSeniorDocumentLast4] = useState("");
+  const [seniorIdentifierType, setSeniorIdentifierType] = useState<SeniorIdentifierType>("code");
+  const [seniorIdentifierValue, setSeniorIdentifierValue] = useState("");
   const [calculation, setCalculation] = useState<TicketCalculation>(initialCalculation);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -46,21 +52,17 @@ export function PaymentSummaryClient({
       params.set("student_email", studentEmail.trim());
     }
     if (discountType === "senior") {
-      if (seniorAge.trim()) params.set("senior_age", seniorAge.trim());
-      if (seniorDocumentType.trim()) {
-        params.set("senior_document_type", seniorDocumentType.trim());
-      }
-      if (seniorDocumentLast4.trim()) {
-        params.set("senior_document_last4", seniorDocumentLast4.trim());
+      params.set("senior_identifier_type", seniorIdentifierType);
+      if (seniorIdentifierValue.trim()) {
+        params.set("senior_identifier_value", seniorIdentifierValue.trim());
       }
     }
 
     return `/pagar/${ticketCode}/checkout?${params.toString()}`;
   }, [
     discountType,
-    seniorAge,
-    seniorDocumentLast4,
-    seniorDocumentType,
+    seniorIdentifierType,
+    seniorIdentifierValue,
     studentEmail,
     ticketCode,
   ]);
@@ -76,9 +78,8 @@ export function PaymentSummaryClient({
     if (discountType === "senior") {
       return {
         type: "senior",
-        senior_age: Number.parseInt(seniorAge, 10),
-        senior_document_type: seniorDocumentType.trim(),
-        senior_document_last4: seniorDocumentLast4.trim(),
+        senior_identifier_type: seniorIdentifierType,
+        senior_identifier_value: seniorIdentifierValue.trim(),
       };
     }
 
@@ -159,43 +160,30 @@ export function PaymentSummaryClient({
           <Stack gap="4">
             <Field.Root required>
               <Field.Label color="opsMuted" fontSize="xs" fontWeight="bold" textTransform="uppercase">
-                Edad
+                Tipo de identificación
               </Field.Label>
-              <Input
-                type="number"
-                bg="opsPanelMuted"
-                borderColor="opsBorder"
-                _focus={{ borderColor: "opsCyan" }}
-                placeholder="60 o más"
-                value={seniorAge}
-                onChange={(event) => setSeniorAge(event.target.value)}
-              />
+              <select
+                value={seniorIdentifierType}
+                onChange={(event) =>
+                  setSeniorIdentifierType(event.target.value as SeniorIdentifierType)
+                }
+              >
+                <option value="code">Código INAPAM</option>
+                <option value="license_plate">Placa / Matrícula</option>
+                <option value="document">Documento de identidad</option>
+              </select>
             </Field.Root>
             <Field.Root required>
               <Field.Label color="opsMuted" fontSize="xs" fontWeight="bold" textTransform="uppercase">
-                Tipo de documento
+                {seniorIdentifierLabels[seniorIdentifierType]}
               </Field.Label>
               <Input
                 bg="opsPanelMuted"
                 borderColor="opsBorder"
                 _focus={{ borderColor: "opsCyan" }}
-                placeholder="INAPAM"
-                value={seniorDocumentType}
-                onChange={(event) => setSeniorDocumentType(event.target.value)}
-              />
-            </Field.Root>
-            <Field.Root required>
-              <Field.Label color="opsMuted" fontSize="xs" fontWeight="bold" textTransform="uppercase">
-                Últimos 4 caracteres del documento
-              </Field.Label>
-              <Input
-                maxLength={4}
-                bg="opsPanelMuted"
-                borderColor="opsBorder"
-                _focus={{ borderColor: "opsCyan" }}
-                placeholder="123A"
-                value={seniorDocumentLast4}
-                onChange={(event) => setSeniorDocumentLast4(event.target.value)}
+                placeholder="Ingresa tu identificador"
+                value={seniorIdentifierValue}
+                onChange={(event) => setSeniorIdentifierValue(event.target.value)}
               />
             </Field.Root>
           </Stack>

@@ -1,7 +1,7 @@
 import { PaymentShell } from "@/components/payment/PaymentShell";
 import { SimulatedCheckoutCard } from "@/components/payment/SimulatedCheckoutCard";
 import { normalizeTicketCode } from "@/lib/formatters";
-import type { DiscountRequest, DiscountType } from "@/lib/api/types";
+import type { DiscountRequest, DiscountType, SeniorIdentifierType } from "@/lib/api/types";
 
 export default async function CheckoutPage({
   params,
@@ -31,9 +31,12 @@ export default async function CheckoutPage({
       : discountType === "senior"
         ? {
             type: "senior",
-            senior_age: Number.parseInt(String(resolvedSearchParams.senior_age ?? ""), 10),
-            senior_document_type: String(resolvedSearchParams.senior_document_type ?? ""),
-            senior_document_last4: String(resolvedSearchParams.senior_document_last4 ?? ""),
+            senior_identifier_type: String(
+              resolvedSearchParams.senior_identifier_type ?? "code",
+            ) as SeniorIdentifierType,
+            senior_identifier_value: String(
+              resolvedSearchParams.senior_identifier_value ?? "",
+            ),
           }
         : { type: "none" };
 

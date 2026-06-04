@@ -110,15 +110,9 @@ def resolve_discount(
         return DiscountType.NONE, 0, False, None
 
     if discount.type == DiscountType.SENIOR:
-        if discount.senior_age is None or discount.senior_age < 65:
-            raise AppError(
-                422,
-                "invalid_discount",
-                "Datos invalidos para descuento de adulto mayor",
-            )
-        document_type = (discount.senior_document_type or "").strip().upper()
-        document_last4 = (discount.senior_document_last4 or "").strip().upper()
-        if not document_type or len(document_last4) < 4:
+        identifier_type = (discount.senior_identifier_type or "").strip().lower()
+        identifier_value = (discount.senior_identifier_value or "").strip()
+        if identifier_type not in {"code", "license_plate", "document"} or not identifier_value:
             raise AppError(
                 422,
                 "invalid_discount",
@@ -126,8 +120,8 @@ def resolve_discount(
             )
         discount_percent = clamp_percent(pricing.senior_discount_percent)
         discount_evidence = {
-            "document_type": document_type,
-            "document_last4": document_last4[-4:],
+            "identifier_type": identifier_type,
+            "identifier_value": identifier_value,
         }
         if lost_ticket and not pricing.senior_discount_applies_to_lost_ticket:
             if raise_on_lost_ticket_discount_blocked:

@@ -17,9 +17,7 @@ class ParkingRepository:
         return (await self.session.execute(statement)).scalar_one()
 
     async def get_state(self) -> ParkingState:
-        statement: Select[tuple[ParkingState]] = select(ParkingState).where(
-            ParkingState.id == 1
-        )
+        statement: Select[tuple[ParkingState]] = select(ParkingState).where(ParkingState.id == 1)
         return (await self.session.execute(statement)).scalar_one()
 
     async def lock_state(self) -> ParkingState:
@@ -40,11 +38,15 @@ class ParkingRepository:
         capacity_total: int,
         timezone: str,
         currency: str,
+        parking_name: str,
+        ticket_expiration_minutes: int,
     ) -> ParkingSettings:
         settings = await self.get_settings()
         settings.capacity_total = capacity_total
         settings.timezone = timezone
         settings.currency = currency
+        settings.parking_name = parking_name
+        settings.ticket_expiration_minutes = ticket_expiration_minutes
         await self.session.flush()
         await self.session.refresh(settings)
         return settings
@@ -72,9 +74,7 @@ class ParkingRepository:
         pricing_rule.senior_discount_percent = senior_discount_percent
         pricing_rule.student_discount_percent = student_discount_percent
         pricing_rule.student_allowed_domains = student_allowed_domains
-        pricing_rule.senior_discount_applies_to_lost_ticket = (
-            senior_discount_applies_to_lost_ticket
-        )
+        pricing_rule.senior_discount_applies_to_lost_ticket = senior_discount_applies_to_lost_ticket
         pricing_rule.student_discount_applies_to_lost_ticket = (
             student_discount_applies_to_lost_ticket
         )

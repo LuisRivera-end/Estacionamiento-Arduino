@@ -24,6 +24,8 @@ async def get_settings_route(
         capacity_total=settings.capacity_total,
         timezone=settings.timezone,
         currency=settings.currency,
+        parking_name=settings.parking_name,
+        ticket_expiration_minutes=settings.ticket_expiration_minutes,
     )
 
 
@@ -37,12 +39,16 @@ async def update_settings_route(
         capacity_total=payload.capacity_total,
         timezone=payload.timezone,
         currency=payload.currency,
+        parking_name=payload.parking_name,
+        ticket_expiration_minutes=payload.ticket_expiration_minutes,
     )
     await session.commit()
     return ParkingSettingsResponse(
         capacity_total=settings.capacity_total,
         timezone=settings.timezone,
         currency=settings.currency,
+        parking_name=settings.parking_name,
+        ticket_expiration_minutes=settings.ticket_expiration_minutes,
     )
 
 
