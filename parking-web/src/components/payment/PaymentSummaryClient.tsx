@@ -119,12 +119,11 @@ export function PaymentSummaryClient({
       >
         <Text
           color="opsCyan"
-          fontFamily="var(--font-orbitron)"
+          fontFamily="var(--font-outfit)"
           fontWeight="900"
           fontSize="sm"
           letterSpacing="0.1em"
           textTransform="uppercase"
-          textShadow="0 0 10px rgba(6, 182, 212, 0.35)"
         >
           Aplicar Descuento
         </Text>
@@ -198,7 +197,7 @@ export function PaymentSummaryClient({
           w="full"
           mt="2"
           h="16"
-          fontFamily="var(--font-orbitron)"
+          fontFamily="var(--font-outfit)"
           fontWeight="bold"
           letterSpacing="0.08em"
           textTransform="uppercase"

@@ -35,10 +35,9 @@ export function PaymentSummaryCard({
       <Stack gap="7">
         <Heading
           size="xl"
-          fontFamily="var(--font-orbitron)"
+          fontFamily="var(--font-outfit)"
           letterSpacing="0.06em"
           color="opsCyan"
-          textShadow="0 0 10px rgba(6, 182, 212, 0.35)"
         >
           Resumen de Ticket
         </Heading>
@@ -46,7 +45,7 @@ export function PaymentSummaryCard({
         <Stack gap="3.5" borderBottom="1px solid" borderColor="opsBorder" pb="4">
           <Flex justify="space-between">
             <Text color="opsMuted" fontSize="sm">Código:</Text>
-            <Text fontFamily="var(--font-orbitron)" fontWeight="bold" color="opsText" fontSize="sm">
+            <Text fontFamily="var(--font-outfit)" fontWeight="bold" color="opsText" fontSize="sm">
               {ticket.ticket_code}
             </Text>
           </Flex>
@@ -93,10 +92,9 @@ export function PaymentSummaryCard({
           </Text>
           <Text
             color="opsYellow"
-            fontFamily="var(--font-orbitron)"
+            fontFamily="var(--font-outfit)"
             fontSize="3xl"
             fontWeight="900"
-            textShadow="0 0 12px rgba(245, 158, 11, 0.4)"
           >
             {formatCurrency(calculation.amount, calculation.currency)}
           </Text>
@@ -108,7 +106,7 @@ export function PaymentSummaryCard({
           w="full"
           h="16"
           mt="2"
-          fontFamily="var(--font-orbitron)"
+          fontFamily="var(--font-outfit)"
           fontWeight="bold"
           letterSpacing="0.08em"
           textTransform="uppercase"

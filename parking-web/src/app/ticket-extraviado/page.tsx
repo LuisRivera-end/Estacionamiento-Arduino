@@ -15,10 +15,9 @@ export default function LostTicketPage() {
       >
         <Heading
           size="lg"
-          fontFamily="var(--font-orbitron)"
+          fontFamily="var(--font-outfit)"
           letterSpacing="0.06em"
           color="opsCyan"
-          textShadow="0 0 8px rgba(6, 182, 212, 0.35)"
         >
           Ticket Extraviado
         </Heading>
@@ -36,14 +35,13 @@ export default function LostTicketPage() {
           h="14"
           mt="2"
           borderRadius="xl"
-          fontFamily="var(--font-orbitron)"
+          fontFamily="var(--font-outfit)"
           fontWeight="bold"
           letterSpacing="0.08em"
           textTransform="uppercase"
           _hover={{
             bg: "rgba(6, 182, 212, 0.12)",
             borderColor: "opsCyan",
-            boxShadow: "0 0 10px rgba(6, 182, 212, 0.3)",
           }}
           transition="all 0.25s"
         >

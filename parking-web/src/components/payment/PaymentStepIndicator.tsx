@@ -15,7 +15,7 @@ export function PaymentStepIndicator({ current }: { current: number }) {
         bg="opsBorder"
         zIndex="1"
       />
-      
+
       {/* Glowing active progress line */}
       <Box
         position="absolute"
@@ -40,7 +40,7 @@ export function PaymentStepIndicator({ current }: { current: number }) {
 
         let nodeBorderColor = "opsBorder";
         let textColor = "opsMuted";
-        
+
         if (isCurrent) {
           nodeBorderColor = "opsCyan";
           textColor = "opsCyan";
@@ -71,7 +71,7 @@ export function PaymentStepIndicator({ current }: { current: number }) {
               transition="all 0.3s ease"
             >
               <Text
-                fontFamily="var(--font-orbitron)"
+                fontFamily="var(--font-outfit)"
                 fontWeight="900"
                 fontSize={{ base: "sm", md: "md" }}
                 color={isCurrent ? "white" : (isCompleted ? "opsCyan" : "opsMuted")}
