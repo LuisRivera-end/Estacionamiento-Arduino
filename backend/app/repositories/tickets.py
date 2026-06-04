@@ -40,9 +40,7 @@ class TicketRepository:
     async def summary_count(self, field_name: str, start_at: datetime, end_at: datetime) -> int:
         field = getattr(Ticket, field_name)
         statement = (
-            select(func.count())
-            .select_from(Ticket)
-            .where(and_(field >= start_at, field < end_at))
+            select(func.count()).select_from(Ticket).where(and_(field >= start_at, field < end_at))
         )
         return int((await self.session.execute(statement)).scalar_one())
 

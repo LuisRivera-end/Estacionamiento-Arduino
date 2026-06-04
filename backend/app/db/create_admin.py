@@ -47,9 +47,7 @@ async def create_admin(email: str, password: str, name: str | None) -> None:
                 print("Se intentara proceder con la creacion de perfil local.")
         except httpx.HTTPError as exc:
             print(f"Error de conexion con Supabase Auth: {exc}")
-            print(
-                "Se intentara proceder con la creacion de perfil local usando un UUID local."
-            )
+            print("Se intentara proceder con la creacion de perfil local usando un UUID local.")
     else:
         print("Supabase no esta completamente configurado en el archivo .env.")
         print("Procediendo con la creacion de perfil local (UUID generado al azar).")
@@ -77,9 +75,7 @@ async def create_admin(email: str, password: str, name: str | None) -> None:
                     status=StaffStatus.ACTIVE,
                 )
                 await session.commit()
-                print(
-                    f"Perfil de administrador {email} creado exitosamente en la base de datos."
-                )
+                print(f"Perfil de administrador {email} creado exitosamente en la base de datos.")
     except Exception as exc:
         print(f"Error al escribir en la base de datos local: {exc}")
         print("Asegurate de que la base de datos este activa y la URL en .env sea correcta.")

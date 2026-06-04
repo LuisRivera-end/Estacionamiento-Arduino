@@ -56,4 +56,3 @@ def test_public_ticket_payment_flow_and_summary(client) -> None:
     )
     assert summary_response.status_code == 200
     assert summary_response.json()["paid_tickets"] >= 1
-

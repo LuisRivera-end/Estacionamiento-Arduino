@@ -186,7 +186,6 @@ def test_senior_discount_with_identifier_type_document() -> None:
 
 def test_senior_discount_rejects_missing_identifier_value() -> None:
     import pytest
-
     from pydantic import ValidationError
 
     with pytest.raises(ValidationError):

@@ -57,9 +57,7 @@ class ArchivedTicketRepository:
         await self.session.flush()
         return archived
 
-    async def summary_count(
-        self, field_name: str, start_at: datetime, end_at: datetime
-    ) -> int:
+    async def summary_count(self, field_name: str, start_at: datetime, end_at: datetime) -> int:
         field = getattr(ArchivedTicket, field_name)
         statement = (
             select(func.count())

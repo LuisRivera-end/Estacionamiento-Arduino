@@ -74,9 +74,7 @@ def upgrade() -> None:
 
     # --- Change audit_logs.ticket_id FK to ON DELETE SET NULL ---
     # Drop the existing FK constraint (name from initial migration)
-    op.drop_constraint(
-        "audit_logs_ticket_id_fkey", "audit_logs", type_="foreignkey"
-    )
+    op.drop_constraint("audit_logs_ticket_id_fkey", "audit_logs", type_="foreignkey")
     op.create_foreign_key(
         "audit_logs_ticket_id_fkey",
         "audit_logs",
@@ -86,12 +84,91 @@ def upgrade() -> None:
         ondelete="SET NULL",
     )
 
+    # --- Archive existing expired active tickets retroactively ---
+    bind = op.get_bind()
+    if bind.dialect.name == "postgresql":
+        op.execute(
+            """
+            UPDATE parking_state
+            SET 
+                occupied_spaces = GREATEST(occupied_spaces - (
+                    SELECT COUNT(*) 
+                    FROM tickets 
+                    WHERE status = 'active' AND entry_at <= now() - interval '1440 minutes'
+                ), 0),
+                active_tickets_count = GREATEST(active_tickets_count - (
+                    SELECT COUNT(*) 
+                    FROM tickets 
+                    WHERE status = 'active' AND entry_at <= now() - interval '1440 minutes'
+                ), 0)
+            WHERE id = 1;
+            """
+        )
+        op.execute(
+            """
+            INSERT INTO archived_tickets (
+                id, code, status, payment_status, entry_at, paid_at, exit_at,
+                duration_minutes, calculated_amount, lost_ticket, entry_device_id, exit_device_id,
+                created_at, updated_at, archived_at, expired_at, archive_reason
+            )
+            SELECT 
+                id, code, status, payment_status, entry_at, paid_at, exit_at,
+                duration_minutes, calculated_amount, lost_ticket, entry_device_id, exit_device_id,
+                created_at, updated_at, now(), now(), 'expired'
+            FROM tickets
+            WHERE status = 'active' AND entry_at <= now() - interval '1440 minutes';
+            """
+        )
+        op.execute(
+            """
+            DELETE FROM tickets
+            WHERE status = 'active' AND entry_at <= now() - interval '1440 minutes';
+            """
+        )
+    elif bind.dialect.name == "sqlite":
+        op.execute(
+            """
+            UPDATE parking_state
+            SET 
+                occupied_spaces = max(occupied_spaces - (
+                    SELECT COUNT(*) 
+                    FROM tickets 
+                    WHERE status = 'active' AND entry_at <= datetime('now', '-1440 minutes')
+                ), 0),
+                active_tickets_count = max(active_tickets_count - (
+                    SELECT COUNT(*) 
+                    FROM tickets 
+                    WHERE status = 'active' AND entry_at <= datetime('now', '-1440 minutes')
+                ), 0)
+            WHERE id = 1;
+            """
+        )
+        op.execute(
+            """
+            INSERT INTO archived_tickets (
+                id, code, status, payment_status, entry_at, paid_at, exit_at,
+                duration_minutes, calculated_amount, lost_ticket, entry_device_id, exit_device_id,
+                created_at, updated_at, archived_at, expired_at, archive_reason
+            )
+            SELECT 
+                id, code, status, payment_status, entry_at, paid_at, exit_at,
+                duration_minutes, calculated_amount, lost_ticket, entry_device_id, exit_device_id,
+                created_at, updated_at, datetime('now'), datetime('now'), 'expired'
+            FROM tickets
+            WHERE status = 'active' AND entry_at <= datetime('now', '-1440 minutes');
+            """
+        )
+        op.execute(
+            """
+            DELETE FROM tickets
+            WHERE status = 'active' AND entry_at <= datetime('now', '-1440 minutes');
+            """
+        )
+
 
 def downgrade() -> None:
     # Revert FK to restrictive
-    op.drop_constraint(
-        "audit_logs_ticket_id_fkey", "audit_logs", type_="foreignkey"
-    )
+    op.drop_constraint("audit_logs_ticket_id_fkey", "audit_logs", type_="foreignkey")
     op.create_foreign_key(
         "audit_logs_ticket_id_fkey",
         "audit_logs",
