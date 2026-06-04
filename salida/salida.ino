@@ -78,8 +78,9 @@ const int   LONGITUD_TICKET        = 6;
 const unsigned long DELAY_SERVO_MS = 4000;
 const int   BUFFER_SIZE            = 224;
 
-String codigoIngresado  = "";
-String pantallaActual   = "";
+char codigoIngresado[LONGITUD_TICKET + 1] = "";
+int  codigoLen          = 0;
+char pantallaActual[10] = "";
 bool   wifiConectado    = false;
 char   ultimaRespuestaAT[80] = "";
 char   respuestaBuffer[BUFFER_SIZE];
@@ -138,20 +139,20 @@ void loop() {
     lcd.setCursor(0, 0); lcd.print(F("WiFi Desconect."));
     lcd.setCursor(0, 1); lcd.print(F("Reconectando..."));
     wifiConectado = inicializarWiFi();
-    if (wifiConectado) { lcd.clear(); pantallaActual = ""; }
+    if (wifiConectado) { lcd.clear(); pantallaActual[0] = '\0'; }
     delay(5000);
     return;
   }
 
   // Sin vehículo → no permitir teclado
   if (digitalRead(IR_PIN) == HIGH) {
-    codigoIngresado = "";
+    codigoLen = 0; codigoIngresado[0] = '\0';
     mostrarSalida();
     return;
   }
 
   // Vehículo detectado → mostrar prompt
-  if (pantallaActual != "INGRESE") mostrarIngreseTicket();
+  if (strcmp(pantallaActual, "INGRESE") != 0) mostrarIngreseTicket();
 
   char tecla = teclado.getKey();
   if (!tecla) return;
@@ -159,7 +160,7 @@ void loop() {
   tone(BUZZER_PIN, 2000, 50);
 
   if (tecla == '*') {
-    if (codigoIngresado.length() == LONGITUD_TICKET) {
+    if (codigoLen == LONGITUD_TICKET) {
       verificarTicket();
     } else {
       lcd.setCursor(0, 1); lcd.print(F("Faltan digitos! "));
@@ -167,12 +168,13 @@ void loop() {
       actualizarPantalla();
     }
   } else if (tecla == '#') {
-    if (codigoIngresado.length() > 0) {
-      codigoIngresado.remove(codigoIngresado.length() - 1);
+    if (codigoLen > 0) {
+      codigoIngresado[--codigoLen] = '\0';
       actualizarPantalla();
     }
-  } else if (codigoIngresado.length() < LONGITUD_TICKET) {
-    codigoIngresado += tecla;
+  } else if (codigoLen < LONGITUD_TICKET) {
+    codigoIngresado[codigoLen++] = tecla;
+    codigoIngresado[codigoLen] = '\0';
     actualizarPantalla();
   }
 }
@@ -181,11 +183,11 @@ void loop() {
 // INTERFAZ LCD
 // =============================================================================
 void mostrarSalida() {
-  if (pantallaActual != "SALIDA") {
+  if (strcmp(pantallaActual, "SALIDA") != 0) {
     lcd.clear();
     lcd.setCursor(0, 0); lcd.print(F("SALIDA"));
     lcd.setCursor(0, 1); lcd.print(F("Sin vehiculo"));
-    pantallaActual = "SALIDA";
+    strcpy(pantallaActual, "SALIDA");
   }
 }
 
@@ -193,7 +195,7 @@ void mostrarIngreseTicket() {
   lcd.clear();
   lcd.setCursor(0, 0); lcd.print(F("Ingrese Ticket:"));
   lcd.setCursor(0, 1); lcd.print(codigoIngresado);
-  pantallaActual = "INGRESE";
+  strcpy(pantallaActual, "INGRESE");
 }
 
 void actualizarPantalla() {
@@ -226,7 +228,7 @@ void mostrarPasoLCD(const char* l1, const char* l2) {
 // VERIFICAR TICKET
 // =============================================================================
 void verificarTicket() {
-  if (digitalRead(IR_PIN) == HIGH) { codigoIngresado = ""; mostrarSalida(); return; }
+  if (digitalRead(IR_PIN) == HIGH) { codigoLen = 0; codigoIngresado[0] = '\0'; mostrarSalida(); return; }
 
   lcd.clear();
   lcd.setCursor(0, 0); lcd.print(F("Verificando..."));
@@ -239,12 +241,12 @@ void verificarTicket() {
   // Buffer fijo para el JSON body — evita fragmentación de heap
   char jsonBuf[64];
   snprintf(jsonBuf, sizeof(jsonBuf), "{\"ticket_code\":\"%s\",\"device_id\":\"%s\"}",
-           codigoIngresado.c_str(), DEVICE_ID);
-  String jsonBody = jsonBuf;
+           codigoIngresado, DEVICE_ID);
 
   Serial.print(F("[API] Enviando ticket: ")); Serial.println(codigoIngresado);
+  Serial.print(F("[API] JSON body: ")); Serial.println(jsonBuf);
 
-  int httpCode = enviarHTTPPost(API_PATH, jsonBody);
+  int httpCode = enviarHTTPPost(API_PATH, jsonBuf);
 
   char autorizado[8]  = "";
   char mensaje[17]    = "";
@@ -328,8 +330,8 @@ void verificarTicket() {
     digitalWrite(LED_RED, LOW);
   }
 
-  codigoIngresado = "";
-  pantallaActual  = "";
+  codigoLen = 0; codigoIngresado[0] = '\0';
+  pantallaActual[0] = '\0';
 }
 
 // =============================================================================
@@ -517,7 +519,7 @@ bool abrirConexionAT(const char* cmd, unsigned long timeout) {
 // =============================================================================
 // HTTP POST
 // =============================================================================
-int enviarHTTPPost(const char* path, String& jsonBody) {
+int enviarHTTPPost(const char* path, const char* jsonBody) {
   memset(respuestaBuffer, 0, BUFFER_SIZE);
 
   mostrarPasoLCD(F("API: Conectando"), SERVER_HOST);
@@ -554,8 +556,9 @@ int enviarHTTPPost(const char* path, String& jsonBody) {
   }
 
   // Calcular longitud total del request HTTP
+  int bodyLen = strlen(jsonBody);
   char contentLenStr[8];
-  itoa(jsonBody.length(), contentLenStr, 10);
+  itoa(bodyLen, contentLenStr, 10);
   int httpLength =
     (sizeof("POST ") - 1)              + strlen(path)          +
     (sizeof(" HTTP/1.1\r\n") - 1)      +
@@ -565,7 +568,7 @@ int enviarHTTPPost(const char* path, String& jsonBody) {
     (sizeof("X-Device-Token: ") - 1)   + strlen(DEVICE_TOKEN)  + 2 +
     (sizeof("Content-Length: ") - 1)   + strlen(contentLenStr) + 2 +
     (sizeof("Connection: close\r\n\r\n") - 1)                  +
-    jsonBody.length();
+    bodyLen;
 
   mostrarPasoLCD(F("API: Preparando"), F("Envio..."));
   snprintf(cmdBuf, sizeof(cmdBuf), "AT+CIPSEND=0,%d", httpLength);
@@ -591,8 +594,18 @@ int enviarHTTPPost(const char* path, String& jsonBody) {
   delay(20);
   espSerial.print(F("\r\nContent-Length: ")); espSerial.print(contentLenStr);
   espSerial.print(F("\r\nConnection: close\r\n\r\n"));
-  delay(50);
-  espSerial.print(jsonBody);
+
+  // Esperar a que el ESP8266 procese todos los headers antes de enviar el body.
+  // SoftwareSerial no tiene flow control — sin esta pausa, los bytes del body
+  // se corrompen (llegan como 0x00) porque el buffer UART del ESP se desborda.
+  delay(200);
+
+  // Enviar body byte a byte con pausas para evitar corrupción SoftwareSerial
+  for (int i = 0; i < bodyLen; i++) {
+    espSerial.write(jsonBody[i]);
+    if ((i & 0x07) == 0x07) delay(15);   // pausa cada 8 bytes
+  }
+  delay(50);  // esperar a que el ESP procese el último fragmento
 
 
   mostrarPasoLCD(F("API: Esperando"), F("Respuesta..."));
@@ -603,7 +616,7 @@ int enviarHTTPPost(const char* path, String& jsonBody) {
   int  httpCode = -1;
   bool cerrado  = false;
 
-  while (millis() - inicio < 15000 && !cerrado) {
+  while (millis() - inicio < 30000 && !cerrado) {
     while (espSerial.available()) {
       char c = (char)espSerial.read();
       if (idx < BUFFER_SIZE - 1) {
@@ -690,22 +703,20 @@ bool extraerValorJSON(const char* clave, char* dest, size_t destLen) {
 }
 
 void mostrarRespuestaAT() {
-  String d = ultimaRespuestaAT;
-  d.replace("\r", " ");
-  d.replace("\n", " ");
-  d.trim();
-  if (d.length() == 0)                 d = "timeout";
-  else if (d.indexOf("STATUS:") >= 0)  d = "STATUS:" + d.substring(d.indexOf("STATUS:") + 7, d.indexOf("STATUS:") + 8);
-  else if (d.indexOf("busy")    >= 0)  d = "busy";
-  else if (d.indexOf("ERROR")   >= 0)  d = "ERROR";
-  else if (d.indexOf("FAIL")    >= 0)  d = "FAIL";
-  else if (d.indexOf("CLOSED")  >= 0)  d = "CLOSED";
-  else if (d.indexOf("AT+")     >= 0)  d = "solo echo";
-  if (d.length() > 16) d = d.substring(0, 16);
+  // Determinar etiqueta sin usar String dinámico
+  const char* etiqueta = "";
+  if (ultimaRespuestaAT[0] == '\0')             etiqueta = "timeout";
+  else if (strstr(ultimaRespuestaAT, "STATUS:")) etiqueta = "STATUS";
+  else if (strstr(ultimaRespuestaAT, "busy"))    etiqueta = "busy";
+  else if (strstr(ultimaRespuestaAT, "ERROR"))   etiqueta = "ERROR";
+  else if (strstr(ultimaRespuestaAT, "FAIL"))    etiqueta = "FAIL";
+  else if (strstr(ultimaRespuestaAT, "CLOSED"))  etiqueta = "CLOSED";
+  else if (strstr(ultimaRespuestaAT, "AT+"))     etiqueta = "solo echo";
+  else                                           etiqueta = ultimaRespuestaAT;
 
   lcd.clear();
   lcd.setCursor(0, 0); lcd.print(F("AT resp:"));
-  lcd.setCursor(0, 1); lcd.print(d);
-  Serial.print(F("[AT] Resp: ")); Serial.println(d);
+  lcd.setCursor(0, 1); lcd.print(etiqueta);
+  Serial.print(F("[AT] Resp: ")); Serial.println(etiqueta);
   delay(3000);
 }
