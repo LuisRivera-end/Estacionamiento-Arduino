@@ -1,5 +1,8 @@
 import NextLink from "next/link";
-import { Button, Grid, Heading, HStack, Input, Text } from "@chakra-ui/react";
+import { Box, Button, Grid, Heading, HStack, Input, Text } from "@chakra-ui/react";
+
+const SelectBox = Box as any;
+
 import { redirect } from "next/navigation";
 
 import { DataTable } from "@/components/dashboard/DataTable";
@@ -85,25 +88,25 @@ export default async function TicketsPage({
 
       <form method="get">
         <HStack align="end" flexWrap="wrap" gap="3">
-          <Input defaultValue={code} name="code" placeholder="Código ticket" w="220px" />
-          <select defaultValue={status} name="status">
+          <Input defaultValue={code} name="code" placeholder="Código ticket" w="220px" bg="opsPanel" borderColor="opsBorder" color="opsText" />
+          <SelectBox as="select" defaultValue={status} name="status" h="10" bg="opsPanel" color="opsText" borderColor="opsBorder" borderWidth="1px" borderRadius="md" px="3" outline="none" _focus={{ borderColor: "opsCyan" }}>
             <option value="">Estado: todos</option>
             <option value="active">Activo</option>
             <option value="exited">Salido</option>
             <option value="cancelled">Cancelado</option>
-          </select>
-          <select defaultValue={paymentStatus} name="payment_status">
+          </SelectBox>
+          <SelectBox as="select" defaultValue={paymentStatus} name="payment_status" h="10" bg="opsPanel" color="opsText" borderColor="opsBorder" borderWidth="1px" borderRadius="md" px="3" outline="none" _focus={{ borderColor: "opsCyan" }}>
             <option value="">Pago: todos</option>
             <option value="unpaid">No pagado</option>
             <option value="paid">Pagado</option>
             <option value="refunded">Reembolsado</option>
-          </select>
-          <select defaultValue={lostTicketRaw} name="lost_ticket">
+          </SelectBox>
+          <SelectBox as="select" defaultValue={lostTicketRaw} name="lost_ticket" h="10" bg="opsPanel" color="opsText" borderColor="opsBorder" borderWidth="1px" borderRadius="md" px="3" outline="none" _focus={{ borderColor: "opsCyan" }}>
             <option value="">Extraviado: todos</option>
             <option value="true">Extraviado: sí</option>
             <option value="false">Extraviado: no</option>
-          </select>
-          <Input defaultValue={String(pageSize)} name="page_size" type="number" w="120px" />
+          </SelectBox>
+          <Input defaultValue={String(pageSize)} name="page_size" type="number" w="120px" bg="opsPanel" borderColor="opsBorder" color="opsText" />
           <input name="page" type="hidden" value="1" />
           <Button colorPalette="cyan" type="submit">
             Filtrar

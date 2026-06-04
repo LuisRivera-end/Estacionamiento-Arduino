@@ -25,10 +25,9 @@ export function SimulatedCheckoutCard({
     >
       <Heading
         size="xl"
-        fontFamily="var(--font-orbitron)"
+        fontFamily="var(--font-outfit)"
         letterSpacing="0.06em"
         color="opsCyan"
-        textShadow="0 0 10px rgba(6, 182, 212, 0.35)"
       >
         Pasarela de Pago
       </Heading>
@@ -43,7 +42,7 @@ export function SimulatedCheckoutCard({
         <Flex align="center" gap="2.5" mb="3.5">
           <Box className="pulse-glow" w="2" h="2" bg="opsCyan" borderRadius="full" />
           <Text
-            fontFamily="var(--font-orbitron)"
+            fontFamily="var(--font-outfit)"
             fontSize="xxs"
             fontWeight="black"
             letterSpacing="0.1em"
@@ -55,7 +54,7 @@ export function SimulatedCheckoutCard({
         </Flex>
         <Text color="opsMuted" fontSize="sm" lineHeight="1.6">
           Pasarela de pago digital activa. El pago para el boleto{" "}
-          <Text as="span" fontFamily="var(--font-orbitron)" fontWeight="bold" color="opsText">
+          <Text as="span" fontFamily="var(--font-outfit)" fontWeight="bold" color="opsText">
             {ticketCode}
           </Text>{" "}
           se registrará de forma instantánea en la base de datos de control.
@@ -66,7 +65,7 @@ export function SimulatedCheckoutCard({
         bg="opsCyan"
         color="white"
         h="16"
-        fontFamily="var(--font-orbitron)"
+        fontFamily="var(--font-outfit)"
         fontWeight="bold"
         letterSpacing="0.08em"
         textTransform="uppercase"
@@ -87,7 +86,7 @@ export function SimulatedCheckoutCard({
         variant="outline"
         borderColor="opsBorder"
         h="16"
-        fontFamily="var(--font-orbitron)"
+        fontFamily="var(--font-outfit)"
         fontWeight="bold"
         letterSpacing="0.08em"
         textTransform="uppercase"

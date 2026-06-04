@@ -46,10 +46,9 @@ export function PaymentConfirmationCard({
 
         <Heading
           size="xl"
-          fontFamily="var(--font-orbitron)"
+          fontFamily="var(--font-outfit)"
           letterSpacing="0.06em"
           color="opsGreen"
-          textShadow="0 0 12px rgba(16, 185, 129, 0.45)"
         >
           Pago Registrado
         </Heading>
@@ -64,7 +63,7 @@ export function PaymentConfirmationCard({
             Boleto Autorizado
           </Text>
           <Text
-            fontFamily="var(--font-orbitron)"
+            fontFamily="var(--font-outfit)"
             fontSize="2xl"
             fontWeight="900"
             color="opsCyan"
@@ -79,7 +78,7 @@ export function PaymentConfirmationCard({
             <Text color="opsMuted" fontSize="xxs" fontWeight="bold" textTransform="uppercase" letterSpacing="0.05em">
               Referencia de Transacción
             </Text>
-            <Text fontFamily="var(--font-orbitron)" fontSize="xs" color="opsMuted">
+            <Text fontFamily="var(--font-outfit)" fontSize="xs" color="opsMuted">
               {simulationReference}
             </Text>
           </Flex>
@@ -91,7 +90,7 @@ export function PaymentConfirmationCard({
           w="full"
           h="16"
           mt="2"
-          fontFamily="var(--font-orbitron)"
+          fontFamily="var(--font-outfit)"
           fontWeight="bold"
           letterSpacing="0.08em"
           textTransform="uppercase"

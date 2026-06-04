@@ -1,5 +1,6 @@
 import type {
   BackupExport,
+  ParkingSettings,
   SimulatedPayment,
   StatusResponse,
   SummaryReport,
@@ -66,4 +67,12 @@ export const paymentFixture: SimulatedPayment = {
 export const backupFixture: BackupExport = {
   backup_id: "backup-id",
   status: "requested",
+};
+
+export const settingsFixture: ParkingSettings = {
+  capacity_total: 40,
+  timezone: "America/Mexico_City",
+  currency: "MXN",
+  parking_name: "Parking Ops",
+  ticket_expiration_minutes: 1440,
 };

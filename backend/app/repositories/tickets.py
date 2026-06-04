@@ -40,9 +40,7 @@ class TicketRepository:
     async def summary_count(self, field_name: str, start_at: datetime, end_at: datetime) -> int:
         field = getattr(Ticket, field_name)
         statement = (
-            select(func.count())
-            .select_from(Ticket)
-            .where(and_(field >= start_at, field < end_at))
+            select(func.count()).select_from(Ticket).where(and_(field >= start_at, field < end_at))
         )
         return int((await self.session.execute(statement)).scalar_one())
 
@@ -133,4 +131,24 @@ class TicketRepository:
         if filters:
             statement = statement.where(*filters)
 
+        return list((await self.session.execute(statement)).scalars().all())
+
+    async def delete(self, ticket: Ticket) -> None:
+        await self.session.delete(ticket)
+        await self.session.flush()
+
+    async def get_expired_active_tickets(
+        self, expiration_minutes: int, now: datetime
+    ) -> list[Ticket]:
+        from datetime import timedelta
+
+        cutoff = now - timedelta(minutes=expiration_minutes)
+        statement: Select[tuple[Ticket]] = (
+            select(Ticket)
+            .where(
+                Ticket.status == TicketStatus.ACTIVE,
+                Ticket.entry_at <= cutoff,
+            )
+            .with_for_update()
+        )
         return list((await self.session.execute(statement)).scalars().all())

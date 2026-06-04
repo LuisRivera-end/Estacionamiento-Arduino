@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Outfit } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { GlobalColorModeToggle } from "@/components/GlobalColorModeToggle";
+import { getPublicParkingName } from "@/lib/api/admin-settings";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,11 +15,18 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Parking Ops",
-  description:
-    "Dashboard operativo y pago de boletos para estacionamiento inteligente",
-};
+const outfit = Outfit({
+  variable: "--font-outfit",
+  subsets: ["latin"],
+});
+
+export async function generateMetadata(): Promise<Metadata> {
+  const parkingName = await getPublicParkingName();
+  return {
+    title: parkingName,
+    description: `Dashboard operativo y pago de boletos para ${parkingName}`,
+  };
+}
 
 export default function RootLayout({
   children,
@@ -28,10 +36,10 @@ export default function RootLayout({
   return (
     <html
       lang="es"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${outfit.variable}`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">
+      <body>
         <Providers>
           <GlobalColorModeToggle />
           {children}

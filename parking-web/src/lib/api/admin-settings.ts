@@ -24,3 +24,12 @@ export async function updatePricingRule(
 ): Promise<PricingRule> {
   return apiPut<PricingRule>("/api/v1/admin/pricing", payload, { accessToken });
 }
+
+export async function getPublicParkingName(): Promise<string> {
+  try {
+    const data = await apiGet<{ parking_name: string }>("/api/v1/public/parking-name");
+    return data.parking_name;
+  } catch {
+    return "Parking Ops";
+  }
+}

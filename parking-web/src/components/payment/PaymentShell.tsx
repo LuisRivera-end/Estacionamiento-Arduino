@@ -21,6 +21,54 @@ function ColorModeToggle() {
     // Chakra v3 usa este atributo en <html> para aplicar el modo
     document.documentElement.dataset.theme = next;
   }
+
+  return (
+    <button
+      onClick={toggle}
+      aria-label={isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+      style={{
+        position: "fixed",
+        top: "16px",
+        right: "16px",
+        zIndex: 1000,
+        width: "38px",
+        height: "38px",
+        borderRadius: "50%",
+        border: `1px solid ${isDark ? "#1e293b" : "#c7d9f5"}`,
+        background: isDark ? "#0f172a" : "#ffffff",
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        transition: "background 0.2s, border-color 0.2s",
+        boxShadow: isDark
+          ? "0 2px 8px rgba(0,0,0,0.5)"
+          : "0 2px 8px rgba(14,42,115,0.12)",
+      }}
+    >
+      {isDark ? (
+        // Sol → presionar cambia a claro
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
+          stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="5" />
+          <line x1="12" y1="1" x2="12" y2="3" />
+          <line x1="12" y1="21" x2="12" y2="23" />
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+          <line x1="1" y1="12" x2="3" y2="12" />
+          <line x1="21" y1="12" x2="23" y2="12" />
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+        </svg>
+      ) : (
+        // Luna → presionar cambia a oscuro
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+          stroke="#1d4ed8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+        </svg>
+      )}
+    </button>
+  );
 }
 export function PaymentShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() || "";
@@ -73,7 +121,7 @@ export function PaymentShell({ children }: { children: React.ReactNode }) {
         >
           <Link
             asChild
-            fontFamily="var(--font-orbitron)"
+            fontFamily="var(--font-outfit)"
             fontSize="sm"
             fontWeight="900"
             letterSpacing="0.12em"
@@ -84,23 +132,23 @@ export function PaymentShell({ children }: { children: React.ReactNode }) {
             borderRadius="full"
             {...(isPayActive
               ? {
-                  color: "opsText",
-                  bg: "rgba(37, 99, 235, 0.08)",
-                  border: "1px solid",
-                  borderColor: "rgba(37, 99, 235, 0.3)",
-                }
+                color: "opsText",
+                bg: "rgba(37, 99, 235, 0.08)",
+                border: "1px solid",
+                borderColor: "rgba(37, 99, 235, 0.3)",
+              }
               : {
-                  color: "opsCyan",
-                  opacity: 0.6,
-                  border: "1px solid transparent",
-                  _hover: { color: "opsText", opacity: 1 },
-                })}
+                color: "opsCyan",
+                opacity: 0.6,
+                border: "1px solid transparent",
+                _hover: { color: "opsText", opacity: 1 },
+              })}
           >
             <NextLink href="/pagar">Pago</NextLink>
           </Link>
           <Link
             asChild
-            fontFamily="var(--font-orbitron)"
+            fontFamily="var(--font-outfit)"
             fontSize="sm"
             fontWeight="900"
             letterSpacing="0.12em"
@@ -111,17 +159,17 @@ export function PaymentShell({ children }: { children: React.ReactNode }) {
             borderRadius="full"
             {...(isHelpActive
               ? {
-                  color: "opsText",
-                  bg: "rgba(37, 99, 235, 0.08)",
-                  border: "1px solid",
-                  borderColor: "rgba(37, 99, 235, 0.3)",
-                }
+                color: "opsText",
+                bg: "rgba(37, 99, 235, 0.08)",
+                border: "1px solid",
+                borderColor: "rgba(37, 99, 235, 0.3)",
+              }
               : {
-                  color: "opsCyan",
-                  opacity: 0.6,
-                  border: "1px solid transparent",
-                  _hover: { color: "opsText", opacity: 1 },
-                })}
+                color: "opsCyan",
+                opacity: 0.6,
+                border: "1px solid transparent",
+                _hover: { color: "opsText", opacity: 1 },
+              })}
           >
             <NextLink href="/ayuda">Ayuda</NextLink>
           </Link>

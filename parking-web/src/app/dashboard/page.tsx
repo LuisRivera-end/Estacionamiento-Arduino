@@ -1,11 +1,13 @@
-import { Grid, Heading, SimpleGrid, Text } from "@chakra-ui/react";
+import { Grid, Heading, SimpleGrid } from "@chakra-ui/react";
 import { redirect } from "next/navigation";
 
 import { ChartCard } from "@/components/dashboard/ChartCard";
 import { MetricCard } from "@/components/dashboard/MetricCard";
+import { OccupancyChart } from "@/components/dashboard/OccupancyChart";
+import { OperationalSummaryChart } from "@/components/dashboard/OperationalSummaryChart";
 import { getStatus, getSummary } from "@/lib/api/reports";
 import { getServerAccessToken } from "@/lib/auth/server";
-import { formatCurrency, formatDateTime } from "@/lib/formatters";
+import { formatCurrency } from "@/lib/formatters";
 
 export default async function DashboardPage() {
   const accessToken = await getServerAccessToken();
@@ -52,14 +54,27 @@ export default async function DashboardPage() {
           value={summary.lost_tickets}
         />
       </SimpleGrid>
-      <ChartCard title="Actividad reciente">
-        <Text color="opsMuted">
-          Última entrada: {formatDateTime(status.last_entry_at)}
-        </Text>
-        <Text color="opsMuted">
-          Última salida: {formatDateTime(status.last_exit_at)}
-        </Text>
-      </ChartCard>
+
+      <SimpleGrid columns={{ base: 1, lg: 2 }} gap="6">
+        <ChartCard title="Ocupación de espacios">
+          <OccupancyChart
+            capacityTotal={status.capacity_total}
+            occupiedSpaces={status.occupied_spaces}
+            availableSpaces={status.available_spaces}
+            lastEntryAt={status.last_entry_at}
+            lastExitAt={status.last_exit_at}
+          />
+        </ChartCard>
+        <ChartCard title="Actividad del día">
+          <OperationalSummaryChart
+            entriesToday={summary.entries_today}
+            exitsToday={summary.exits_today}
+            paidTickets={summary.paid_tickets}
+            lostTickets={summary.lost_tickets}
+          />
+        </ChartCard>
+      </SimpleGrid>
     </Grid>
   );
 }
+

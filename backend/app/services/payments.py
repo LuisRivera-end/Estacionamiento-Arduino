@@ -19,6 +19,7 @@ from app.services.pricing import (
     calculate_payment_breakdown,
 )
 from app.services.realtime import admin_events_broker
+from app.services.ticket_expiration import is_ticket_expired
 
 
 async def simulate_payment(
@@ -42,8 +43,12 @@ async def simulate_payment(
     if ticket.status != TicketStatus.ACTIVE:
         raise AppError(409, "ticket_not_active", "El ticket ya no esta activo")
 
-    pricing_rule = await parking_repository.get_active_pricing_rule()
+    # Defensive expiration check
     settings = await parking_repository.get_settings()
+    if is_ticket_expired(ticket.entry_at, settings.ticket_expiration_minutes):
+        raise AppError(404, "ticket_not_found", "Ticket no encontrado")
+
+    pricing_rule = await parking_repository.get_active_pricing_rule()
     now = datetime.now(UTC)
     duration_minutes = calculate_duration_minutes(ticket.entry_at, now)
     pricing = PricingSnapshot(

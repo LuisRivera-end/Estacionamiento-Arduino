@@ -72,6 +72,7 @@ class ArduinoBridgeHandler(BaseHTTPRequestHandler):
 
         content_length = int(self.headers.get("Content-Length", "0"))
         body = self.rfile.read(content_length)
+        print(f"DEBUG: raw body bytes = {body!r}")
         target_url = f"{TARGET_BASE_URL}{self.path}"
 
         headers = {
@@ -88,7 +89,7 @@ class ArduinoBridgeHandler(BaseHTTPRequestHandler):
         request = Request(target_url, data=body, headers=headers, method="POST")
 
         try:
-            with urlopen(request, timeout=30) as response:
+            with urlopen(request, timeout=45) as response:
                 response_body = response.read()
                 print(f"Target response {response.status} body={response_body.decode('utf-8', 'replace')[:200]}")
                 response_payload = parse_json_body(response_body)
@@ -124,7 +125,16 @@ class ArduinoBridgeHandler(BaseHTTPRequestHandler):
             self.send_header("Content-Length", str(len(response_body)))
             self.end_headers()
             self.wfile.write(response_body)
+        except TimeoutError:
+            print(f"Request timed out for {self.path}")
+            payload = b'{"error":"gateway_timeout","message":"Backend too slow"}'
+            self.send_response(504)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
         except URLError as error:
+            print(f"URL error for {self.path}: {error.reason}")
             message = f'{{"error":"bridge_target_unreachable","message":"{error.reason}"}}'
             payload = message.encode("utf-8")
             self.send_response(502)

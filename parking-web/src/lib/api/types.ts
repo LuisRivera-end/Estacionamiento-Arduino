@@ -4,13 +4,13 @@ export type PaymentStatus = "unpaid" | "paid" | "exempted" | "refunded";
 export type StaffRole = "admin" | "panelist";
 export type StaffStatus = "active" | "disabled";
 export type DiscountType = "none" | "senior" | "student";
+export type SeniorIdentifierType = "code" | "license_plate" | "document";
 
 export type DiscountRequest = {
   type: DiscountType;
   student_email?: string;
-  senior_age?: number;
-  senior_document_type?: string;
-  senior_document_last4?: string;
+  senior_identifier_type?: SeniorIdentifierType;
+  senior_identifier_value?: string;
 };
 
 export type StatusResponse = {
@@ -85,6 +85,8 @@ export type ParkingSettings = {
   capacity_total: number;
   timezone: string;
   currency: string;
+  parking_name: string;
+  ticket_expiration_minutes: number;
 };
 
 export type PricingRule = {
@@ -110,6 +112,8 @@ export type AdminTicketItem = {
   exit_at: string | null;
   calculated_amount: number;
   lost_ticket: boolean;
+  archive_reason: string | null;
+  archived_at: string | null;
 };
 
 export type AdminPaymentItem = {
@@ -182,4 +186,8 @@ export type StaffUserCreateRequest = {
   password: string;
   display_name?: string | null;
   role: StaffRole;
+};
+
+export type ParkingNameResponse = {
+  parking_name: string;
 };

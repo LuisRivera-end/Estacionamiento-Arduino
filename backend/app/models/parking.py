@@ -13,6 +13,8 @@ class ParkingSettings(Base):
     capacity_total: Mapped[int] = mapped_column(Integer, nullable=False)
     timezone: Mapped[str] = mapped_column(String(64), nullable=False, default="America/Mexico_City")
     currency: Mapped[str] = mapped_column(String(3), nullable=False, default="MXN")
+    parking_name: Mapped[str] = mapped_column(String(100), nullable=False, default="Parking Ops")
+    ticket_expiration_minutes: Mapped[int] = mapped_column(Integer, nullable=False, default=1440)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,

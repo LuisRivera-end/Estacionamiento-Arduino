@@ -31,7 +31,7 @@ def upgrade() -> None:
             "student_allowed_domains",
             sa.JSON(),
             nullable=False,
-            server_default=sa.text("'[\".edu\", \".edu.mx\"]'"),
+            server_default=sa.text('\'[".edu", ".edu.mx"]\''),
         ),
     )
     op.add_column(

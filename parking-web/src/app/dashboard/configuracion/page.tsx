@@ -22,9 +22,11 @@ export default async function SettingsPage() {
       <DataTable
         headers={["Parametro", "Valor"]}
         rows={[
+          ["Nombre", settings.parking_name],
           ["Capacidad", settings.capacity_total],
           ["Zona horaria", settings.timezone],
           ["Moneda", settings.currency],
+          ["Expiración boletos (min)", settings.ticket_expiration_minutes],
         ]}
       />
     </Grid>
