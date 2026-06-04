@@ -38,8 +38,8 @@ export function GlobalColorModeToggle() {
       aria-label={isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
       style={{
         position: "fixed",
-        top: "16px",
-        right: "16px",
+        bottom: "16px",
+        left: "16px",
         zIndex: 9999,
         width: "38px",
         height: "38px",

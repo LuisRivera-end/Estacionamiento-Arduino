@@ -70,7 +70,6 @@ function ColorModeToggle() {
     </button>
   );
 }
-
 export function PaymentShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() || "";
 
@@ -102,8 +101,6 @@ export function PaymentShell({ children }: { children: React.ReactNode }) {
       pt={{ base: "12", md: "20" }}
       pb={{ base: "16", md: "24" }}
     >
-      <ColorModeToggle />
-
       <Container maxW="580px" px={{ base: "4", md: "6" }}>
         {currentStep !== null && (
           <Box mb="10" w="full">
