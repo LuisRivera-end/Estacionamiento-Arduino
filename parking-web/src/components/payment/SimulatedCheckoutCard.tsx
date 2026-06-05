@@ -13,11 +13,11 @@ const CardChip = () => (
     w="10"
     h="7.5"
     borderRadius="md"
-    bgGradient="linear(to-br, yellow.200, yellow.500)"
+    bg="linear-gradient(135deg, #fef08a, #eab308)"
     position="relative"
     overflow="hidden"
     border="1px solid"
-    borderColor="yellow.600"
+    borderColor="#ca8a04"
     boxShadow="inner"
   >
     <Box position="absolute" top="2.5" left="0" right="0" h="0.5" bg="yellow.700" opacity={0.4} />
@@ -65,7 +65,7 @@ export function SimulatedCheckoutCard({
   const router = useRouter();
 
   // Local state for payment method
-  const [paymentMethod, setPaymentMethod] = useState<"card" | "paypal" | "gpay">("card");
+  const [paymentMethod, setPaymentMethod] = useState<"card" | "paypal">("card");
 
   // Local state for credit card form
   const [cardNumber, setCardNumber] = useState("");
@@ -183,7 +183,7 @@ export function SimulatedCheckoutCard({
         </Heading>
 
         {/* Payment Methods Selector (Stripe-like) */}
-        <Grid templateColumns="repeat(3, 1fr)" gap="2.5">
+        <Grid templateColumns="repeat(2, 1fr)" gap="2.5">
           <Button
             onClick={() => setPaymentMethod("card")}
             variant={paymentMethod === "card" ? "solid" : "outline"}
@@ -221,25 +221,6 @@ export function SimulatedCheckoutCard({
             _hover={{ bg: "rgba(14, 165, 233, 0.08)" }}
           >
             🌐 PayPal
-          </Button>
-          <Button
-            onClick={() => setPaymentMethod("gpay")}
-            variant={paymentMethod === "gpay" ? "solid" : "outline"}
-            borderColor={paymentMethod === "gpay" ? "opsCyan" : "opsBorder"}
-            bg={paymentMethod === "gpay" ? "rgba(14, 165, 233, 0.1)" : "transparent"}
-            color={paymentMethod === "gpay" ? "opsText" : "opsMuted"}
-            h="12"
-            borderRadius="lg"
-            fontSize="xs"
-            fontWeight="bold"
-            letterSpacing="0.05em"
-            textTransform="uppercase"
-            fontFamily="var(--font-outfit)"
-            display="flex"
-            gap="2"
-            _hover={{ bg: "rgba(14, 165, 233, 0.08)" }}
-          >
-            🤖 Pay
           </Button>
         </Grid>
 
@@ -431,7 +412,7 @@ export function SimulatedCheckoutCard({
             style={{ backfaceVisibility: "hidden" }}
             borderRadius="2xl"
             p="6"
-            bgGradient="linear(to-br, #0f172a 0%, #1e293b 50%, #0ea5e9 100%)"
+            bg="linear-gradient(135deg, #0b0f19 0%, #1e293b 50%, #0ea5e9 100%)"
             border="1px solid"
             borderColor="rgba(255, 255, 255, 0.15)"
             boxShadow="0 20px 40px rgba(0, 0, 0, 0.4)"
@@ -499,7 +480,7 @@ export function SimulatedCheckoutCard({
             transform="rotateY(180deg)"
             borderRadius="2xl"
             py="6"
-            bgGradient="linear(to-br, #1e293b 0%, #0f172a 100%)"
+            bg="linear-gradient(135deg, #1e293b 0%, #0b0f19 100%)"
             border="1px solid"
             borderColor="rgba(255, 255, 255, 0.15)"
             boxShadow="0 20px 40px rgba(0, 0, 0, 0.4)"

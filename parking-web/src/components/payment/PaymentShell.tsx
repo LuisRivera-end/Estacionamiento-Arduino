@@ -80,12 +80,28 @@ export function PaymentShell({
 }) {
   const pathname = usePathname() || "";
   const [parkingName, setParkingName] = useState<string>("Parking Ops");
+  const [pagoHref, setPagoHref] = useState("/pagar");
 
   useEffect(() => {
     getPublicParkingName().then((name) => {
       setParkingName(name);
     });
   }, []);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (pathname.startsWith("/pagar/") || pathname.startsWith("/ticket-extraviado")) {
+        if (!pathname.endsWith("/confirmacion")) {
+          sessionStorage.setItem("lastPaymentUrl", pathname);
+        }
+      } else if (pathname === "/pagar" || pathname === "/") {
+        sessionStorage.removeItem("lastPaymentUrl");
+      }
+      
+      const stored = sessionStorage.getItem("lastPaymentUrl");
+      setPagoHref(stored || "/pagar");
+    }
+  }, [pathname]);
 
   const isHelpActive = pathname.startsWith("/ayuda");
   const isPayActive =
@@ -173,7 +189,7 @@ export function PaymentShell({
                 _hover: { color: "opsText", opacity: 1 },
               })}
           >
-            <NextLink href="/pagar">Pago</NextLink>
+            <NextLink href={pagoHref}>Pago</NextLink>
           </Link>
           <Link
             asChild
