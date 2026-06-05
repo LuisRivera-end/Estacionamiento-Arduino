@@ -32,11 +32,17 @@ async def get_status_summary(session: AsyncSession) -> StatusResponse:
     )
 
 
-async def get_daily_summary(session: AsyncSession, now: datetime) -> SummaryReportResponse:
+async def get_daily_summary(
+    session: AsyncSession,
+    now: datetime,
+    start_at: datetime | None = None,
+    end_at: datetime | None = None,
+) -> SummaryReportResponse:
     ticket_repository = TicketRepository(session)
     archived_repository = ArchivedTicketRepository(session)
     payment_repository = PaymentRepository(session)
-    start_at, end_at = day_window(now)
+    if start_at is None or end_at is None:
+        start_at, end_at = day_window(now)
 
     # Combine active + archived ticket counts for accurate daily totals
     entries_active = await ticket_repository.summary_count("entry_at", start_at, end_at)

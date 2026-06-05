@@ -16,7 +16,7 @@ export function SettingsEditor({ initialSettings }: SettingsEditorProps) {
   const router = useRouter();
   const [capacity, setCapacity] = useState(String(initialSettings.capacity_total));
   const timezone = initialSettings.timezone;
-  const [currency, setCurrency] = useState(initialSettings.currency);
+  const currency = initialSettings.currency;
   const [parkingName, setParkingName] = useState(initialSettings.parking_name);
   const [expirationHours, setExpirationHours] = useState(
     String(initialSettings.ticket_expiration_hours),
@@ -119,15 +119,7 @@ export function SettingsEditor({ initialSettings }: SettingsEditorProps) {
         />
       </Field.Root>
 
-      <Field.Root required>
-        <Field.Label>Moneda</Field.Label>
-        <Input
-          disabled
-          maxLength={3}
-          value={currency}
-          onChange={(event) => setCurrency(event.target.value)}
-        />
-      </Field.Root>
+
       {error ? <Text color="red.300">{error}</Text> : null}
       {success ? <Text color="green.300">{success}</Text> : null}
       <Button colorPalette="cyan" loading={isSaving} onClick={onSave} w="fit-content">

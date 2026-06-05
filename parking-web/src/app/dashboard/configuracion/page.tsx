@@ -28,7 +28,6 @@ export default async function SettingsPage() {
               ["Nombre", settings.parking_name],
               ["Capacidad", settings.capacity_total],
               ["Zona horaria", settings.timezone],
-              ["Moneda", settings.currency],
               ["Expiracion boletos (horas)", settings.ticket_expiration_hours],
             ]}
           />

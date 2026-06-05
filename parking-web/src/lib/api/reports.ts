@@ -45,13 +45,26 @@ function createQueryString(params: Record<string, string | undefined>): string {
   return queryString ? `?${queryString}` : "";
 }
 
+type SummaryReportFilters = {
+  startDate?: string;
+  endDate?: string;
+};
+
 export async function getStatus(accessToken: string): Promise<StatusResponse> {
   return apiGet<StatusResponse>("/api/v1/status", { accessToken });
 }
 
-export async function getSummary(accessToken: string): Promise<SummaryReport> {
-  return apiGet<SummaryReport>("/api/v1/admin/reports/summary", { accessToken });
+export async function getSummary(
+  accessToken: string,
+  filters: SummaryReportFilters = {},
+): Promise<SummaryReport> {
+  const query = createQueryString({
+    start_date: filters.startDate,
+    end_date: filters.endDate,
+  });
+  return apiGet<SummaryReport>(`/api/v1/admin/reports/summary${query}`, { accessToken });
 }
+
 
 export async function getAdminTickets(
   accessToken: string,

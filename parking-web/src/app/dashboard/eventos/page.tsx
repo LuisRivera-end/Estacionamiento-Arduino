@@ -1,6 +1,7 @@
 import NextLink from "next/link";
 import { Box, Button, Grid, Heading, HStack, Input, Text } from "@chakra-ui/react";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const SelectBox = Box as any;
 
 import { redirect } from "next/navigation";
@@ -53,7 +54,7 @@ export default async function EventsPage({
   const deviceId = firstParam(resolvedSearchParams.device_id) ?? "";
   const lostTicketRaw = firstParam(resolvedSearchParams.lost_ticket) ?? "";
   const page = positiveInteger(firstParam(resolvedSearchParams.page), 1);
-  const pageSize = positiveInteger(firstParam(resolvedSearchParams.page_size), 25);
+  const pageSize = positiveInteger(firstParam(resolvedSearchParams.page_size), 15);
   const eventType =
     eventTypeRaw === "entry" || eventTypeRaw === "exit" ? eventTypeRaw : undefined;
   const lostTicket =

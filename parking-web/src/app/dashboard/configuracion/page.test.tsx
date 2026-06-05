@@ -46,6 +46,7 @@ vi.mock("@/components/dashboard/DataTable", () => ({
 vi.mock("@chakra-ui/react", () => ({
   Grid: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   Heading: ({ children }: { children: React.ReactNode }) => <h1>{children}</h1>,
+  Box: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
 import SettingsPage from "./page";

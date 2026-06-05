@@ -1,6 +1,6 @@
 from collections.abc import Callable
 from contextlib import AbstractAsyncContextManager
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime, time, timedelta
 from typing import Literal
 
 from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect, status
@@ -48,10 +48,29 @@ async def authorize_reports_ws_staff_user(
 
 @router.get("/summary", response_model=SummaryReportResponse)
 async def report_summary(
+    start_date: str | None = Query(default=None),
+    end_date: str | None = Query(default=None),
     _: tuple = Depends(get_current_staff_user),
     session: AsyncSession = Depends(get_session),
 ) -> SummaryReportResponse:
-    return await get_daily_summary(session, datetime.now(UTC))
+    start_at: datetime | None = None
+    end_at: datetime | None = None
+
+    if start_date:
+        try:
+            parsed_start = date.fromisoformat(start_date)
+            start_at = datetime.combine(parsed_start, time.min, tzinfo=UTC)
+        except ValueError:
+            pass
+
+    if end_date:
+        try:
+            parsed_end = date.fromisoformat(end_date)
+            end_at = datetime.combine(parsed_end, time.min, tzinfo=UTC) + timedelta(days=1)
+        except ValueError:
+            pass
+
+    return await get_daily_summary(session, datetime.now(UTC), start_at=start_at, end_at=end_at)
 
 
 @router.get("/tickets", response_model=AdminTicketsPageResponse)
