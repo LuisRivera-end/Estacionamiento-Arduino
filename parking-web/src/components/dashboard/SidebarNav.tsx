@@ -40,7 +40,8 @@ export function SidebarNav() {
       as="aside"
       bg="opsPanel"
       borderRightWidth="1px"
-      minH="100vh"
+      h="100vh"
+      overflowY="auto"
       p="5"
       w={{ base: "220px", xl: "260px" }}
       display="flex"
