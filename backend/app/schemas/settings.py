@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class ParkingSettingsResponse(BaseModel):
@@ -8,7 +8,7 @@ class ParkingSettingsResponse(BaseModel):
     timezone: str
     currency: str
     parking_name: str
-    ticket_expiration_minutes: int
+    ticket_expiration_hours: int
 
 
 class ParkingSettingsUpdateRequest(BaseModel):
@@ -16,7 +16,26 @@ class ParkingSettingsUpdateRequest(BaseModel):
     timezone: str = Field(min_length=3, max_length=64)
     currency: str = Field(min_length=3, max_length=3)
     parking_name: str = Field(default="Parking Ops", min_length=1, max_length=100)
-    ticket_expiration_minutes: int = Field(default=1440, ge=1, le=43200)
+    ticket_expiration_hours: int = Field(default=24, ge=1, le=720)
+    ticket_expiration_minutes: int | None = Field(default=None, ge=1, le=43200, exclude=True)
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_legacy_expiration_payload(cls, data: object) -> object:
+        if not isinstance(data, dict):
+            return data
+
+        normalized = dict(data)
+        if "ticket_expiration_hours" not in normalized:
+            legacy_minutes = normalized.pop("ticket_expiration_minutes", None)
+            if legacy_minutes is not None:
+                from app.services.ticket_expiration import expiration_minutes_to_hours
+
+                normalized["ticket_expiration_hours"] = expiration_minutes_to_hours(
+                    int(legacy_minutes)
+                )
+
+        return normalized
 
 
 class PricingRuleResponse(BaseModel):

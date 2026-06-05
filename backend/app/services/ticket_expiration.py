@@ -11,6 +11,16 @@ from app.repositories.parking import ParkingRepository
 from app.repositories.tickets import TicketRepository
 
 
+def expiration_hours_to_minutes(expiration_hours: int) -> int:
+    return expiration_hours * 60
+
+
+def expiration_minutes_to_hours(expiration_minutes: int) -> int:
+    from math import ceil
+
+    return max(1, ceil(expiration_minutes / 60))
+
+
 def is_ticket_expired(entry_at: datetime, expiration_minutes: int) -> bool:
     """Check if a ticket has expired based on its entry time and the configured expiration."""
     if entry_at.tzinfo is None:

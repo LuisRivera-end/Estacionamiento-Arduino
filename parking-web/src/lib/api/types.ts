@@ -86,7 +86,7 @@ export type ParkingSettings = {
   timezone: string;
   currency: string;
   parking_name: string;
-  ticket_expiration_minutes: number;
+  ticket_expiration_hours: number;
 };
 
 export type PricingRule = {

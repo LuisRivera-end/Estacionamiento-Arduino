@@ -26,7 +26,7 @@ export default async function SettingsPage() {
           ["Capacidad", settings.capacity_total],
           ["Zona horaria", settings.timezone],
           ["Moneda", settings.currency],
-          ["Expiración boletos (min)", settings.ticket_expiration_minutes],
+          ["Expiracion boletos (horas)", settings.ticket_expiration_hours],
         ]}
       />
     </Grid>

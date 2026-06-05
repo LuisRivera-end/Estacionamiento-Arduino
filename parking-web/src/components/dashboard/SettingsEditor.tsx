@@ -1,12 +1,12 @@
 "use client";
 
+import { Button, Field, Input, Stack, Text } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Button, Field, Input, Stack, Text } from "@chakra-ui/react";
 
 import { updateParkingSettings } from "@/lib/api/admin-settings";
-import type { ParkingSettings } from "@/lib/api/types";
 import { getBrowserAccessToken } from "@/lib/auth/client";
+import type { ParkingSettings } from "@/lib/api/types";
 
 type SettingsEditorProps = {
   initialSettings: ParkingSettings;
@@ -18,8 +18,8 @@ export function SettingsEditor({ initialSettings }: SettingsEditorProps) {
   const timezone = initialSettings.timezone;
   const [currency, setCurrency] = useState(initialSettings.currency);
   const [parkingName, setParkingName] = useState(initialSettings.parking_name);
-  const [expirationMinutes, setExpirationMinutes] = useState(
-    String(initialSettings.ticket_expiration_minutes),
+  const [expirationHours, setExpirationHours] = useState(
+    String(initialSettings.ticket_expiration_hours),
   );
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,7 +32,7 @@ export function SettingsEditor({ initialSettings }: SettingsEditorProps) {
     const accessToken = await getBrowserAccessToken();
 
     if (!accessToken) {
-      setError("Sesión no válida. Vuelve a iniciar sesión.");
+      setError("Sesion no valida. Vuelve a iniciar sesion.");
       setIsSaving(false);
       return;
     }
@@ -44,16 +44,16 @@ export function SettingsEditor({ initialSettings }: SettingsEditorProps) {
       return;
     }
 
-    const parsedExpiration = Number.parseInt(expirationMinutes, 10);
+    const parsedExpiration = Number.parseInt(expirationHours, 10);
     if (!Number.isFinite(parsedExpiration) || parsedExpiration < 1) {
-      setError("La expiración debe ser al menos 1 minuto.");
+      setError("La expiracion debe ser al menos 1 hora.");
       setIsSaving(false);
       return;
     }
 
     const trimmedName = parkingName.trim();
     if (!trimmedName) {
-      setError("El nombre del estacionamiento no puede estar vacío.");
+      setError("El nombre del estacionamiento no puede estar vacio.");
       setIsSaving(false);
       return;
     }
@@ -65,17 +65,17 @@ export function SettingsEditor({ initialSettings }: SettingsEditorProps) {
           timezone: timezone.trim(),
           currency: currency.trim().toUpperCase(),
           parking_name: trimmedName,
-          ticket_expiration_minutes: parsedExpiration,
+          ticket_expiration_hours: parsedExpiration,
         },
         accessToken,
       );
-      setSuccess("Configuración guardada en base de datos.");
+      setSuccess("Configuracion guardada en base de datos.");
       router.refresh();
     } catch (saveError) {
       setError(
         saveError instanceof Error
           ? saveError.message
-          : "No se pudo guardar la configuración.",
+          : "No se pudo guardar la configuracion.",
       );
     } finally {
       setIsSaving(false);
@@ -111,11 +111,11 @@ export function SettingsEditor({ initialSettings }: SettingsEditorProps) {
       </Field.Root>
 
       <Field.Root required>
-        <Field.Label>Expiración de boletos (minutos)</Field.Label>
+        <Field.Label>Expiracion de boletos (horas)</Field.Label>
         <Input
           type="number"
-          value={expirationMinutes}
-          onChange={(event) => setExpirationMinutes(event.target.value)}
+          value={expirationHours}
+          onChange={(event) => setExpirationHours(event.target.value)}
         />
       </Field.Root>
 
@@ -131,7 +131,7 @@ export function SettingsEditor({ initialSettings }: SettingsEditorProps) {
       {error ? <Text color="red.300">{error}</Text> : null}
       {success ? <Text color="green.300">{success}</Text> : null}
       <Button colorPalette="cyan" loading={isSaving} onClick={onSave} w="fit-content">
-        Guardar configuración
+        Guardar configuracion
       </Button>
     </Stack>
   );

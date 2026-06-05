@@ -10,6 +10,10 @@ from app.schemas.settings import (
     PricingRuleResponse,
     PricingRuleUpdateRequest,
 )
+from app.services.ticket_expiration import (
+    expiration_hours_to_minutes,
+    expiration_minutes_to_hours,
+)
 
 router = APIRouter()
 
@@ -25,7 +29,7 @@ async def get_settings_route(
         timezone=settings.timezone,
         currency=settings.currency,
         parking_name=settings.parking_name,
-        ticket_expiration_minutes=settings.ticket_expiration_minutes,
+        ticket_expiration_hours=expiration_minutes_to_hours(settings.ticket_expiration_minutes),
     )
 
 
@@ -40,7 +44,7 @@ async def update_settings_route(
         timezone=payload.timezone,
         currency=payload.currency,
         parking_name=payload.parking_name,
-        ticket_expiration_minutes=payload.ticket_expiration_minutes,
+        ticket_expiration_minutes=expiration_hours_to_minutes(payload.ticket_expiration_hours),
     )
     await session.commit()
     return ParkingSettingsResponse(
@@ -48,7 +52,7 @@ async def update_settings_route(
         timezone=settings.timezone,
         currency=settings.currency,
         parking_name=settings.parking_name,
-        ticket_expiration_minutes=settings.ticket_expiration_minutes,
+        ticket_expiration_hours=expiration_minutes_to_hours(settings.ticket_expiration_minutes),
     )
 
 

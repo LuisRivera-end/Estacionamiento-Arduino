@@ -74,5 +74,5 @@ export const settingsFixture: ParkingSettings = {
   timezone: "America/Mexico_City",
   currency: "MXN",
   parking_name: "Parking Ops",
-  ticket_expiration_minutes: 1440,
+  ticket_expiration_hours: 24,
 };

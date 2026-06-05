@@ -1,3 +1,10 @@
+from __future__ import annotations
+
+from datetime import UTC, datetime, timedelta
+
+from sqlalchemy import select
+
+from app.models.ticket import Ticket
 from tests.conftest import build_access_token
 
 
@@ -12,6 +19,7 @@ def test_admin_panel_reads_and_writes_database(client) -> None:
     settings_response = client.get("/api/v1/admin/settings", headers=auth_headers)
     assert settings_response.status_code == 200
     assert settings_response.json()["capacity_total"] == 40
+    assert settings_response.json()["ticket_expiration_hours"] == 24
 
     update_settings_response = client.put(
         "/api/v1/admin/settings",
@@ -20,10 +28,13 @@ def test_admin_panel_reads_and_writes_database(client) -> None:
             "capacity_total": 55,
             "timezone": "America/Mexico_City",
             "currency": "MXN",
+            "parking_name": "Parking Ops",
+            "ticket_expiration_hours": 36,
         },
     )
     assert update_settings_response.status_code == 200
     assert update_settings_response.json()["capacity_total"] == 55
+    assert update_settings_response.json()["ticket_expiration_hours"] == 36
 
     pricing_response = client.get("/api/v1/admin/pricing", headers=auth_headers)
     assert pricing_response.status_code == 200
@@ -132,3 +143,67 @@ def test_admin_panel_reads_and_writes_database(client) -> None:
     backups_response = client.get("/api/v1/admin/backups", headers=auth_headers)
     assert backups_response.status_code == 200
     assert any(item["backup_id"] == backup_id for item in backups_response.json())
+
+
+async def test_ticket_expiration_hours_apply_retroactively_to_existing_tickets(
+    client, session_factory
+) -> None:
+    admin_token = build_access_token(
+        user_id="aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+        email="admin@example.com",
+    )
+    auth_headers = {"Authorization": f"Bearer {admin_token}"}
+    client.post("/api/v1/auth/bootstrap", headers=auth_headers)
+
+    entry_response = client.post(
+        "/api/v1/arduino/entry/tickets",
+        headers={
+            "X-Device-Id": "entrada-01",
+            "X-Device-Token": "entry-test-token",
+        },
+        json={"device_id": "entrada-01"},
+    )
+    assert entry_response.status_code == 200
+    ticket_code = entry_response.json()["ticket_code"]
+
+    async with session_factory() as session:
+        ticket = (
+            await session.execute(select(Ticket).where(Ticket.code == ticket_code))
+        ).scalar_one()
+        ticket.entry_at = datetime.now(UTC) - timedelta(hours=25)
+        await session.commit()
+
+    widen_window_response = client.put(
+        "/api/v1/admin/settings",
+        headers=auth_headers,
+        json={
+            "capacity_total": 40,
+            "timezone": "America/Mexico_City",
+            "currency": "MXN",
+            "parking_name": "Parking Ops",
+            "ticket_expiration_hours": 26,
+        },
+    )
+    assert widen_window_response.status_code == 200
+    assert widen_window_response.json()["ticket_expiration_hours"] == 26
+
+    existing_ticket_response = client.get(f"/api/v1/public/tickets/{ticket_code}")
+    assert existing_ticket_response.status_code == 200
+    assert existing_ticket_response.json()["ticket_code"] == ticket_code
+
+    narrow_window_response = client.put(
+        "/api/v1/admin/settings",
+        headers=auth_headers,
+        json={
+            "capacity_total": 40,
+            "timezone": "America/Mexico_City",
+            "currency": "MXN",
+            "parking_name": "Parking Ops",
+            "ticket_expiration_hours": 24,
+        },
+    )
+    assert narrow_window_response.status_code == 200
+    assert narrow_window_response.json()["ticket_expiration_hours"] == 24
+
+    expired_ticket_response = client.get(f"/api/v1/public/tickets/{ticket_code}")
+    assert expired_ticket_response.status_code == 404
