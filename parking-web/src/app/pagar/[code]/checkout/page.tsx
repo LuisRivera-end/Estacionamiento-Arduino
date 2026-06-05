@@ -41,7 +41,7 @@ export default async function CheckoutPage({
         : { type: "none" };
 
   return (
-    <PaymentShell>
+    <PaymentShell maxW={{ base: "580px", lg: "1000px" }}>
       <SimulatedCheckoutCard discount={discount} ticketCode={ticketCode} />
     </PaymentShell>
   );

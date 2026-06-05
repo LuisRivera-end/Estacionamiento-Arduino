@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Button, Field, Input, Stack, Text } from "@chakra-ui/react";
+import { Box, Button, Field, Grid, Input, Stack, Text } from "@chakra-ui/react";
 
 import { PaymentSummaryCard } from "@/components/payment/PaymentSummaryCard";
 import { calculateTicket } from "@/lib/api/tickets";
@@ -109,116 +109,126 @@ export function PaymentSummaryClient({
   }
 
   return (
-    <Stack gap="6">
-      <Stack
-        className="glass-panel neon-glow-cyan"
-        borderRadius="2xl"
-        gap="7"
-        p={{ base: "6", md: "10" }}
-        transition="all 0.3s ease-in-out"
+    <Grid templateColumns={{ base: "1fr", lg: "1.2fr 1fr" }} gap="6" alignItems="start">
+      {/* Resumen de Ticket is on the left */}
+      <Box order={{ base: 2, lg: 1 }}>
+        <PaymentSummaryCard
+          calculation={calculation}
+          checkoutHref={checkoutHref}
+          ticket={ticket}
+        />
+      </Box>
+
+      {/* Aplicar Descuento is on the right, sticky */}
+      <Box
+        order={{ base: 1, lg: 2 }}
+        position={{ lg: "sticky" }}
+        top={{ lg: "24px" }}
       >
-        <Text
-          color="opsCyan"
-          fontFamily="var(--font-outfit)"
-          fontWeight="900"
-          fontSize="sm"
-          letterSpacing="0.1em"
-          textTransform="uppercase"
+        <Stack
+          className="glass-panel neon-glow-cyan"
+          borderRadius="2xl"
+          gap="7"
+          p={{ base: "6", md: "10" }}
+          transition="all 0.3s ease-in-out"
         >
-          Aplicar Descuento
-        </Text>
-        <select
-          value={discountType}
-          onChange={(event) => {
-            setDiscountType(event.target.value as DiscountType);
-            setErrorMessage(null);
-          }}
-        >
-          <option value="none">Sin descuento</option>
-          <option value="senior">Adulto mayor (INAPAM)</option>
-          <option value="student">Estudiante (Escolar)</option>
-        </select>
+          <Text
+            color="opsCyan"
+            fontFamily="var(--font-outfit)"
+            fontWeight="900"
+            fontSize="sm"
+            letterSpacing="0.1em"
+            textTransform="uppercase"
+          >
+            Aplicar Descuento
+          </Text>
+          <select
+            value={discountType}
+            onChange={(event) => {
+              setDiscountType(event.target.value as DiscountType);
+              setErrorMessage(null);
+            }}
+          >
+            <option value="none">Sin descuento</option>
+            <option value="senior">Adulto mayor (INAPAM)</option>
+            <option value="student">Estudiante (Escolar)</option>
+          </select>
 
-        {discountType === "student" ? (
-          <Field.Root required>
-            <Field.Label color="opsMuted" fontSize="xs" fontWeight="bold" textTransform="uppercase">
-              Correo escolar
-            </Field.Label>
-            <Input
-              bg="opsPanelMuted"
-              borderColor="opsBorder"
-              _focus={{ borderColor: "opsCyan" }}
-              placeholder="alumno@escuela.edu.mx"
-              value={studentEmail}
-              onChange={(event) => setStudentEmail(event.target.value)}
-            />
-          </Field.Root>
-        ) : null}
-
-        {discountType === "senior" ? (
-          <Stack gap="4">
+          {discountType === "student" ? (
             <Field.Root required>
               <Field.Label color="opsMuted" fontSize="xs" fontWeight="bold" textTransform="uppercase">
-                Tipo de identificación
-              </Field.Label>
-              <select
-                value={seniorIdentifierType}
-                onChange={(event) =>
-                  setSeniorIdentifierType(event.target.value as SeniorIdentifierType)
-                }
-              >
-                <option value="code">Código INAPAM</option>
-                <option value="license_plate">Placa / Matrícula</option>
-                <option value="document">Documento de identidad</option>
-              </select>
-            </Field.Root>
-            <Field.Root required>
-              <Field.Label color="opsMuted" fontSize="xs" fontWeight="bold" textTransform="uppercase">
-                {seniorIdentifierLabels[seniorIdentifierType]}
+                Correo escolar
               </Field.Label>
               <Input
                 bg="opsPanelMuted"
                 borderColor="opsBorder"
                 _focus={{ borderColor: "opsCyan" }}
-                placeholder="Ingresa tu identificador"
-                value={seniorIdentifierValue}
-                onChange={(event) => setSeniorIdentifierValue(event.target.value)}
+                placeholder="alumno@escuela.edu.mx"
+                value={studentEmail}
+                onChange={(event) => setStudentEmail(event.target.value)}
               />
             </Field.Root>
-          </Stack>
-        ) : null}
+          ) : null}
 
-        {errorMessage ? <Text color="opsRed" fontSize="sm" fontWeight="bold">{errorMessage}</Text> : null}
+          {discountType === "senior" ? (
+            <Stack gap="4">
+              <Field.Root required>
+                <Field.Label color="opsMuted" fontSize="xs" fontWeight="bold" textTransform="uppercase">
+                  Tipo de identificación
+                </Field.Label>
+                <select
+                  value={seniorIdentifierType}
+                  onChange={(event) =>
+                    setSeniorIdentifierType(event.target.value as SeniorIdentifierType)
+                  }
+                >
+                  <option value="code">Código INAPAM</option>
+                  <option value="license_plate">Placa / Matrícula</option>
+                  <option value="document">Documento de identidad</option>
+                </select>
+              </Field.Root>
+              <Field.Root required>
+                <Field.Label color="opsMuted" fontSize="xs" fontWeight="bold" textTransform="uppercase">
+                  {seniorIdentifierLabels[seniorIdentifierType]}
+                </Field.Label>
+                <Input
+                  bg="opsPanelMuted"
+                  borderColor="opsBorder"
+                  _focus={{ borderColor: "opsCyan" }}
+                  placeholder="Ingresa tu identificador"
+                  value={seniorIdentifierValue}
+                  onChange={(event) => setSeniorIdentifierValue(event.target.value)}
+                />
+              </Field.Root>
+            </Stack>
+          ) : null}
 
-        <Button
-          colorPalette="cyan"
-          loading={isLoading}
-          onClick={onRecalculate}
-          w="full"
-          mt="2"
-          h="16"
-          fontFamily="var(--font-outfit)"
-          fontWeight="bold"
-          letterSpacing="0.08em"
-          textTransform="uppercase"
-          bg="opsCyan"
-          color="white"
-          borderRadius="xl"
-          _hover={{
-            bg: "blue.700",
-            transform: "translateY(-2px)",
-          }}
-          transition="all 0.25s cubic-bezier(0.16, 1, 0.3, 1)"
-        >
-          Recalcular monto
-        </Button>
-      </Stack>
+          {errorMessage ? <Text color="opsRed" fontSize="sm" fontWeight="bold">{errorMessage}</Text> : null}
 
-      <PaymentSummaryCard
-        calculation={calculation}
-        checkoutHref={checkoutHref}
-        ticket={ticket}
-      />
-    </Stack>
+          <Button
+            colorPalette="cyan"
+            loading={isLoading}
+            onClick={onRecalculate}
+            w="full"
+            mt="2"
+            h="16"
+            fontFamily="var(--font-outfit)"
+            fontWeight="bold"
+            letterSpacing="0.08em"
+            textTransform="uppercase"
+            bg="opsCyan"
+            color="white"
+            borderRadius="xl"
+            _hover={{
+              bg: "blue.700",
+              transform: "translateY(-2px)",
+            }}
+            transition="all 0.25s cubic-bezier(0.16, 1, 0.3, 1)"
+          >
+            Recalcular monto
+          </Button>
+        </Stack>
+      </Box>
+    </Grid>
   );
 }

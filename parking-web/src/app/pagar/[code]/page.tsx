@@ -50,7 +50,7 @@ export default async function TicketSummaryPage({
   }
 
   return (
-    <PaymentShell>
+    <PaymentShell maxW={{ base: "580px", lg: "1000px" }}>
       <PaymentSummaryClient
         initialCalculation={calculationData}
         ticket={ticketData}

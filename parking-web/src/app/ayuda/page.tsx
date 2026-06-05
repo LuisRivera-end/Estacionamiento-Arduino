@@ -124,6 +124,7 @@ export default function HelpPage() {
             <Box
               key={section.title}
               as="button"
+              cursor="pointer"
               textAlign="left"
               onClick={() => setSelectedSection(section)}
               className="glass-panel"

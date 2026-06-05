@@ -1,64 +1,51 @@
 ---
 name: Smart Parking Cyber-Glass Design System
 colors:
-  surface: '#070b13'
-  surface-dim: '#0b1120'
-  surface-bright: '#111b30'
-  surface-container-lowest: '#0a0f1d'
-  surface-container-low: '#0d1527'
-  surface-container: '#101b33'
-  surface-container-high: '#152443'
-  surface-container-highest: '#1a2d53'
-  on-surface: '#e5edf7'
-  on-surface-variant: '#92a4bc'
-  inverse-surface: '#e5edf7'
-  inverse-on-surface: '#070b13'
-  outline: '#1e2e4a'
-  outline-variant: '#2a3f65'
-  surface-tint: '#06b6d4'
-  primary: '#06b6d4'
-  on-primary: '#ffffff'
-  primary-container: '#0891b2'
-  on-primary-container: '#e0f7fa'
-  inverse-primary: '#0891b2'
-  secondary: '#10b981'
-  on-secondary: '#ffffff'
-  secondary-container: '#059669'
-  on-secondary-container: '#e6fbf4'
-  tertiary: '#f59e0b'
-  on-tertiary: '#ffffff'
-  tertiary-container: '#d97706'
-  on-tertiary-container: '#fef3c7'
-  error: '#ef4444'
-  on-error: '#ffffff'
-  error-container: '#dc2626'
-  on-error-container: '#fee2e2'
-  primary-fixed: '#e0f7fa'
-  primary-fixed-dim: '#a5f3fc'
-  on-primary-fixed: '#083344'
-  on-primary-fixed-variant: '#0369a1'
-  secondary-fixed: '#e6fbf4'
-  secondary-fixed-dim: '#a7f3d0'
-  on-secondary-fixed: '#064e3b'
-  on-secondary-fixed-variant: '#047857'
-  background: '#070b13'
-  on-background: '#e5edf7'
-  surface-variant: '#0d1527'
+  opsBg:
+    dark: '#070b19'
+    light: '#eef4ff'
+  opsPanel:
+    dark: '#0f172a'
+    light: '#ffffff'
+  opsPanelMuted:
+    dark: '#1e293b'
+    light: '#f8faff'
+  opsBorder:
+    dark: '#1e293b'
+    light: '#c7d9f5'
+  opsText:
+    dark: '#f8fafc'
+    light: '#0f2057'
+  opsMuted:
+    dark: '#64748b'
+    light: '#4e6490'
+  opsGreen:
+    dark: '#10b981'
+    light: '#15803d'
+  opsRed:
+    dark: '#ef4444'
+    light: '#dc2626'
+  opsYellow:
+    dark: '#f59e0b'
+    light: '#b45309'
+  opsCyan:
+    dark: '#0ea5e9'
+    light: '#0ea5e9'
 typography:
   display-lg:
-    fontFamily: Orbitron
+    fontFamily: Outfit
     fontSize: 48px
     fontWeight: '700'
     lineHeight: '1.1'
-    letterSpacing: '0.05em'
+    letterSpacing: '0.02em'
   headline-lg:
-    fontFamily: Orbitron
+    fontFamily: Outfit
     fontSize: 32px
     fontWeight: '600'
     lineHeight: '1.2'
     letterSpacing: '0.02em'
   headline-md:
-    fontFamily: Orbitron
+    fontFamily: Outfit
     fontSize: 24px
     fontWeight: '500'
     lineHeight: '1.3'
@@ -101,25 +88,28 @@ spacing:
 
 The brand personality for **Smart Parking (Estacionamiento Inteligente Arduino)** is defined by **High-Tech Operational Efficiency** and **Futuristic Reliability**. The interface represents a high-performance control center that monitors and coordinates hardware events, public payments, and pricing schemes in real time. It aims to invoke immediate confidence in users, signaling clean, state-of-the-art automation.
 
-The chosen design style is a dark **Cybernetic Glassmorphism** model. It blends deep slate-blue background layers with semi-transparent frosted-glass containers, thin energetic outlines, and neon-glowing color accents to provide depth, visual hierarchy, and intuitive operational focus.
+The chosen design style is a **Cybernetic Glassmorphism** model supporting both Dark and Light modes. It blends deep slate-blue background layers (or soft ice-blue layers in light mode) with semi-transparent frosted-glass containers, thin clean outlines, and neon/vibrant glowing color accents to provide depth, visual hierarchy, and intuitive operational focus.
 
 ## Colors
 
-The color palette is engineered to provide clear status indications and excellent readability under high-tech, low-light conditions:
+The color palette is engineered as semantic tokens (`ops*`) to provide clear status indications and excellent readability under high-tech, low-light (dark mode) and high-visibility (light mode) conditions:
 
-- **Primary (Electric Cyan - #06b6d4):** Used for primary operations, active states, main navigations, and principal CTAs. It provides an immediate technical edge.
-- **Secondary (Emerald Green - #10b981):** Represents active/available status, success indications, paid tickets, and operational health.
-- **Tertiary (Neon Amber - #f59e0b):** Denotes mid-level attention states, simulated financial summaries, active transaction phases, and edit options.
-- **Error/Alert (Vibrant Crimson - #ef4444):** Reserved for occupied spaces warning thresholds, lost tickets, backup errors, or terminal failures.
-- **Neutral Backgrounds:** Deep space blues and rich charcoal shades (`#070b13` to `#101b33`) serve as the canvas. Text is rendered in crisp, slightly tinted white (`#e5edf7`) to minimize eye strain.
+- **opsCyan (Sky Blue - #0ea5e9):** Used for primary operations, active states, main navigations, and principal CTAs. It provides an immediate technical edge.
+- **opsGreen (Emerald/Forest Green - Dark: #10b981 / Light: #15803d):** Represents active/available status, success indications, paid tickets, and operational health.
+- **opsYellow (Amber - Dark: #f59e0b / Light: #b45309):** Denotes mid-level attention states, simulated financial summaries, active transaction phases, and edit options.
+- **opsRed (Crimson - Dark: #ef4444 / Light: #dc2626):** Reserved for occupied spaces warning thresholds, lost tickets, backup errors, or terminal failures.
+- **Neutral Backgrounds & Panels:**
+  - Dark mode canvas utilizes `opsBg` (`#070b19`) and `opsPanel` (`#0f172a`).
+  - Light mode canvas utilizes `opsBg` (`#eef4ff`) and `opsPanel` (`#ffffff`).
+  - Text is rendered using `opsText` (Dark: `#f8fafc`, Light: `#0f2057`) and `opsMuted` (Dark: `#64748b`, Light: `#4e6490`) to ensure contrast.
 
 ## Typography
 
 To enhance the high-tech IoT control center atmosphere, a dual-font strategy is deployed:
 
-- **Data & Numbers (Orbitron):** This modern, futuristic geometric font is used for all prominent numeric readings, statistics, times, and key headings. The blocky, clean digital structure reflects real-time hardware clock and IoT sensor outputs.
-- **Interface & Content (Inter):** A refined, highly-legible geometric sans-serif is used for structural UI controls, navigation lists, descriptive tables, and supportive text.
-- **Hierarchy:** Strong contrast between data readings (bold, spaced Orbitron metrics) and functional descriptions (medium-weight Inter labels) allows for immediate telemetry scanning.
+- **Headings & Large Elements (Outfit):** A clean, modern geometric sans-serif loaded from Google Fonts used for all prominent titles and metrics.
+- **Interface & Content (Inter):** A refined, highly-legible geometric sans-serif used for structural UI controls, navigation lists, descriptive tables, and supportive text.
+- **Hierarchy:** Strong contrast between data readings (bold, spaced Outfit metrics) and functional descriptions (medium-weight Inter labels) allows for immediate telemetry scanning.
 
 ## Layout & Spacing
 
@@ -133,8 +123,8 @@ The layout is built upon a standard responsive grid designed to scale from deskt
 
 Visual layers are established using **Tonal Opacities** and **Diffused Backlight Shadows** rather than traditional opaque elevations:
 
-- **Base Layer:** The solid deep space background (`#070b13`).
-- **Glass Panels:** Semi-transparent container panels (`#0d1527` with 80% opacity) utilizing `backdrop-filter: blur(20px)` and thin `1px` translucent borders (`rgba(30, 46, 74, 0.4)`).
+- **Base Layer:** The solid deep space background (`opsBg`).
+- **Glass Panels:** Semi-transparent container panels (`opsPanel` / `opsPanelMuted`) utilizing `backdrop-filter: blur(20px)` and thin `1px` translucent borders (`opsBorder`).
 - **Active Backlights:** Subtle, extra-diffused glowing shadows behind containers tinted with the status color of the metric. For instance, a green metric card has a soft green glow: `box-shadow: 0 8px 32px rgba(16, 185, 129, 0.15)`.
 
 ## Shapes
@@ -146,6 +136,6 @@ Visual layers are established using **Tonal Opacities** and **Diffused Backlight
 ## Components
 
 - **Sidebar Nav:** Frosted glass panel with vertical neon indicator bars showing active routes. Subtly glowing icons in cyan or muted slate-blue.
-- **Metric Cards:** Rounded glass panels displaying active sensor readings. Large Orbitron digits glowing with appropriate status colors (cyan, green, amber, red).
+- **Metric Cards:** Rounded glass panels displaying active sensor readings. Large Outfit/Inter digits glowing with appropriate status colors (`opsCyan`, `opsGreen`, `opsYellow`, `opsRed`).
 - **Interactive Forms:** Boxed fields with high-opacity borders that glow and transition their outline color when focused.
-- **Tables:** Alternating rows using slight background shifts, translucent cian borders, and rounded headers for a clean, grid-integrated look.
+- **Tables:** Alternating rows using slight background shifts, translucent borders, and rounded headers for a clean, grid-integrated look.

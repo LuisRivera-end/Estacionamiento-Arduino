@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Box, Container, HStack, Link } from "@chakra-ui/react";
+import { Box, Container, HStack, Heading, Link } from "@chakra-ui/react";
 import NextLink from "next/link";
 import { usePathname } from "next/navigation";
 import { PaymentStepIndicator } from "@/components/payment/PaymentStepIndicator";
+import { getPublicParkingName } from "@/lib/api/admin-settings";
 
 function ColorModeToggle() {
   const [isDark, setIsDark] = useState(true);
@@ -70,8 +71,21 @@ function ColorModeToggle() {
     </button>
   );
 }
-export function PaymentShell({ children }: { children: React.ReactNode }) {
+export function PaymentShell({
+  children,
+  maxW = "580px",
+}: {
+  children: React.ReactNode;
+  maxW?: any;
+}) {
   const pathname = usePathname() || "";
+  const [parkingName, setParkingName] = useState<string>("Parking Ops");
+
+  useEffect(() => {
+    getPublicParkingName().then((name) => {
+      setParkingName(name);
+    });
+  }, []);
 
   const isHelpActive = pathname.startsWith("/ayuda");
   const isPayActive =
@@ -101,7 +115,22 @@ export function PaymentShell({ children }: { children: React.ReactNode }) {
       pt={{ base: "12", md: "20" }}
       pb={{ base: "16", md: "24" }}
     >
-      <Container maxW="580px" px={{ base: "4", md: "6" }}>
+      <Container maxW={maxW} px={{ base: "4", md: "6" }}>
+        <Box textAlign="center" mb="8">
+          <Heading
+            as="h1"
+            fontFamily="var(--font-outfit)"
+            fontSize={{ base: "2xl", md: "3xl" }}
+            fontWeight="900"
+            letterSpacing="0.1em"
+            textTransform="uppercase"
+            color="opsCyan"
+            textShadow="0 0 20px rgba(14, 165, 233, 0.3)"
+          >
+            {parkingName}
+          </Heading>
+        </Box>
+
         {currentStep !== null && (
           <Box mb="10" w="full">
             <PaymentStepIndicator current={currentStep} />
