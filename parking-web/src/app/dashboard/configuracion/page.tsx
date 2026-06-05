@@ -1,4 +1,4 @@
-import { Grid, Heading } from "@chakra-ui/react";
+import { Box, Grid, Heading } from "@chakra-ui/react";
 import { redirect } from "next/navigation";
 
 import { DataTable } from "@/components/dashboard/DataTable";
@@ -18,17 +18,27 @@ export default async function SettingsPage() {
   return (
     <Grid gap="5">
       <Heading color="opsText">Configuracion</Heading>
-      <SettingsEditor initialSettings={settings} />
-      <DataTable
-        headers={["Parametro", "Valor"]}
-        rows={[
-          ["Nombre", settings.parking_name],
-          ["Capacidad", settings.capacity_total],
-          ["Zona horaria", settings.timezone],
-          ["Moneda", settings.currency],
-          ["Expiracion boletos (horas)", settings.ticket_expiration_hours],
-        ]}
-      />
+
+      <Grid templateColumns={{ base: "1fr", lg: "1.2fr 1fr" }} gap="6" alignItems="start">
+        {/* Table on the left */}
+        <Box>
+          <DataTable
+            headers={["Parametro", "Valor"]}
+            rows={[
+              ["Nombre", settings.parking_name],
+              ["Capacidad", settings.capacity_total],
+              ["Zona horaria", settings.timezone],
+              ["Moneda", settings.currency],
+              ["Expiracion boletos (horas)", settings.ticket_expiration_hours],
+            ]}
+          />
+        </Box>
+
+        {/* Form on the right, sticky */}
+        <Box position={{ lg: "sticky" }} top={{ lg: "24px" }} alignSelf="start">
+          <SettingsEditor initialSettings={settings} />
+        </Box>
+      </Grid>
     </Grid>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Button, Checkbox, Field, Input, Stack, Text } from "@chakra-ui/react";
+import { Button, Checkbox, Field, Grid, Input, Stack, Text } from "@chakra-ui/react";
 
 import { updatePricingRule } from "@/lib/api/admin-settings";
 import type { PricingRule } from "@/lib/api/types";
@@ -138,93 +138,100 @@ export function PricingEditor({ initialPricing }: PricingEditorProps) {
       borderColor="opsBorder"
       borderRadius="xl"
       borderWidth="1px"
-      gap="4"
-      p="5"
-      maxW="xl"
+      gap="6"
+      p="6"
+      maxW="4xl"
+      w="full"
     >
-      <Field.Root required>
-        <Field.Label>Nombre de regla</Field.Label>
-        <Input value={name} onChange={(event) => setName(event.target.value)} />
-      </Field.Root>
-      <Field.Root required>
-        <Field.Label>Tolerancia gratis (min)</Field.Label>
-        <Input
-          type="number"
-          value={numbers.freeToleranceMinutes}
-          onChange={(event) => setNumberField("freeToleranceMinutes", event.target.value)}
-        />
-      </Field.Root>
-      <Field.Root required>
-        <Field.Label>Duracion por bloque (min)</Field.Label>
-        <Input
-          type="number"
-          value={numbers.blockMinutes}
-          onChange={(event) => setNumberField("blockMinutes", event.target.value)}
-        />
-      </Field.Root>
-      <Field.Root required>
-        <Field.Label>Monto por bloque (MXN)</Field.Label>
-        <Input
-          type="number"
-          value={numbers.blockAmount}
-          onChange={(event) => setNumberField("blockAmount", event.target.value)}
-        />
-      </Field.Root>
-      <Field.Root required>
-        <Field.Label>Cuota ticket extraviado (MXN)</Field.Label>
-        <Input
-          type="number"
-          value={numbers.lostTicketFee}
-          onChange={(event) => setNumberField("lostTicketFee", event.target.value)}
-        />
-      </Field.Root>
-      <Field.Root required>
-        <Field.Label>Descuento adulto mayor (%)</Field.Label>
-        <Input
-          type="number"
-          value={numbers.seniorDiscountPercent}
-          onChange={(event) => setNumberField("seniorDiscountPercent", event.target.value)}
-        />
-      </Field.Root>
-      <Field.Root required>
-        <Field.Label>Descuento estudiante (%)</Field.Label>
-        <Input
-          type="number"
-          value={numbers.studentDiscountPercent}
-          onChange={(event) => setNumberField("studentDiscountPercent", event.target.value)}
-        />
-      </Field.Root>
-      <Field.Root required>
-        <Field.Label>Dominios escolares permitidos (coma separada)</Field.Label>
-        <Input
-          value={studentAllowedDomains}
-          onChange={(event) => setStudentAllowedDomains(event.target.value)}
-        />
-      </Field.Root>
-      <Checkbox.Root
-        checked={seniorLostTicketEnabled}
-        onCheckedChange={(details) =>
-          setSeniorLostTicketEnabled(details.checked === true)
-        }
-      >
-        <Checkbox.HiddenInput />
-        <Checkbox.Control />
-        <Checkbox.Label>
-          Permitir descuento adulto mayor en ticket extraviado
-        </Checkbox.Label>
-      </Checkbox.Root>
-      <Checkbox.Root
-        checked={studentLostTicketEnabled}
-        onCheckedChange={(details) =>
-          setStudentLostTicketEnabled(details.checked === true)
-        }
-      >
-        <Checkbox.HiddenInput />
-        <Checkbox.Control />
-        <Checkbox.Label>
-          Permitir descuento estudiante en ticket extraviado
-        </Checkbox.Label>
-      </Checkbox.Root>
+      <Grid templateColumns={{ base: "1fr", md: "repeat(3, 1fr)" }} gap="5">
+        <Field.Root required>
+          <Field.Label>Nombre de regla</Field.Label>
+          <Input value={name} onChange={(event) => setName(event.target.value)} />
+        </Field.Root>
+        <Field.Root required>
+          <Field.Label>Tolerancia gratis (min)</Field.Label>
+          <Input
+            type="number"
+            value={numbers.freeToleranceMinutes}
+            onChange={(event) => setNumberField("freeToleranceMinutes", event.target.value)}
+          />
+        </Field.Root>
+        <Field.Root required>
+          <Field.Label>Duracion por bloque (min)</Field.Label>
+          <Input
+            type="number"
+            value={numbers.blockMinutes}
+            onChange={(event) => setNumberField("blockMinutes", event.target.value)}
+          />
+        </Field.Root>
+        <Field.Root required>
+          <Field.Label>Monto por bloque (MXN)</Field.Label>
+          <Input
+            type="number"
+            value={numbers.blockAmount}
+            onChange={(event) => setNumberField("blockAmount", event.target.value)}
+          />
+        </Field.Root>
+        <Field.Root required>
+          <Field.Label>Cuota ticket extraviado (MXN)</Field.Label>
+          <Input
+            type="number"
+            value={numbers.lostTicketFee}
+            onChange={(event) => setNumberField("lostTicketFee", event.target.value)}
+          />
+        </Field.Root>
+        <Field.Root required>
+          <Field.Label>Descuento adulto mayor (%)</Field.Label>
+          <Input
+            type="number"
+            value={numbers.seniorDiscountPercent}
+            onChange={(event) => setNumberField("seniorDiscountPercent", event.target.value)}
+          />
+        </Field.Root>
+        <Field.Root required>
+          <Field.Label>Descuento estudiante (%)</Field.Label>
+          <Input
+            type="number"
+            value={numbers.studentDiscountPercent}
+            onChange={(event) => setNumberField("studentDiscountPercent", event.target.value)}
+          />
+        </Field.Root>
+        <Field.Root required gridColumn={{ md: "span 2" }}>
+          <Field.Label>Dominios escolares permitidos (coma separada)</Field.Label>
+          <Input
+            value={studentAllowedDomains}
+            onChange={(event) => setStudentAllowedDomains(event.target.value)}
+          />
+        </Field.Root>
+      </Grid>
+
+      <Stack gap="3" mt="2">
+        <Checkbox.Root
+          checked={seniorLostTicketEnabled}
+          onCheckedChange={(details) =>
+            setSeniorLostTicketEnabled(details.checked === true)
+          }
+        >
+          <Checkbox.HiddenInput />
+          <Checkbox.Control />
+          <Checkbox.Label>
+            Permitir descuento adulto mayor en ticket extraviado
+          </Checkbox.Label>
+        </Checkbox.Root>
+        <Checkbox.Root
+          checked={studentLostTicketEnabled}
+          onCheckedChange={(details) =>
+            setStudentLostTicketEnabled(details.checked === true)
+          }
+        >
+          <Checkbox.HiddenInput />
+          <Checkbox.Control />
+          <Checkbox.Label>
+            Permitir descuento estudiante en ticket extraviado
+          </Checkbox.Label>
+        </Checkbox.Root>
+      </Stack>
+
       {error ? <Text color="red.300">{error}</Text> : null}
       {success ? <Text color="green.300">{success}</Text> : null}
       <Button colorPalette="cyan" loading={isSaving} onClick={onSave} w="fit-content">
