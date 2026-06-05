@@ -163,7 +163,7 @@ export default function HelpPage() {
               >
                 {section.title}
               </Heading>
-              <Text color="opsMuted" fontSize="sm" textAlign="center" noOfLines={2} fontFamily="var(--font-outfit)">
+              <Text color="opsMuted" fontSize="sm" textAlign="center" lineClamp="2" fontFamily="var(--font-outfit)">
                 {section.description}
               </Text>
               <Text color="opsCyan" fontSize="xs" fontWeight="bold" mt="auto" textTransform="uppercase" letterSpacing="0.05em">

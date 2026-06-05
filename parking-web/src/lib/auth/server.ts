@@ -14,7 +14,13 @@ export async function createSupabaseServerClient() {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options);
+            try {
+              // Next.js only allows cookie writes inside a Server Action or Route Handler.
+              cookieStore.set(name, value, options);
+            } catch {
+              // Ignore writes during Server Component rendering and rely on dedicated
+              // mutation entrypoints to persist refreshed auth cookies.
+            }
           });
         },
       },
