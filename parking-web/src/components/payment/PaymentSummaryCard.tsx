@@ -8,6 +8,7 @@ type PaymentSummaryCardProps = {
   ticket: TicketResponse;
   calculation: TicketCalculation;
   checkoutHref: string;
+  isCheckoutEnabled?: boolean;
 };
 
 function formatDiscountLabel(calculation: TicketCalculation): string {
@@ -24,6 +25,7 @@ export function PaymentSummaryCard({
   ticket,
   calculation,
   checkoutHref,
+  isCheckoutEnabled = true,
 }: PaymentSummaryCardProps) {
   return (
     <Box
@@ -100,27 +102,47 @@ export function PaymentSummaryCard({
           </Text>
         </Flex>
 
-        <Button
-          asChild
-          colorPalette="cyan"
-          w="full"
-          h="16"
-          mt="2"
-          fontFamily="var(--font-outfit)"
-          fontWeight="bold"
-          letterSpacing="0.08em"
-          textTransform="uppercase"
-          bg="opsCyan"
-          color="white"
-          borderRadius="xl"
-          _hover={{
-            bg: "blue.700",
-            transform: "translateY(-2px)",
-          }}
-          transition="all 0.25s cubic-bezier(0.16, 1, 0.3, 1)"
-        >
-          <NextLink href={checkoutHref}>Proceder al Pago</NextLink>
-        </Button>
+        {isCheckoutEnabled ? (
+          <Button
+            asChild
+            colorPalette="cyan"
+            w="full"
+            h="16"
+            mt="2"
+            fontFamily="var(--font-outfit)"
+            fontWeight="bold"
+            letterSpacing="0.08em"
+            textTransform="uppercase"
+            bg="opsCyan"
+            color="white"
+            borderRadius="xl"
+            _hover={{
+              bg: "blue.700",
+              transform: "translateY(-2px)",
+            }}
+            transition="all 0.25s cubic-bezier(0.16, 1, 0.3, 1)"
+          >
+            <NextLink href={checkoutHref}>Proceder al Pago</NextLink>
+          </Button>
+        ) : (
+          <Button
+            disabled
+            w="full"
+            h="16"
+            mt="2"
+            fontFamily="var(--font-outfit)"
+            fontWeight="bold"
+            letterSpacing="0.08em"
+            textTransform="uppercase"
+            borderRadius="xl"
+            bg="opsPanelMuted"
+            color="opsMuted"
+            cursor="not-allowed"
+            opacity="0.6"
+          >
+            Completa la información
+          </Button>
+        )}
       </Stack>
     </Box>
   );

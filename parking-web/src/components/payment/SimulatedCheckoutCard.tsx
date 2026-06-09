@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Box, Button, Field, Flex, Grid, Heading, HStack, Input, Stack, Text } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
+import QRCode from "react-qr-code";
 
 import { simulatePayment } from "@/lib/api/payments";
 import type { DiscountRequest } from "@/lib/api/types";
@@ -65,10 +66,11 @@ export function SimulatedCheckoutCard({
   const router = useRouter();
 
   // Local state for payment method
-  const [paymentMethod, setPaymentMethod] = useState<"card" | "paypal">("card");
+  const [paymentMethod, setPaymentMethod] = useState<"card" | "paypal" | "cash" | "contactless" | "apple_pay" | "google_pay">("card");
+  const [isContactlessScanning, setIsContactlessScanning] = useState(false);
 
   // Local state for credit card form
-  const [cardNumber, setCardNumber] = useState("");
+  const [rawCardNumber, setRawCardNumber] = useState("");
   const [cardName, setCardName] = useState("");
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCvc, setCardCvc] = useState("");
@@ -78,12 +80,48 @@ export function SimulatedCheckoutCard({
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Dynamic masked value for inputs and previews
+  const maskedCardNumber = (() => {
+    if (!rawCardNumber) return "";
+    let masked = "";
+    for (let i = 0; i < rawCardNumber.length; i++) {
+      masked += i < rawCardNumber.length - 4 ? "•" : rawCardNumber[i];
+    }
+    return masked.replace(/(.{4})/g, "$1 ").trim();
+  })();
+
   // Formatters
-  const handleCardNumberChange = (value: string) => {
-    const cleaned = value.replace(/\D/g, "");
-    const formatted = cleaned.slice(0, 16).replace(/(\d{4})(?=\d)/g, "$1 ");
-    setCardNumber(formatted);
+  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (errorMessage) setErrorMessage(null);
+
+    const val = e.target.value;
+    const nativeEvent = e.nativeEvent as InputEvent;
+
+    if (!val.includes("•")) {
+      setRawCardNumber(val.replace(/\D/g, "").slice(0, 16));
+      return;
+    }
+
+    if (nativeEvent.inputType === "deleteContentBackward" || nativeEvent.inputType === "deleteContentForward") {
+      setRawCardNumber(rawCardNumber.slice(0, -1));
+      return;
+    }
+
+    if (nativeEvent.data && /\d/.test(nativeEvent.data)) {
+      if (rawCardNumber.length < 16) {
+        setRawCardNumber(rawCardNumber + nativeEvent.data);
+      }
+      return;
+    }
+
+    const cleanVal = val.replace(/\s/g, "");
+    if (cleanVal.length < rawCardNumber.length) {
+      setRawCardNumber(rawCardNumber.slice(0, cleanVal.length));
+    } else if (cleanVal.length > rawCardNumber.length) {
+      const addedChars = cleanVal.length - rawCardNumber.length;
+      const newChars = cleanVal.slice(-addedChars).replace(/\D/g, "");
+      setRawCardNumber((rawCardNumber + newChars).slice(0, 16));
+    }
   };
 
   const handleExpiryChange = (value: string) => {
@@ -109,9 +147,8 @@ export function SimulatedCheckoutCard({
 
   // Card Network detection
   const getCardType = () => {
-    const cleanNumber = cardNumber.replace(/\s/g, "");
-    if (cleanNumber.startsWith("4")) return "visa";
-    if (cleanNumber.startsWith("5")) return "mastercard";
+    if (rawCardNumber.startsWith("4")) return "visa";
+    if (rawCardNumber.startsWith("5")) return "mastercard";
     return "generic";
   };
 
@@ -119,36 +156,35 @@ export function SimulatedCheckoutCard({
 
   // Form submission handler
   const handlePayment = async () => {
-    if (paymentMethod !== "card") {
-      setErrorMessage("Solo está disponible el pago simulado con tarjeta.");
-      return;
-    }
+    if (paymentMethod === "card") {
+      if (rawCardNumber.length < 16) {
+        setErrorMessage("Por favor ingresa un número de tarjeta válido (16 dígitos).");
+        return;
+      }
 
-    const cleanNum = cardNumber.replace(/\s/g, "");
-    if (cleanNum.length < 16) {
-      setErrorMessage("Por favor ingresa un número de tarjeta válido (16 dígitos).");
-      return;
-    }
+      if (!cardName.trim()) {
+        setErrorMessage("Por favor ingresa el nombre del titular.");
+        return;
+      }
 
-    if (!cardName.trim()) {
-      setErrorMessage("Por favor ingresa el nombre del titular.");
-      return;
-    }
+      if (cardExpiry.length < 5) {
+        setErrorMessage("Por favor ingresa la fecha de vencimiento (MM/AA).");
+        return;
+      }
 
-    if (cardExpiry.length < 5) {
-      setErrorMessage("Por favor ingresa la fecha de vencimiento (MM/AA).");
-      return;
-    }
+      const [monthStr] = cardExpiry.split("/");
+      const month = parseInt(monthStr, 10);
+      if (isNaN(month) || month < 1 || month > 12) {
+        setErrorMessage("Mes de vencimiento inválido. Debe estar entre 01 y 12.");
+        return;
+      }
 
-    const [monthStr, yearStr] = cardExpiry.split("/");
-    const month = parseInt(monthStr, 10);
-    if (isNaN(month) || month < 1 || month > 12) {
-      setErrorMessage("Mes de vencimiento inválido. Debe estar entre 01 y 12.");
-      return;
-    }
-
-    if (cardCvc.length < 3) {
-      setErrorMessage("Por favor ingresa un CVC válido (3 o 4 dígitos).");
+      if (cardCvc.length < 3) {
+        setErrorMessage("Por favor ingresa un CVC válido (3 o 4 dígitos).");
+        return;
+      }
+    } else if (paymentMethod === "paypal") {
+      setErrorMessage("PayPal no está disponible en la simulación. Selecciona otro método.");
       return;
     }
 
@@ -161,6 +197,15 @@ export function SimulatedCheckoutCard({
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleContactlessScan = () => {
+    setIsContactlessScanning(true);
+    setErrorMessage(null);
+    setTimeout(() => {
+      setIsContactlessScanning(false);
+      handlePayment();
+    }, 5000);
   };
 
   return (
@@ -183,46 +228,43 @@ export function SimulatedCheckoutCard({
         </Heading>
 
         {/* Payment Methods Selector (Stripe-like) */}
-        <Grid templateColumns="repeat(2, 1fr)" gap="2.5">
-          <Button
-            onClick={() => setPaymentMethod("card")}
-            variant={paymentMethod === "card" ? "solid" : "outline"}
-            borderColor={paymentMethod === "card" ? "opsCyan" : "opsBorder"}
-            bg={paymentMethod === "card" ? "rgba(14, 165, 233, 0.1)" : "transparent"}
-            color={paymentMethod === "card" ? "opsText" : "opsMuted"}
-            h="12"
-            borderRadius="lg"
-            fontSize="xs"
-            fontWeight="bold"
-            letterSpacing="0.05em"
-            textTransform="uppercase"
-            fontFamily="var(--font-outfit)"
-            display="flex"
-            gap="2"
-            _hover={{ bg: "rgba(14, 165, 233, 0.08)" }}
-          >
-            💳 Tarjeta
-          </Button>
-          <Button
-            onClick={() => setPaymentMethod("paypal")}
-            variant={paymentMethod === "paypal" ? "solid" : "outline"}
-            borderColor={paymentMethod === "paypal" ? "opsCyan" : "opsBorder"}
-            bg={paymentMethod === "paypal" ? "rgba(14, 165, 233, 0.1)" : "transparent"}
-            color={paymentMethod === "paypal" ? "opsText" : "opsMuted"}
-            h="12"
-            borderRadius="lg"
-            fontSize="xs"
-            fontWeight="bold"
-            letterSpacing="0.05em"
-            textTransform="uppercase"
-            fontFamily="var(--font-outfit)"
-            display="flex"
-            gap="2"
-            _hover={{ bg: "rgba(14, 165, 233, 0.08)" }}
-          >
-            🌐 PayPal
-          </Button>
-        </Grid>
+        <Flex gap="2.5" wrap="wrap" justify="space-between">
+          {[
+            { id: "card", label: "💳 Tarjeta", short: "Tarjeta" },
+            { id: "paypal", label: "🌐 PayPal", short: "PayPal" },
+            { id: "cash", label: "💵 Efectivo", short: "Efectivo" },
+            { id: "contactless", label: "🛜 NFC", short: "NFC" },
+            { id: "apple_pay", label: " Apple Pay", short: "Apple" },
+            { id: "google_pay", label: "G Google Pay", short: "Google" },
+          ].map((method) => {
+            const isSelected = paymentMethod === method.id;
+            return (
+              <Button
+                key={method.id}
+                onClick={() => setPaymentMethod(method.id as "card" | "paypal" | "cash" | "contactless" | "apple_pay" | "google_pay")}
+                variant={isSelected ? "solid" : "outline"}
+                borderColor={isSelected ? "opsCyan" : "opsBorder"}
+                bg={isSelected ? "rgba(14, 165, 233, 0.1)" : "transparent"}
+                color={isSelected ? "opsText" : "opsMuted"}
+                h="12"
+                flex={{ base: "1 1 45%", md: "1 1 30%" }}
+                borderRadius="lg"
+                fontSize={{ base: "xs", md: "sm" }}
+                fontWeight="bold"
+                letterSpacing="0.05em"
+                textTransform="uppercase"
+                fontFamily="var(--font-outfit)"
+                display="flex"
+                gap="2"
+                _hover={{ bg: "rgba(14, 165, 233, 0.08)" }}
+                px="2"
+              >
+                <Text display={{ base: "none", sm: "block" }}>{method.label}</Text>
+                <Text display={{ base: "block", sm: "none" }}>{method.short}</Text>
+              </Button>
+            );
+          })}
+        </Flex>
 
         {paymentMethod === "card" ? (
           <Stack gap="5">
@@ -249,14 +291,16 @@ export function SimulatedCheckoutCard({
                 Número de Tarjeta
               </Field.Label>
               <Input
+                type="text"
                 bg="opsPanelMuted"
                 borderColor="opsBorder"
                 borderRadius="xl"
                 h="12"
-                placeholder="4000 1234 5678 9010"
-                value={cardNumber}
-                onChange={(e) => handleCardNumberChange(e.target.value)}
+                placeholder="•••• •••• •••• ••••"
+                value={maskedCardNumber}
+                onChange={handleCardNumberChange}
                 _focus={{ borderColor: "opsCyan", bg: "opsPanel" }}
+                autoComplete="cc-number"
               />
             </Field.Root>
 
@@ -275,6 +319,7 @@ export function SimulatedCheckoutCard({
                   value={cardExpiry}
                   onChange={(e) => handleExpiryChange(e.target.value)}
                   _focus={{ borderColor: "opsCyan", bg: "opsPanel" }}
+                  autoComplete="cc-exp"
                 />
               </Field.Root>
               <Field.Root required>
@@ -282,19 +327,122 @@ export function SimulatedCheckoutCard({
                   Código CVC
                 </Field.Label>
                 <Input
+                  type="password"
                   bg="opsPanelMuted"
                   borderColor="opsBorder"
                   borderRadius="xl"
                   h="12"
-                  placeholder="123"
+                  placeholder="•••"
                   value={cardCvc}
                   onChange={(e) => handleCvcChange(e.target.value)}
                   onFocus={() => setIsFlipped(true)}
                   onBlur={() => setIsFlipped(false)}
                   _focus={{ borderColor: "opsCyan", bg: "opsPanel" }}
+                  autoComplete="cc-csc"
                 />
               </Field.Root>
             </Grid>
+          </Stack>
+        ) : paymentMethod === "cash" ? (
+          <Stack
+            bg="opsPanelMuted"
+            border="1px dashed"
+            borderColor="opsBorder"
+            p="10"
+            borderRadius="xl"
+            align="center"
+            gap="6"
+          >
+            <Box w="24" h="2" bg="black" borderRadius="full" boxShadow="inset 0 2px 4px rgba(0,0,0,0.5)" />
+            <Text color="opsMuted" fontSize="sm" textAlign="center">
+              Inserta tus billetes o monedas en la ranura simulada.
+            </Text>
+            <Button
+              bg="green.500"
+              color="white"
+              _hover={{ bg: "green.600" }}
+              onClick={handlePayment}
+              loading={isLoading}
+            >
+              💵 Simular Ingreso de Efectivo
+            </Button>
+          </Stack>
+        ) : paymentMethod === "contactless" ? (
+          <Stack
+            bg="opsPanelMuted"
+            border="1px dashed"
+            borderColor="opsBorder"
+            p="10"
+            borderRadius="xl"
+            align="center"
+            gap="6"
+          >
+            <Box
+              position="relative"
+              w="24"
+              h="24"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              borderRadius="full"
+              bg={isContactlessScanning ? "rgba(14, 165, 233, 0.2)" : "opsPanel"}
+              transition="all 0.3s"
+              border="2px solid"
+              borderColor={isContactlessScanning ? "opsCyan" : "opsBorder"}
+              className={isContactlessScanning ? "pulse-glow" : ""}
+            >
+              <Text fontSize="4xl">🛜</Text>
+            </Box>
+            <Text color="opsMuted" fontSize="sm" textAlign="center">
+              Acerca tu tarjeta o dispositivo NFC a la terminal.
+            </Text>
+            <Button
+              bg="opsCyan"
+              color="white"
+              _hover={{ bg: "blue.600" }}
+              onClick={handleContactlessScan}
+              loading={isContactlessScanning || isLoading}
+              loadingText="Procesando 5s..."
+            >
+              Acercar Dispositivo
+            </Button>
+          </Stack>
+        ) : paymentMethod === "apple_pay" || paymentMethod === "google_pay" ? (
+          <Stack
+            bg={paymentMethod === "apple_pay" ? "black" : "white"}
+            border="1px dashed"
+            borderColor="opsBorder"
+            p="10"
+            borderRadius="xl"
+            align="center"
+            gap="6"
+          >
+            <Text 
+              color={paymentMethod === "apple_pay" ? "white" : "black"} 
+              fontSize="2xl" 
+              fontWeight="bold"
+            >
+              {paymentMethod === "apple_pay" ? " Apple Pay" : "G Google Pay"}
+            </Text>
+            <Box bg="white" p="4" borderRadius="lg">
+              <QRCode value={`payment-${ticketCode}`} size={160} />
+            </Box>
+            <Text 
+              color={paymentMethod === "apple_pay" ? "gray.400" : "gray.600"} 
+              fontSize="sm" 
+              textAlign="center"
+            >
+              Escanea el código QR desde tu celular para simular el pago con {paymentMethod === "apple_pay" ? "Apple Pay" : "Google Pay"}.
+            </Text>
+            <Button
+              bg={paymentMethod === "apple_pay" ? "white" : "blue.500"}
+              color={paymentMethod === "apple_pay" ? "black" : "white"}
+              _hover={{ bg: paymentMethod === "apple_pay" ? "gray.200" : "blue.600" }}
+              onClick={handlePayment}
+              loading={isLoading}
+            >
+              Simular Escaneo
+            </Button>
           </Stack>
         ) : (
           <Box
@@ -306,7 +454,7 @@ export function SimulatedCheckoutCard({
             textAlign="center"
           >
             <Text color="opsMuted" fontSize="sm">
-              Método de pago no disponible en la simulación. Selecciona 💳 Tarjeta para continuar.
+              Método de pago no disponible en la simulación. Selecciona otro método para continuar.
             </Text>
           </Box>
         )}
@@ -349,25 +497,28 @@ export function SimulatedCheckoutCard({
             </Text>
           ) : null}
 
-          <Button
-            bg="opsCyan"
-            color="white"
-            h="14"
-            fontFamily="var(--font-outfit)"
-            fontWeight="bold"
-            letterSpacing="0.08em"
-            textTransform="uppercase"
-            borderRadius="xl"
-            _hover={{
-              bg: "blue.700",
-              transform: "translateY(-2px)",
-            }}
-            transition="all 0.25s cubic-bezier(0.16, 1, 0.3, 1)"
-            loading={isLoading}
-            onClick={handlePayment}
-          >
-            Pagar boleto
-          </Button>
+          {paymentMethod === "card" && (
+            <Button
+              bg="opsCyan"
+              color="white"
+              h="14"
+              fontFamily="var(--font-outfit)"
+              fontWeight="bold"
+              letterSpacing="0.08em"
+              textTransform="uppercase"
+              borderRadius="xl"
+              _hover={{
+                bg: "blue.700",
+                transform: "translateY(-2px)",
+              }}
+              transition="all 0.25s cubic-bezier(0.16, 1, 0.3, 1)"
+              loading={isLoading}
+              onClick={handlePayment}
+            >
+              Pagar boleto
+            </Button>
+          )}
+
           <Button
             variant="outline"
             borderColor="opsBorder"
@@ -380,6 +531,7 @@ export function SimulatedCheckoutCard({
             _hover={{ bg: "rgba(229, 237, 247, 0.04)" }}
             onClick={() => router.push(`/pagar/${ticketCode}`)}
             transition="all 0.25s"
+            disabled={isLoading || isContactlessScanning}
           >
             Volver
           </Button>
@@ -441,7 +593,7 @@ export function SimulatedCheckoutCard({
               textShadow="0 2px 4px rgba(0,0,0,0.5)"
               my="4"
             >
-              {cardNumber || "•••• •••• •••• ••••"}
+              {maskedCardNumber || "•••• •••• •••• ••••"}
             </Text>
 
             <Flex justify="space-between" align="flex-end">
@@ -513,7 +665,7 @@ export function SimulatedCheckoutCard({
                   color="black"
                   letterSpacing="0.05em"
                 >
-                  {cardCvc || "•••"}
+                  {cardCvc ? cardCvc.replace(/./g, "•") : "•••"}
                 </Text>
               </Flex>
             </Stack>

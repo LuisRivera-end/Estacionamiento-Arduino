@@ -8,7 +8,6 @@ import { getBrowserAccessToken } from "@/lib/auth/client";
 
 export function TestTicketFAB() {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showTooltip, setShowTooltip] = useState(false);
   // Chakra v3 toast hook usage - we mock it or use standard DOM if standard chakra toast isn't available
   // To avoid breaking, I'll use a standard alert for now, but in a real app we'd use the correct toast from context.
   

@@ -108,6 +108,13 @@ export function PaymentSummaryClient({
     }
   }
 
+  const isDiscountComplete = useMemo(() => {
+    if (discountType === "none") return true;
+    if (discountType === "student") return studentEmail.trim().length > 0;
+    if (discountType === "senior") return seniorIdentifierValue.trim().length > 0;
+    return false;
+  }, [discountType, studentEmail, seniorIdentifierValue]);
+
   return (
     <Grid templateColumns={{ base: "1fr", lg: "1.2fr 1fr" }} gap="6" alignItems="start">
       {/* Resumen de Ticket is on the left */}
@@ -116,6 +123,7 @@ export function PaymentSummaryClient({
           calculation={calculation}
           checkoutHref={checkoutHref}
           ticket={ticket}
+          isCheckoutEnabled={isDiscountComplete}
         />
       </Box>
 
