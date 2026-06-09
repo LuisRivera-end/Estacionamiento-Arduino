@@ -23,6 +23,7 @@ class AdminTicketItemResponse(BaseModel):
     exit_at: datetime | None
     calculated_amount: int
     lost_ticket: bool
+    is_expired: bool = False
     archive_reason: str | None = None
     archived_at: datetime | None = None
 

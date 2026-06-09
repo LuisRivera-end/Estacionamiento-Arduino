@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, time, timedelta
+from datetime import UTC, datetime, time, timedelta
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -21,12 +21,26 @@ def day_window(now: datetime) -> tuple[datetime, datetime]:
 
 async def get_status_summary(session: AsyncSession) -> StatusResponse:
     parking_repository = ParkingRepository(session)
+    ticket_repository = TicketRepository(session)
     settings = await parking_repository.get_settings()
     state = await parking_repository.get_state()
+
+    # Correct counters in real-time: expired tickets that haven't been archived yet
+    # still appear as active in ParkingState but should not count as occupied.
+    expired_count = 0
+    if settings.ticket_expiration_minutes > 0:
+        now = datetime.now(UTC)
+        expired_count = await ticket_repository.count_expired_active(
+            expiration_minutes=settings.ticket_expiration_minutes, now=now
+        )
+
+    real_occupied = max(state.occupied_spaces - expired_count, 0)
+    real_active = max(state.active_tickets_count - expired_count, 0)
+
     return build_status_response(
         capacity_total=settings.capacity_total,
-        occupied_spaces=state.occupied_spaces,
-        active_tickets=state.active_tickets_count,
+        occupied_spaces=real_occupied,
+        active_tickets=real_active,
         last_entry_at=state.last_entry_at,
         last_exit_at=state.last_exit_at,
     )

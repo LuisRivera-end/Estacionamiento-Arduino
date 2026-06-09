@@ -1,5 +1,5 @@
 import NextLink from "next/link";
-import { Box, Button, Grid, Heading, HStack, Input, Text } from "@chakra-ui/react";
+import { Badge, Box, Button, Grid, Heading, HStack, Input, Text } from "@chakra-ui/react";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const SelectBox = Box as any;
@@ -10,6 +10,7 @@ import { DataTable } from "@/components/dashboard/DataTable";
 import { getAdminTickets } from "@/lib/api/reports";
 import { getServerAccessToken } from "@/lib/auth/server";
 import { formatCurrency, formatDateTime } from "@/lib/formatters";
+import type { AdminTicketItem } from "@/lib/api/types";
 
 type DashboardSearchParams = Record<string, string | string[] | undefined>;
 
@@ -35,6 +36,44 @@ function buildPageHref(
   }
   params.set("page", String(targetPage));
   return `/dashboard/tickets?${params.toString()}`;
+}
+
+function StatusBadge({ ticket }: { ticket: AdminTicketItem }) {
+  if (ticket.is_expired) {
+    return (
+      <Badge
+        colorPalette="orange"
+        variant="subtle"
+        display="inline-flex"
+        alignItems="center"
+        gap="1"
+        px="2"
+        py="0.5"
+        borderRadius="md"
+        fontSize="xs"
+        fontWeight="semibold"
+        borderWidth="1px"
+        borderColor="orange.400"
+        color="orange.300"
+        bg="rgba(251,146,60,0.12)"
+      >
+        ⏱ Caducado
+      </Badge>
+    );
+  }
+
+  const colorMap: Record<string, string> = {
+    active: "green",
+    exited: "cyan",
+    cancelled: "red",
+  };
+  const palette = colorMap[ticket.status] ?? "gray";
+
+  return (
+    <Badge colorPalette={palette} variant="subtle" borderRadius="md" fontSize="xs">
+      {ticket.status}
+    </Badge>
+  );
 }
 
 export default async function TicketsPage({
@@ -123,7 +162,7 @@ export default async function TicketsPage({
         headers={["Código", "Estado", "Pago", "Entrada", "Monto", "Extraviado"]}
         rows={ticketsPage.items.map((ticket) => [
           ticket.ticket_code,
-          ticket.status,
+          <StatusBadge key={ticket.ticket_code} ticket={ticket} />,
           ticket.payment_status,
           formatDateTime(ticket.entry_at),
           formatCurrency(ticket.calculated_amount, "MXN"),
@@ -161,3 +200,4 @@ export default async function TicketsPage({
     </Grid>
   );
 }
+

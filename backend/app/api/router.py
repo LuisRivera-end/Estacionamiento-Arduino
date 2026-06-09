@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from app.api.routes import (
     admin_backups,
+    admin_dev,
     admin_reports,
     admin_settings,
     admin_users,
@@ -26,3 +27,4 @@ api_router.include_router(admin_reports.router, prefix="/admin/reports", tags=["
 api_router.include_router(admin_settings.router, prefix="/admin", tags=["admin-settings"])
 api_router.include_router(admin_backups.router, prefix="/admin/backups", tags=["admin-backups"])
 api_router.include_router(admin_users.router, prefix="/admin/users", tags=["admin-users"])
+api_router.include_router(admin_dev.router, prefix="/admin", tags=["admin-dev"])

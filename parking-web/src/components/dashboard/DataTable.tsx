@@ -1,8 +1,9 @@
 import { Box, Table } from "@chakra-ui/react";
+import type { ReactNode } from "react";
 
 type DataTableProps = {
   headers: string[];
-  rows: Array<Array<string | number>>;
+  rows: Array<Array<ReactNode>>;
 };
 
 export function DataTable({ headers, rows }: DataTableProps) {

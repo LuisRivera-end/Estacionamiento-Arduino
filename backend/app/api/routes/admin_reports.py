@@ -11,6 +11,7 @@ from app.connectors.supabase_auth import SupabaseJWTVerifier
 from app.db.session import get_session
 from app.models.enums import PaymentMethod, PaymentResult, PaymentStatus, TicketStatus
 from app.repositories.archived_tickets import ArchivedTicketRepository
+from app.repositories.parking import ParkingRepository
 from app.repositories.payments import PaymentRepository
 from app.repositories.staff import StaffRepository
 from app.repositories.tickets import TicketRepository
@@ -25,6 +26,7 @@ from app.schemas.reports import (
 )
 from app.services.admin_reports import get_daily_summary
 from app.services.realtime import admin_events_broker
+from app.services.ticket_expiration import is_ticket_expired
 
 router = APIRouter()
 
@@ -86,6 +88,11 @@ async def report_tickets(
     session: AsyncSession = Depends(get_session),
 ) -> AdminTicketsPageResponse:
     offset = (page - 1) * page_size
+
+    # Fetch expiration config once to annotate each active ticket.
+    parking_settings = await ParkingRepository(session).get_settings()
+    expiration_minutes = parking_settings.ticket_expiration_minutes
+
     tickets, total = await TicketRepository(session).list_for_admin(
         offset=offset,
         limit=page_size,
@@ -104,6 +111,11 @@ async def report_tickets(
             exit_at=ticket.exit_at,
             calculated_amount=ticket.calculated_amount,
             lost_ticket=ticket.lost_ticket,
+            is_expired=(
+                expiration_minutes > 0
+                and ticket.status == TicketStatus.ACTIVE
+                and is_ticket_expired(ticket.entry_at, expiration_minutes)
+            ),
         )
         for ticket in tickets
     ]
@@ -130,6 +142,7 @@ async def report_tickets(
                         exit_at=at.exit_at,
                         calculated_amount=at.calculated_amount,
                         lost_ticket=at.lost_ticket,
+                        is_expired=False,
                         archive_reason=str(at.archive_reason),
                         archived_at=at.archived_at,
                     )

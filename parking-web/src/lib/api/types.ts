@@ -22,6 +22,14 @@ export type StatusResponse = {
   last_exit_at: string | null;
 };
 
+export type EntryTicketResponse = {
+  ticket_code: string;
+  entry_at: string;
+  status: string;
+  payment_status: string;
+  available_spaces: number;
+};
+
 export type TicketResponse = {
   ticket_code: string;
   status: TicketStatus;
@@ -112,6 +120,7 @@ export type AdminTicketItem = {
   exit_at: string | null;
   calculated_amount: number;
   lost_ticket: boolean;
+  is_expired: boolean;
   archive_reason: string | null;
   archived_at: string | null;
 };

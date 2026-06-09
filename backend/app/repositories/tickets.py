@@ -152,3 +152,19 @@ class TicketRepository:
             .with_for_update()
         )
         return list((await self.session.execute(statement)).scalars().all())
+
+    async def count_expired_active(self, expiration_minutes: int, now: datetime) -> int:
+        """Count active tickets past the expiration window (read-only, no lock)."""
+        from datetime import timedelta
+
+        cutoff = now - timedelta(minutes=expiration_minutes)
+        statement = (
+            select(func.count())
+            .select_from(Ticket)
+            .where(
+                Ticket.status == TicketStatus.ACTIVE,
+                Ticket.entry_at <= cutoff,
+            )
+        )
+        return int((await self.session.execute(statement)).scalar_one())
+

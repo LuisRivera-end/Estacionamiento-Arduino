@@ -2,6 +2,7 @@ import { Box, Flex } from "@chakra-ui/react";
 
 import { DashboardRealtimeSync } from "./DashboardRealtimeSync";
 import { SidebarNav } from "./SidebarNav";
+import { TestTicketFAB } from "./TestTicketFAB";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
@@ -16,6 +17,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {children}
         </Box>
       </Box>
+      <TestTicketFAB />
     </Flex>
   );
 }
