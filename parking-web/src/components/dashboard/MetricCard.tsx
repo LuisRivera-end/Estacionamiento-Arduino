@@ -14,21 +14,6 @@ const colorByTone: Record<NonNullable<MetricCardProps["tone"]>, string> = {
   cyan: "opsCyan",
 };
 
-const glowClassByTone: Record<NonNullable<MetricCardProps["tone"]>, string> = {
-  default: "neon-glow-cyan",
-  cyan: "neon-glow-cyan",
-  green: "neon-glow-green",
-  yellow: "neon-glow-yellow",
-  red: "neon-glow-red",
-};
-
-const textShadowByTone: Record<NonNullable<MetricCardProps["tone"]>, string> = {
-  default: "0 0 12px rgba(229, 237, 247, 0.2)",
-  cyan: "0 0 12px rgba(6, 182, 212, 0.4)",
-  green: "0 0 12px rgba(16, 185, 129, 0.4)",
-  yellow: "0 0 12px rgba(245, 158, 11, 0.4)",
-  red: "0 0 12px rgba(239, 68, 68, 0.4)",
-};
 
 export function MetricCard({
   label,

@@ -21,6 +21,7 @@ export function GlobalColorModeToggle() {
     const stored = localStorage.getItem("chakra-color-mode");
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     const dark = stored ? stored !== "light" : prefersDark;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsDark(dark);
     applyTheme(dark);
   }, []);
