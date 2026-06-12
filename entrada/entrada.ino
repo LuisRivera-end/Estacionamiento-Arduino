@@ -226,6 +226,7 @@ void registrarEntrada() {
       }
 
       delay(800);
+      delay(3000); // 3 segundos extras para que pase el carro
       servoMotor.write(0); // Cerrar barrera
     } else {
       mostrarError(F("Error Respuesta"));

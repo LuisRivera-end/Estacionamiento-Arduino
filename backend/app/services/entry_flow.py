@@ -17,6 +17,18 @@ from app.services.realtime import admin_events_broker
 from app.services.ticket_codes import generate_ticket_code
 
 
+async def _count_expired(
+    ticket_repository: TicketRepository,
+    expiration_minutes: int,
+) -> int:
+    """Return the number of expired-but-not-yet-archived active tickets."""
+    if expiration_minutes <= 0:
+        return 0
+    return await ticket_repository.count_expired_active(
+        expiration_minutes=expiration_minutes, now=datetime.now(UTC)
+    )
+
+
 async def create_entry_ticket(*, session: AsyncSession, device_id: str) -> EntryTicketResponse:
     audit_repository = AuditRepository(session)
     device_repository = DeviceRepository(session)
@@ -29,7 +41,12 @@ async def create_entry_ticket(*, session: AsyncSession, device_id: str) -> Entry
 
     state = await parking_repository.lock_state()
     settings = await parking_repository.get_settings()
-    available_spaces = settings.capacity_total - state.occupied_spaces
+
+    # Discount expired tickets that haven't been archived yet, matching the
+    # admin panel logic in get_status_summary.
+    expired_count = await _count_expired(ticket_repository, settings.ticket_expiration_minutes)
+    real_occupied = max(state.occupied_spaces - expired_count, 0)
+    available_spaces = settings.capacity_total - real_occupied
 
     if available_spaces <= 0:
         await audit_repository.log(
@@ -38,7 +55,7 @@ async def create_entry_ticket(*, session: AsyncSession, device_id: str) -> Entry
             actor_id=device_id,
             payload={
                 "capacity_total": settings.capacity_total,
-                "occupied_spaces": state.occupied_spaces,
+                "occupied_spaces": real_occupied,
             },
         )
         await session.commit()
@@ -79,10 +96,14 @@ async def create_entry_ticket(*, session: AsyncSession, device_id: str) -> Entry
         }
     )
 
+    # Recount expired after commit (the new ticket is fresh, won't be expired)
+    expired_count = await _count_expired(ticket_repository, settings.ticket_expiration_minutes)
+    real_occupied = max(state.occupied_spaces - expired_count, 0)
+
     return EntryTicketResponse(
         ticket_code=ticket.code,
         entry_at=ticket.entry_at,
         status=TicketStatus(ticket.status),
         payment_status=PaymentStatus(ticket.payment_status),
-        available_spaces=max(settings.capacity_total - state.occupied_spaces, 0),
+        available_spaces=max(settings.capacity_total - real_occupied, 0),
     )

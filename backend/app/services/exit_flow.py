@@ -12,6 +12,7 @@ from app.repositories.devices import DeviceRepository
 from app.repositories.parking import ParkingRepository
 from app.repositories.tickets import TicketRepository
 from app.schemas.tickets import ExitValidationResponse
+from app.services.entry_flow import _count_expired
 from app.services.pricing import calculate_amount, calculate_duration_minutes
 from app.services.realtime import admin_events_broker
 from app.services.ticket_expiration import is_ticket_expired
@@ -103,10 +104,14 @@ async def validate_exit(
         }
     )
 
+    # Discount expired tickets to match admin panel logic
+    expired_count = await _count_expired(ticket_repository, settings.ticket_expiration_minutes)
+    real_occupied = max(state.occupied_spaces - expired_count, 0)
+
     return ExitValidationResponse(
         authorized=True,
         message="Salida autorizada",
         ticket_code=ticket.code,
         exit_at=ticket.exit_at,
-        available_spaces=max(settings.capacity_total - state.occupied_spaces, 0),
+        available_spaces=max(settings.capacity_total - real_occupied, 0),
     )
