@@ -1,0 +1,207 @@
+# =============================================================================
+# Estacionamiento — Stack LOCAL completo en Docker
+# =============================================================================
+# Modo primario LOCAL para entornos con internet inestable (escuela). Todo el
+# sistema corre en la laptop; Render/Supabase quedan como fallback del puente y
+# como destino de la sincronización local -> nube.
+#
+# Arranque:
+#   docker compose --env-file .env.docker up -d --build
+#
+# Puertos publicados (en el host):
+#   4000  frontend (Next.js)
+#   8000  backend  (FastAPI)
+#   8080  bridge   (puente Arduino — los ESP8266 ya apuntan aquí)
+#   9999  auth     (proxy nginx -> GoTrue)
+#   5433  postgres (-> 5432 interno)
+# =============================================================================
+
+# Entorno compartido por backend y scheduler (misma imagen, distinto comando).
+x-backend-env: &backend-env
+  APP_ENV: development
+  LOG_LEVEL: INFO
+  ALLOWED_ORIGINS: "http://localhost:4000,http://${LAN_HOST}:4000"
+  BOOTSTRAP_FIRST_USER_AS_ADMIN: "true"
+  # Base de datos LOCAL (este mismo Postgres en Docker).
+  SUPABASE_DB_URL: "postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/postgres"
+  # Verificación de JWT en modo HS256 con GoTrue local (no requiere internet/JWKS).
+  SUPABASE_JWT_SECRET: "${LOCAL_JWT_SECRET}"
+  SUPABASE_URL: "http://${LAN_HOST}:9999"
+  # Tokens de dispositivo: deben ser los MISMOS que en Render para que los
+  # Arduino manden los mismos headers tanto al backend local como al fallback.
+  API_DEVICE_TOKEN_ENTRY: "${API_DEVICE_TOKEN_ENTRY}"
+  API_DEVICE_TOKEN_EXIT: "${API_DEVICE_TOKEN_EXIT}"
+  # Sincronización local -> nube (Supabase). Sin REMOTE_DB_URL el sync se apaga.
+  REMOTE_DB_URL: "${REMOTE_DB_URL:-}"
+  SYNC_INTERVAL_MINUTES: "${SYNC_INTERVAL_MINUTES:-10}"
+  SYNC_CONNECT_TIMEOUT_SECONDS: "${SYNC_CONNECT_TIMEOUT_SECONDS:-10}"
+
+services:
+  # ---------------------------------------------------------------------------
+  # PostgreSQL local (misma lógica que usa Supabase). Volumen persistente.
+  # ---------------------------------------------------------------------------
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_DB: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # GoTrue (auth de Supabase) — emite y refresca los JWT del panel admin.
+  # Imagen sobreescribible vía GOTRUE_IMAGE si el tag por defecto no existiera.
+  # ---------------------------------------------------------------------------
+  gotrue:
+    image: "${GOTRUE_IMAGE:-supabase/gotrue:v2.151.0}"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: "9999"
+      PORT: "9999"
+      API_EXTERNAL_URL: "http://${LAN_HOST}:9999"
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: "postgres://postgres:${POSTGRES_PASSWORD}@db:5432/postgres?search_path=auth"
+      GOTRUE_SITE_URL: "http://${LAN_HOST}:4000"
+      GOTRUE_URI_ALLOW_LIST: "http://${LAN_HOST}:4000,http://${LAN_HOST}:4000/*,http://localhost:4000,http://localhost:4000/*"
+      GOTRUE_JWT_SECRET: "${LOCAL_JWT_SECRET}"
+      GOTRUE_JWT_EXP: "3600"
+      GOTRUE_JWT_AUD: authenticated
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      GOTRUE_JWT_ADMIN_ROLES: service_role
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
+      # Sin SMTP: las cuentas quedan confirmadas al instante (devuelve sesión).
+      GOTRUE_MAILER_AUTOCONFIRM: "true"
+      GOTRUE_SMTP_ADMIN_EMAIL: "admin@local"
+      # Tras crear el primer admin, poner GOTRUE_DISABLE_SIGNUP=true en .env.docker.
+      GOTRUE_DISABLE_SIGNUP: "${GOTRUE_DISABLE_SIGNUP:-false}"
+      GOTRUE_PASSWORD_MIN_LENGTH: "8"
+      GOTRUE_LOG_LEVEL: info
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Proxy de auth: traduce /auth/v1/* (lo que manda supabase-js) -> GoTrue.
+  # ---------------------------------------------------------------------------
+  auth-proxy:
+    image: nginx:1.27-alpine
+    depends_on:
+      gotrue:
+        condition: service_started
+    ports:
+      - "9999:80"
+    volumes:
+      - ./docker/auth-proxy/nginx.conf:/etc/nginx/nginx.conf:ro
+    healthcheck:
+      # 127.0.0.1 (no "localhost"): busybox wget resuelve localhost a ::1 (IPv6)
+      # pero nginx escucha en 0.0.0.0 (IPv4) -> daría "connection refused".
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:80/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Backend FastAPI. Corre migraciones al arrancar y sirve la API.
+  # ---------------------------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+    image: parking-backend:local
+    depends_on:
+      db:
+        condition: service_healthy
+    environment: *backend-env
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - "python -c \"import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health').status==200 else 1)\""
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Scheduler: reutiliza la imagen del backend. Corre expire_tickets c/5 min y
+  # el sync push c/SYNC_INTERVAL_MINUTES. Falla en silencio sin internet.
+  # ---------------------------------------------------------------------------
+  scheduler:
+    image: parking-backend:local
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment: *backend-env
+    command: ["python", "-m", "app.scheduler"]
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Puente HTTP Arduino: primario = backend local; fallback = Render.
+  # ---------------------------------------------------------------------------
+  bridge:
+    build:
+      context: ./tools
+      dockerfile: Dockerfile.bridge
+    depends_on:
+      backend:
+        condition: service_started
+    environment:
+      ARDUINO_BRIDGE_HOST: 0.0.0.0
+      ARDUINO_BRIDGE_PORT: "8080"
+      ARDUINO_BRIDGE_TARGET: "http://backend:8000"
+      ARDUINO_BRIDGE_FALLBACK: "${RENDER_FALLBACK_URL:-https://parking-api-9oag.onrender.com}"
+      ARDUINO_BRIDGE_TIMEOUT: "${ARDUINO_BRIDGE_TIMEOUT:-10}"
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8080/health')\""
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Frontend Next.js (standalone). Las NEXT_PUBLIC_* se hornean en el build:
+  # si cambia LAN_HOST hay que reconstruir esta imagen.
+  # ---------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./parking-web
+      args:
+        NEXT_PUBLIC_API_BASE_URL: "http://${LAN_HOST}:8000"
+        NEXT_PUBLIC_SUPABASE_URL: "http://${LAN_HOST}:9999"
+        NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY_LOCAL:-local-anon-key}"
+    depends_on:
+      backend:
+        condition: service_healthy
+      auth-proxy:
+        condition: service_started
+    ports:
+      - "4000:4000"
+    healthcheck:
+      # 127.0.0.1 (no "localhost"): el server standalone escucha en 0.0.0.0 (IPv4)
+      # y busybox wget intentaría ::1 (IPv6) -> "connection refused".
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:4000/login || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+volumes:
+  pgdata:

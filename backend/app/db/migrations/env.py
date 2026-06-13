@@ -8,7 +8,17 @@ from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from app.core.config import get_settings
-from app.models import audit, backup, device, parking, payment, staff, ticket  # noqa: F401
+from app.models import (  # noqa: F401
+    archived_ticket,
+    audit,
+    backup,
+    device,
+    parking,
+    payment,
+    staff,
+    sync_state,
+    ticket,
+)
 from app.models.base import Base
 
 config = context.config

@@ -31,6 +31,13 @@ class Settings(BaseSettings):
 
     bootstrap_first_user_as_admin: bool = True
 
+    # Sincronización local -> nube (solo aplica en el modo Docker local).
+    # Sin remote_db_url el sync queda deshabilitado (p.ej. en Render).
+    remote_db_url: str | None = None
+    sync_interval_minutes: int = 10
+    sync_connect_timeout_seconds: int = 10
+    sync_batch_size: int = 500
+
     @computed_field  # type: ignore[prop-decorator]
     @property
     def effective_supabase_jwks_url(self) -> str | None:
@@ -47,6 +54,15 @@ class Settings(BaseSettings):
     @property
     def effective_supabase_db_url(self) -> str | None:
         db_url = self.supabase_db_url or self.database_url
+        if not db_url:
+            return None
+        if db_url.startswith("postgresql://"):
+            return db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        return db_url
+
+    @property
+    def effective_remote_db_url(self) -> str | None:
+        db_url = self.remote_db_url
         if not db_url:
             return None
         if db_url.startswith("postgresql://"):

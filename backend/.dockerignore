@@ -1,0 +1,23 @@
+# Entornos virtuales y artefactos de Python
+.venv
+venv
+__pycache__
+*.pyc
+*.pyo
+*.egg-info
+.pytest_cache
+.ruff_cache
+.coverage
+htmlcov
+
+# Pruebas (no se necesitan en la imagen de runtime)
+tests
+
+# Secretos y entornos locales (las credenciales se inyectan vía compose)
+.env
+.env.*
+
+# Control de versiones y misc
+.git
+.gitignore
+*.md

@@ -5,6 +5,7 @@ from app.api.routes import (
     admin_dev,
     admin_reports,
     admin_settings,
+    admin_sync,
     admin_users,
     arduino,
     auth,
@@ -26,5 +27,6 @@ api_router.include_router(payments.router, prefix="/public", tags=["payments"])
 api_router.include_router(admin_reports.router, prefix="/admin/reports", tags=["admin-reports"])
 api_router.include_router(admin_settings.router, prefix="/admin", tags=["admin-settings"])
 api_router.include_router(admin_backups.router, prefix="/admin/backups", tags=["admin-backups"])
+api_router.include_router(admin_sync.router, prefix="/admin/sync", tags=["admin-sync"])
 api_router.include_router(admin_users.router, prefix="/admin/users", tags=["admin-users"])
 api_router.include_router(admin_dev.router, prefix="/admin", tags=["admin-dev"])

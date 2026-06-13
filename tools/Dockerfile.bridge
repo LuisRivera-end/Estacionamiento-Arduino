@@ -1,0 +1,16 @@
+# =============================================================================
+# Imagen del puente HTTP Arduino (modo Docker LOCAL)
+# =============================================================================
+# El puente es stdlib pura de Python (sin dependencias). Reenvía las peticiones
+# de los Arduino al backend local y, si éste no responde, al fallback (Render).
+# =============================================================================
+FROM python:3.13-alpine
+
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /app
+COPY arduino_http_bridge.py .
+
+EXPOSE 8080
+
+CMD ["python", "-u", "arduino_http_bridge.py"]

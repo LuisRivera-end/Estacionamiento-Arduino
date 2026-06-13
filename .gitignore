@@ -4,6 +4,11 @@
 wifi_credentials.h
 
 # =============================================
+# Entorno del stack local en Docker (contiene secretos)
+# =============================================
+.env.docker
+
+# =============================================
 # Archivos de sistema
 # =============================================
 .DS_Store

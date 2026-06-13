@@ -200,3 +200,37 @@ export type StaffUserCreateRequest = {
 export type ParkingNameResponse = {
   parking_name: string;
 };
+
+export type SyncTableResult = {
+  pushed: number;
+  skipped: number;
+};
+
+export type SyncPushResult = {
+  status: string;
+  full: boolean;
+  started_at: string;
+  finished_at: string;
+  duration_ms: number;
+  total_pushed: number;
+  tables: Record<string, SyncTableResult>;
+  error: string | null;
+};
+
+export type SyncTableStatus = {
+  table_name: string;
+  last_synced_at: string | null;
+  last_run_at: string | null;
+  last_status: string | null;
+  last_pushed_count: number;
+  pending_estimate: number;
+};
+
+export type SyncStatus = {
+  configured: boolean;
+  remote_reachable: boolean | null;
+  last_run_at: string | null;
+  last_status: string | null;
+  last_error: string | null;
+  tables: SyncTableStatus[];
+};

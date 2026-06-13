@@ -11,8 +11,16 @@ TARGET_BASE_URL = os.environ.get(
     "ARDUINO_BRIDGE_TARGET",
     "https://parking-api-9oag.onrender.com",
 ).rstrip("/")
+# Optional secondary backend. In the local Docker mode the primary target is the
+# local backend and this fallback is Render: if the primary is unreachable
+# (timeout / connection error, NOT an HTTP error response) the request is retried
+# here. Empty by default => identical behaviour to the single-target bridge.
+FALLBACK_BASE_URL = os.environ.get("ARDUINO_BRIDGE_FALLBACK", "").rstrip("/")
 HOST = os.environ.get("ARDUINO_BRIDGE_HOST", "0.0.0.0")
 PORT = int(os.environ.get("ARDUINO_BRIDGE_PORT", "8080"))
+# Per-target timeout. Lower it (e.g. 10) when the primary is local so an offline
+# backend fails fast and the fallback is tried quickly.
+REQUEST_TIMEOUT = int(os.environ.get("ARDUINO_BRIDGE_TIMEOUT", "45"))
 ALLOWED_PATH_PREFIX = "/api/v1/arduino/"
 
 
@@ -73,7 +81,6 @@ class ArduinoBridgeHandler(BaseHTTPRequestHandler):
         content_length = int(self.headers.get("Content-Length", "0"))
         body = self.rfile.read(content_length)
         print(f"DEBUG: raw body bytes = {body!r}")
-        target_url = f"{TARGET_BASE_URL}{self.path}"
 
         headers = {
             "Content-Type": self.headers.get("Content-Type", "application/json"),
@@ -86,12 +93,36 @@ class ArduinoBridgeHandler(BaseHTTPRequestHandler):
             f"token_len={len(headers['X-Device-Token'])} body_len={len(body)}"
         )
 
+        targets = [("primary", TARGET_BASE_URL)]
+        if FALLBACK_BASE_URL:
+            targets.append(("fallback", FALLBACK_BASE_URL))
+
+        last_failure: tuple[str, str] = ("url", "no target configured")
+        for index, (label, base_url) in enumerate(targets):
+            failure = self._forward(label, base_url, body, headers)
+            if failure is None:
+                return  # Response already written (success or HTTP-error passthrough).
+            last_failure = failure
+            if index + 1 < len(targets):
+                print(f"{label} target unreachable ({failure[1]}); trying fallback")
+
+        self._send_unreachable(last_failure)
+
+    def _forward(
+        self, label: str, base_url: str, body: bytes, headers: dict[str, str]
+    ) -> tuple[str, str] | None:
+        """Forward to one backend. Returns None if a response was written, or a
+        (kind, reason) failure tuple if the target was unreachable (try next)."""
+        target_url = f"{base_url}{self.path}"
         request = Request(target_url, data=body, headers=headers, method="POST")
 
         try:
-            with urlopen(request, timeout=45) as response:
+            with urlopen(request, timeout=REQUEST_TIMEOUT) as response:
                 response_body = response.read()
-                print(f"Target response {response.status} body={response_body.decode('utf-8', 'replace')[:200]}")
+                print(
+                    f"Target [{label}] response {response.status} "
+                    f"body={response_body.decode('utf-8', 'replace')[:200]}"
+                )
                 response_payload = parse_json_body(response_body)
                 response_body = compact_response_body(
                     self.path,
@@ -99,7 +130,10 @@ class ArduinoBridgeHandler(BaseHTTPRequestHandler):
                     response_payload,
                     response_body,
                 )
-                print(f"Bridge response {response.status} body={response_body.decode('utf-8', 'replace')[:200]}")
+                print(
+                    f"Bridge response {response.status} served_by={label} "
+                    f"body={response_body.decode('utf-8', 'replace')[:200]}"
+                )
                 self.send_response(response.status)
                 self.send_header(
                     "Content-Type",
@@ -114,9 +148,15 @@ class ArduinoBridgeHandler(BaseHTTPRequestHandler):
                 self.send_header("Content-Length", str(len(response_body)))
                 self.end_headers()
                 self.wfile.write(response_body)
+            return None
         except HTTPError as error:
+            # A 4xx/5xx is a real answer from the backend: pass it through as-is
+            # and do NOT fall back (the request was processed, just rejected).
             response_body = error.read()
-            print(f"Target response {error.code} body={response_body.decode('utf-8', 'replace')[:200]}")
+            print(
+                f"Target [{label}] response {error.code} "
+                f"body={response_body.decode('utf-8', 'replace')[:200]}"
+            )
             self.send_response(error.code)
             self.send_header(
                 "Content-Type",
@@ -125,23 +165,28 @@ class ArduinoBridgeHandler(BaseHTTPRequestHandler):
             self.send_header("Content-Length", str(len(response_body)))
             self.end_headers()
             self.wfile.write(response_body)
+            return None
         except TimeoutError:
-            print(f"Request timed out for {self.path}")
-            payload = b'{"error":"gateway_timeout","message":"Backend too slow"}'
-            self.send_response(504)
-            self.send_header("Content-Type", "application/json")
-            self.send_header("Content-Length", str(len(payload)))
-            self.end_headers()
-            self.wfile.write(payload)
+            print(f"[{label}] request timed out for {self.path}")
+            return ("timeout", "timeout")
         except URLError as error:
-            print(f"URL error for {self.path}: {error.reason}")
-            message = f'{{"error":"bridge_target_unreachable","message":"{error.reason}"}}'
+            print(f"[{label}] URL error for {self.path}: {error.reason}")
+            return ("url", str(error.reason))
+
+    def _send_unreachable(self, failure: tuple[str, str]) -> None:
+        kind, reason = failure
+        if kind == "timeout":
+            payload = b'{"error":"gateway_timeout","message":"Backend too slow"}'
+            status = 504
+        else:
+            message = f'{{"error":"bridge_target_unreachable","message":"{reason}"}}'
             payload = message.encode("utf-8")
-            self.send_response(502)
-            self.send_header("Content-Type", "application/json")
-            self.send_header("Content-Length", str(len(payload)))
-            self.end_headers()
-            self.wfile.write(payload)
+            status = 502
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(payload)))
+        self.end_headers()
+        self.wfile.write(payload)
 
     def log_message(self, format: str, *args: object) -> None:
         sys.stderr.write("%s - %s\n" % (self.address_string(), format % args))
@@ -150,7 +195,11 @@ class ArduinoBridgeHandler(BaseHTTPRequestHandler):
 def main() -> None:
     server = LoggingThreadingHTTPServer((HOST, PORT), ArduinoBridgeHandler)
     print(f"Arduino HTTP bridge listening on http://{HOST}:{PORT}")
-    print(f"Forwarding Arduino requests to {TARGET_BASE_URL}")
+    print(f"Primary target: {TARGET_BASE_URL}")
+    if FALLBACK_BASE_URL:
+        print(f"Fallback target: {FALLBACK_BASE_URL} (timeout {REQUEST_TIMEOUT}s per target)")
+    else:
+        print("Fallback target: <none>")
     server.serve_forever()
 
 
